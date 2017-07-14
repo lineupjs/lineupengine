@@ -1,0 +1,16 @@
+{
+  "generator-phovea": {
+    "type": "lib",
+    "libraries": [],
+    "libraryAliases": {},
+    "libraryExternals": [],
+    "modules": [],
+    "entries": "./index.js",
+    "ignores": [],
+    "extensions": [],
+    "name": "lineupengine",
+    "author": "Samuel Gratzl",
+    "today": "Fri, 14 Jul 2017 19:11:53 GMT",
+    "githubAccount": "sgratzl"
+  }
+}
