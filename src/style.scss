@@ -1,4 +1,4 @@
-.lu2 {
+.lineup-engine {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -79,5 +79,12 @@
       position: sticky;
       left: 0;
     }
+  }
+
+  .loading {
+    background-image: url('./assets/loading.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
   }
 }

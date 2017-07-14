@@ -2,6 +2,7 @@
  * Created by Samuel Gratzl on 13.07.2017.
  */
 import {IRowHeightException, IRowHeightExceptionLookup, range} from './logic';
+import {IAbortAblePromise, isAbortAble} from './utils';
 
 
 export interface IRenderContext {
@@ -15,6 +16,7 @@ export interface IRenderContext {
 
 export abstract class ABaseRenderer {
   private readonly pool: HTMLElement[] = [];
+  private readonly loading = new Map<HTMLElement, IAbortAblePromise<void>>();
 
   protected visibleFirst: number;
   protected visibleForcedFirst: number;
@@ -27,9 +29,9 @@ export abstract class ABaseRenderer {
 
   protected abstract get context(): IRenderContext;
 
-  protected abstract createRow(index: number, document: Document): HTMLElement;
+  protected abstract createRow(node: HTMLElement, index: number): IAbortAblePromise<void>|void;
 
-  protected abstract updateRow(node: HTMLElement, index: number): HTMLElement;
+  protected abstract updateRow(node: HTMLElement, index: number): IAbortAblePromise<void>|void;
 
   removeAll() {
     const arr = <HTMLElement[]>Array.from(this.node.children);
@@ -50,13 +52,21 @@ export abstract class ABaseRenderer {
     return this.remove(from, to, false);
   }
 
+
   private remove(from: number, to: number, fromBeginning: boolean) {
     for (let i = from; i <= to; ++i) {
       const item = <HTMLElement>(fromBeginning ? this.node.firstChild : this.node.lastChild);
       this.node.removeChild(item);
-      this.pool.push(item);
       if (item.style.height) {
         item.style.height = null;
+      }
+      // check if the dom element is still being manipulated
+      if (this.loading.has(item)) {
+        const abort = this.loading.get(item);
+        abort.abort();
+        abort.then(() => this.pool.push(item));
+      } else {
+        this.pool.push(item);
       }
     }
   }
@@ -71,12 +81,23 @@ export abstract class ABaseRenderer {
 
   private create(index: number) {
     let item: HTMLElement;
+    let r: IAbortAblePromise<void>|void;
     if (this.pool.length > 0) {
-      item = this.updateRow(this.pool.pop(), index);
+      item = this.pool.pop();
+      r = this.updateRow(item, index);
     } else {
-      item = this.createRow(index, this.node.ownerDocument);
+      item = this.node.ownerDocument.createElement('div');
+      r = this.createRow(item, index);
     }
-    item.dataset.row = String(index);
+    item.dataset.index = String(index);
+    if (isAbortAble(r)) {
+      item.classList.add('loading');
+      this.loading.set(item, <IAbortAblePromise<void>>r);
+      (<IAbortAblePromise<void>>r).then(() => {
+        item.classList.remove('loading');
+        this.loading.delete(item);
+      });
+    }
     return item;
   }
 

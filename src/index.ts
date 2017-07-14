@@ -61,7 +61,7 @@ export default class TestRenderer extends APrefetchRenderer {
   constructor(private readonly root: HTMLElement, id: string, numberOfRows = 100, numberOfColumns = 20) {
     super(<HTMLElement>setTemplate(root).querySelector(':scope > main > article'));
     root.id = id;
-    root.classList.add('lu2');
+    root.classList.add('lineup-engine');
     const scroller = <HTMLElement>root.querySelector(':scope > main');
 
 
@@ -105,14 +105,11 @@ export default class TestRenderer extends APrefetchRenderer {
     return this._context;
   }
 
-  protected createRow(index: number, document: Document) {
-    const node = document.createElement('div');
-    this.columns.forEach((col, i) => node.appendChild(col.cell(index, document)));
-    return node;
+  protected createRow(node: HTMLElement, index: number) {
+    this.columns.forEach((col, i) => node.appendChild(col.cell(index, node.ownerDocument)));
   }
 
   protected updateRow(node: HTMLElement, index: number) {
     this.columns.forEach((col, i) => col.update(<HTMLElement>node.children[i], index));
-    return node;
   }
 }
