@@ -43,7 +43,7 @@ module.exports = (config) => {
       // path: '<path>' // path to serve the polyfill script under, defaults to '/polyfill.js'
     },
 
-    browsers: [process.env.CONTINUOUS_INTEGRATION ? 'Firefox' : 'Chrome'],
+    browsers: ['Chrome'],
 
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits
