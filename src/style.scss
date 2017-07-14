@@ -17,9 +17,11 @@
     overflow-y: auto;
 
     > article {
-      &:not(.odd) > div:nth-child(even) > *,
-      &.odd > div:nth-child(odd) > * {
-        background: lightgray;
+      &:not(.odd) > div:nth-child(even),
+      &.odd > div:nth-child(odd),
+      &:not(.odd) > div:nth-child(even) > *.frozen,
+      &.odd > div:nth-child(odd) > *.frozen {
+        background-color: lightgray;
       }
     }
 
@@ -62,14 +64,14 @@
     justify-items: stretch;
 
     > * {
-      background: white;
+      transition: opacity 0.5s;
+      opacity: 1;
       overflow: hidden;
       text-overflow: ellipsis;
-    }
 
-    .bar {
-      width: 50%;
-      background-color: blue;
+      &.frozen {
+        background-color: white;
+      }
     }
   }
 
@@ -83,8 +85,13 @@
 
   .loading {
     background-image: url('./assets/loading.svg');
+    background-blend-mode: overlay;
     background-size: contain;
-    background-repeat: no-repeat;
+    background-repeat: repeat no-repeat;
     background-position: center;
+
+    > * {
+      opacity: 0;
+    }
   }
 }

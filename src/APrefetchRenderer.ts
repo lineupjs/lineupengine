@@ -3,7 +3,7 @@
  */
 import {ABaseRenderer} from './ABaseRenderer';
 import {range} from './logic';
-export {IRenderContext} from './ABaseRenderer';
+export {IRenderContext, abortAble} from './ABaseRenderer';
 
 export interface IPrefetchRendererOptions {
   readonly prefetchRows?: number;

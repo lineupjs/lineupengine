@@ -1,7 +1,7 @@
 /**
  * Created by Samuel Gratzl on 13.07.2017.
  */
-import {APrefetchRenderer, IRenderContext} from './APrefetchRenderer';
+import {APrefetchRenderer, IRenderContext, abortAble} from './APrefetchRenderer';
 import {uniformContext} from './logic';
 import {StyleManager, IColumn, setColumn} from './style';
 import './style.scss';
@@ -16,6 +16,11 @@ function setTemplate(root: HTMLElement) {
   return root;
 }
 
+function resolveIn(ms: number) {
+  return new Promise<void>((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
 
 class Column<T> implements IColumn {
   constructor(public readonly index: number, public readonly name: string, public readonly frozen: boolean = false, public readonly width = 100) {
@@ -106,10 +111,14 @@ export default class TestRenderer extends APrefetchRenderer {
   }
 
   protected createRow(node: HTMLElement, index: number) {
-    this.columns.forEach((col, i) => node.appendChild(col.cell(index, node.ownerDocument)));
+    return abortAble(resolveIn(2000)).then(() => {
+      this.columns.forEach((col, i) => node.appendChild(col.cell(index, node.ownerDocument)));
+    });
   }
 
   protected updateRow(node: HTMLElement, index: number) {
-    this.columns.forEach((col, i) => col.update(<HTMLElement>node.children[i], index));
+    return abortAble(resolveIn(2000)).then(() => {
+      this.columns.forEach((col, i) => col.update(<HTMLElement>node.children[i], index));
+    });
   }
 }
