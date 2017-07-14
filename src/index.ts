@@ -4,6 +4,7 @@
 import {APrefetchRenderer, IRenderContext} from './APrefetchRenderer';
 import {uniformContext} from './logic';
 import {StyleManager, IColumn, setColumn} from './style';
+import './style.scss';
 
 function setTemplate(root: HTMLElement) {
   root.innerHTML = `<header>
