@@ -4,8 +4,6 @@
  * Licensed under the new BSD license, available at http://caleydo.org/license
  **************************************************************************** */
 
-//build registry
-require('./phovea_registry.js');
 /**
  * find all tests in the spec directory and load them
  */
