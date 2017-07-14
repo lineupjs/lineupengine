@@ -135,13 +135,7 @@ function generateWebpack(options) {
   }
 
   if (options.library) {
-    let libName = /phovea_.*/.test(pkg.name) ? ['phovea', pkg.name.slice(7)] : pkg.name;
-    //generate a library, i.e. output the last entry element
-    //create library name
-    if (options.moduleBundle) {
-      libName = 'phovea';
-    }
-    base.output.library = libName;
+    base.output.library = 'lineupengine';
     base.output.libraryTarget = 'umd';
     base.output.umdNamedDefine = false; //anonymous require module
   }
