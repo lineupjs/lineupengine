@@ -20,6 +20,7 @@ export interface IRowHeightExceptionLookup {
   keys(): IterableIterator<number>;
   get(index: number): number;
   has(index: number): boolean;
+  readonly size: number;
 }
 
 export interface IExceptionContext {
@@ -33,18 +34,18 @@ export function uniformContext(numberOfRows: number, rowHeight: number): IExcept
   const exceptionsLookup = {
     keys: () => arr.values(),
     get: () => rowHeight,
-    has: () => false
+    has: () => false,
+    size: 0
   };
   return {exceptions: [], exceptionsLookup, totalHeight: numberOfRows * rowHeight};
 }
 
-export function nonUniformContext<T>(rows: { forEach: (callback: (row: T, index: number)=>any)=>any}, rowHeightOf: (row: T, i: number)=>number, defaultRowHeight: number): IExceptionContext {
+export function nonUniformContext(rowHeights: { forEach: (callback: (height: number, index: number)=>any)=>any}, defaultRowHeight: number): IExceptionContext {
   const exceptionsLookup = new Map<number, number>();
   const exceptions: IRowHeightException[] = [];
 
   let prev = -1, acc = 0, totalHeight = 0;
-  rows.forEach((row, index) => {
-    const height = rowHeightOf(row, index);
+  rowHeights.forEach((height, index) => {
     totalHeight += height;
     if (height === defaultRowHeight) {
       //regular
@@ -67,11 +68,7 @@ export function randomContext(numberOfRows: number, defaultRowHeight: number, mi
     return x - Math.floor(x);
   };
 
-  const forEach = (callback: (row: number, index: number)=>any) => {
-    for(let index = 0; index < numberOfRows; ++index) {
-      callback(index, index);
-    }
-  };
+
   const getter = () => {
     const coin = random();
     if (coin < ratio) {
@@ -80,37 +77,12 @@ export function randomContext(numberOfRows: number, defaultRowHeight: number, mi
     }
     return defaultRowHeight;
   };
-  return nonUniformContext({forEach}, getter, defaultRowHeight);
-}
-
-/**
- *
- * @param {IRowHeightExceptionLookup} exceptions
- * @param {number} defaultRowHeight
- * @return {IRowHeightException[]}
- */
-export function toPositions(exceptions: IRowHeightExceptionLookup, defaultRowHeight: number): IRowHeightException[] {
-  let prev = -1, acc = 0;
-  return Array.from(exceptions.keys()).sort((a, b) => a - b).map((index) => {
-    const height = exceptions.get(index);
-    const between = (index - prev - 1) * defaultRowHeight;
-    prev = index;
-    const y = acc + between;
-    acc = y + height;
-    return new RowHeightException(index, y, height);
-  });
-}
-
-/**
- * computes the total height
- */
-export function total(numberOfRows: number, heightExceptions: IRowHeightException[], defaultRowHeight: number) {
-  if (heightExceptions.length === 0) {
-    return numberOfRows * defaultRowHeight;
-  }
-  let total = (numberOfRows - heightExceptions.length) * defaultRowHeight;
-  heightExceptions.forEach(({height}) => total += height);
-  return total;
+  const forEach = (callback: (height: number, index: number)=>any) => {
+    for(let index = 0; index < numberOfRows; ++index) {
+      callback(getter(), index);
+    }
+  };
+  return nonUniformContext({forEach}, defaultRowHeight);
 }
 
 export interface IVisibleRange {
