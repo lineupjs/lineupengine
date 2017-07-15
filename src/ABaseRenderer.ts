@@ -2,8 +2,8 @@
  * Created by Samuel Gratzl on 13.07.2017.
  */
 import {IRowHeightException, IRowHeightExceptionLookup, range} from './logic';
-import {IAbortAblePromise, isAbortAble, ABORTED} from './utils';
-export {abortAble} from './utils';
+import {IAbortAblePromise, isAbortAble, ABORTED} from './abortAble';
+export abortAble from './abortAble';
 
 
 export interface IRenderContext {

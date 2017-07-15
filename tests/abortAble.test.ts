@@ -1,5 +1,5 @@
 /// <reference types="jasmine" />
-import {ABORTED, isAbortAble, abortAble} from '../src/utils';
+import abortAble, {ABORTED, isAbortAble} from '../src/abortAble';
 
 describe('utils', () => {
   it('abortAble', () => {

@@ -6,7 +6,7 @@ export interface IAbortAblePromise<T> extends Promise<T|symbol> {
 
 export const ABORTED = Symbol('aborted');
 
-export function abortAble<T>(loader: Promise<T>) {
+export default function abortAble<T>(loader: Promise<T>) {
   return {
     then<TResult1 = T>(onfulfilled: ((value: T) => TResult1 | PromiseLike<TResult1>)): IAbortAblePromise<TResult1> {
       let aborted: (v: symbol)=>void;
