@@ -1,7 +1,7 @@
 /**
  * Created by Samuel Gratzl on 13.07.2017.
  */
-import {APrefetchRenderer, IRenderContext, abortAble} from './APrefetchRenderer';
+import {ABaseRenderer, IRenderContext, abortAble} from './ABaseRenderer';
 import {uniformContext} from './logic';
 import {StyleManager, IColumn, setColumn} from './style';
 import './style.scss';
@@ -57,7 +57,7 @@ class Column<T> implements IColumn {
   }
 }
 
-export default class TestRenderer extends APrefetchRenderer {
+export default class TestRenderer extends ABaseRenderer {
   private readonly style: StyleManager;
   protected readonly _context: IRenderContext;
 
@@ -111,13 +111,14 @@ export default class TestRenderer extends APrefetchRenderer {
   }
 
   protected createRow(node: HTMLElement, index: number) {
-    return abortAble(resolveIn(2000)).then(() => {
-      this.columns.forEach((col, i) => node.appendChild(col.cell(index, node.ownerDocument)));
-    });
+    console.log('init', node.dataset.uid, 'with', index);
+    this.columns.forEach((col, i) => node.appendChild(col.cell(index, node.ownerDocument)));
   }
 
   protected updateRow(node: HTMLElement, index: number) {
+    console.log('preupdate', node.dataset.uid, 'with', index);
     return abortAble(resolveIn(2000)).then(() => {
+      console.log('update', node.dataset.uid, 'with', index);
       this.columns.forEach((col, i) => col.update(<HTMLElement>node.children[i], index));
     });
   }

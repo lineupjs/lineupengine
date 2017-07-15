@@ -2,7 +2,7 @@
  * Created by Samuel Gratzl on 13.07.2017.
  */
 import {IRowHeightException, IRowHeightExceptionLookup, range} from './logic';
-import {IAbortAblePromise, isAbortAble} from './utils';
+import {IAbortAblePromise, isAbortAble, ABORTED} from './utils';
 export {abortAble} from './utils';
 
 
@@ -17,7 +17,8 @@ export interface IRenderContext {
 
 export abstract class ABaseRenderer {
   private readonly pool: HTMLElement[] = [];
-  private readonly loading = new Map<HTMLElement, IAbortAblePromise<void>>();
+  private readonly loadingPool: HTMLElement[] = [];
+  private readonly loading = new Map<HTMLElement, { abort: IAbortAblePromise<void>, real: HTMLElement}>();
 
   protected visibleFirst: number;
   protected visibleForcedFirst: number;
@@ -36,12 +37,9 @@ export abstract class ABaseRenderer {
 
   removeAll() {
     const arr = <HTMLElement[]>Array.from(this.node.children);
-    this.pool.push(...arr);
     this.node.innerHTML = '';
-    arr.forEach((item,) => {
-      if (item.style.height) {
-        item.style.height = null;
-      }
+    arr.forEach((item) => {
+      this.recycle(item);
     });
   }
 
@@ -53,22 +51,32 @@ export abstract class ABaseRenderer {
     return this.remove(from, to, false);
   }
 
+  private cleanUp(item: HTMLElement) {
+    if (item.style.height) {
+      item.style.height = null;
+    }
+  }
+
+  private recycle(item: HTMLElement) {
+    this.cleanUp(item);
+    // check if the original dom element is still being manipulated
+    if (this.loading.has(item)) {
+      const {abort, real} = this.loading.get(item);
+      console.log('abort', item.dataset.uid, 'of', real.dataset.uid);
+      this.loading.delete(item); // mark as aborted
+      this.loadingPool.push(item);
+      abort.abort();
+    } else {
+      console.log('recycle', item.dataset.uid);
+      this.pool.push(item);
+    }
+  }
 
   private remove(from: number, to: number, fromBeginning: boolean) {
     for (let i = from; i <= to; ++i) {
       const item = <HTMLElement>(fromBeginning ? this.node.firstChild : this.node.lastChild);
       this.node.removeChild(item);
-      if (item.style.height) {
-        item.style.height = null;
-      }
-      // check if the dom element is still being manipulated
-      if (this.loading.has(item)) {
-        const abort = this.loading.get(item);
-        abort.abort();
-        abort.then(() => this.pool.push(item));
-      } else {
-        this.pool.push(item);
-      }
+      this.recycle(item);
     }
   }
 
@@ -80,26 +88,63 @@ export abstract class ABaseRenderer {
     return this.add(from, to, false);
   }
 
+  uid: number = 0;
+  puid: number = 0;
+
   private create(index: number) {
     let item: HTMLElement;
     let r: IAbortAblePromise<void>|void;
     if (this.pool.length > 0) {
       item = this.pool.pop();
       r = this.updateRow(item, index);
+    } else if (this.loadingPool.length > 0) {
+      item = this.loadingPool.pop();
+      item.classList.remove('loading');
+      r = this.createRow(item, index);
     } else {
       item = this.node.ownerDocument.createElement('div');
+      item.dataset.uid = String(this.uid++);
       r = this.createRow(item, index);
     }
     item.dataset.index = String(index);
-    if (isAbortAble(r)) {
-      item.classList.add('loading');
-      this.loading.set(item, <IAbortAblePromise<void>>r);
-      (<IAbortAblePromise<void>>r).then(() => {
-        item.classList.remove('loading');
-        this.loading.delete(item);
-      });
+
+    if (!isAbortAble(r)) {
+      return item;
     }
-    return item;
+    //lazy loading
+
+    const real = item;
+    let proxy: HTMLElement;
+    if (this.loadingPool.length > 0) {
+      proxy = this.loadingPool.pop();
+    } else {
+      proxy = this.node.ownerDocument.createElement('div');
+      proxy.dataset.uid = 'p' + String(this.puid++);
+      proxy.classList.add('loading');
+    }
+    // copy attributes
+    proxy.dataset.index = String(index);
+    proxy.style.height = real.style.height;
+
+    this.loading.set(proxy, {abort: <IAbortAblePromise<void>>r, real});
+    (<IAbortAblePromise<void>>r).then((result) => {
+      if (result === ABORTED) {
+        //aborted can recycle the real one
+        console.log('been', real.dataset.uid, 'with', index);
+        this.cleanUp(real);
+        this.pool.push(real);
+      } else {
+        //fully loaded
+        console.log('fully', proxy.dataset.uid, real.dataset.uid, 'with', index);
+        this.node.replaceChild(real, proxy);
+      }
+      if (this.loading.has(proxy)) {
+        this.loading.delete(proxy);
+        this.cleanUp(proxy);
+        this.loadingPool.push(proxy);
+      }
+    });
+    return proxy;
   }
 
   private add(from: number, to: number, atBeginning: boolean) {

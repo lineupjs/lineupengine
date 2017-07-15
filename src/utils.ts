@@ -9,15 +9,11 @@ export const ABORTED = Symbol('aborted');
 export function abortAble<T>(loader: Promise<T>) {
   return {
     then<TResult1 = T>(onfulfilled: ((value: T) => TResult1 | PromiseLike<TResult1>)): IAbortAblePromise<TResult1> {
-      let aborted = false;
-      const p = loader.then<TResult1|symbol>((loaded: T) => {
-        if (aborted) {
-          return ABORTED;
-        }
-        return onfulfilled(loaded);
-      });
+      let aborted: (v: symbol)=>void;
+      const aborter = new Promise<symbol>((resolve) => aborted = resolve);
+      const p = Promise.race<TResult1|symbol>([aborter, loader.then(onfulfilled)]);
       return {
-        abort: () => aborted = true,
+        abort: () => aborted(ABORTED),
         then: p.then.bind(p),
         catch: p.catch.bind(p),
         [Symbol.toStringTag]: p[Symbol.toStringTag]

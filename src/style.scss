@@ -64,8 +64,6 @@
     justify-items: stretch;
 
     > * {
-      transition: opacity 0.5s;
-      opacity: 1;
       overflow: hidden;
       text-overflow: ellipsis;
 
@@ -84,13 +82,30 @@
   }
 
   .loading {
-    background-image: url('./assets/loading.svg');
+    background-image: url('./assets/loading_static.svg');
     background-blend-mode: overlay;
     background-size: contain;
     background-repeat: repeat no-repeat;
     background-position: center;
+  }
 
-    > * {
+  &:not(.animated) .loading > * {
+    opacity: 0;
+    //display: none !important;
+  }
+
+  &.animated {
+    > header > article > *,
+    > main > article > div > * {
+      transition: opacity 0.5s;
+      opacity: 1;
+    }
+
+    .loading {
+      background-image: url('./assets/loading.svg');
+    }
+
+    > .loading > * {
       opacity: 0;
     }
   }
