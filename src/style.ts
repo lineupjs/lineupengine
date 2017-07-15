@@ -2,6 +2,8 @@
  * Created by Samuel Gratzl on 13.07.2017.
  */
 
+import './style.scss';
+
 export const isEdge = typeof CSS !== 'undefined' && CSS.supports('(-ms-ime-align:auto)');
 
 export interface IColumn {

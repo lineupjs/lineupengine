@@ -13,12 +13,13 @@
     ],
     "baseUrl": "../",
     "noImplicitAny": false,
-    "skipLibCheck": true,
-    "compileOnSave": false
+    "skipLibCheck": true
   },
   "include": [
     "src/**/*.ts",
     "src/**/*.tsx",
+    "demo/**/*.ts",
+    "demo/**/*.tsx",
     "tests/**/*.ts",
     "index.ts",
     "tsd.d.ts"

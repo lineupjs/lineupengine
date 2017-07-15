@@ -1,10 +1,10 @@
 /**
  * Created by Samuel Gratzl on 13.07.2017.
  */
-import {APrefetchRenderer, IRenderContext, abortAble} from './APrefetchRenderer';
-import {uniformContext} from './logic';
-import {StyleManager, IColumn, setColumn} from './style';
-import './style.scss';
+import 'file-loader?name=demo.html!extract-loader!html-loader!./index.html';
+import {APrefetchRenderer, IRenderContext, abortAble} from '../src/APrefetchRenderer';
+import {uniformContext} from '../src/logic';
+import {StyleManager, IColumn, setColumn} from '../src/style';
 
 function setTemplate(root: HTMLElement) {
   root.innerHTML = `<header>

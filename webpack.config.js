@@ -4,7 +4,6 @@
  * Licensed under the new BSD license, available at http://caleydo.org/license
  **************************************************************************** */
 
-const {libraryAliases, libraryExternals, modules, entries, ignores, type} = require('./.yo-rc.json')['generator-phovea'];
 const resolve = require('path').resolve;
 const pkg = require('./package.json');
 const webpack = require('webpack');
@@ -59,19 +58,22 @@ const webpackloaders = [
  */
 function generateWebpack(options) {
   let base = {
-    entry: options.entries,
+    entry: {
+      lineupengine: './index.js',
+      demo: './demo/index.ts'
+    },
     output: {
       path: resolve(__dirname, 'build'),
-      filename: (options.name || (pkg.name + (options.bundle ? '_bundle' : ''))) + (options.min && !options.nosuffix ? '.min' : '') + '.js',
+      filename: '[name]' + (options.min && !options.nosuffix ? '.min' : '') + '.js',
       chunkFilename: '[chunkhash].js',
-      publicPath: '' //no public path = relative
+      publicPath: '', //no public path = relative
+      library: 'lineupengine',
+      libraryTarget:'umd',
+      umdNamedDefine: false //anonymous require module
     },
     resolve: {
       // Add `.ts` and `.tsx` as a resolvable extension.
-      extensions: ['.webpack.js', '.web.js', '.ts', '.tsx', '.js'],
-      alias: Object.assign({}, options.libs || {}),
-      //fallback to the directory above if they are siblings just in the workspace context
-      modules: ['node_modules']
+      extensions: ['.webpack.js', '.web.js', '.ts', '.tsx', '.js']
     },
     plugins: [
       //define magic constants that are replaced
@@ -134,26 +136,10 @@ function generateWebpack(options) {
 		  new webpack.optimize.AggressiveMergingPlugin());
   }
 
-  if (options.library) {
-    base.output.library = 'lineupengine';
-    base.output.libraryTarget = 'umd';
-    base.output.umdNamedDefine = false; //anonymous require module
-  }
-
-
-  if (!options.bundle) {
-    //if we don't bundle don't include external libraries and other phovea modules
-    base.externals.push(...(options.externals || Object.keys(options.libs || {})));
-
-    //ignore extra modules
-    (options.ignore || []).forEach(function (d) {
-      base.module.loaders.push({test: new RegExp(d), loader: 'null-loader'}); //use null loader
-    });
-  }
-  if (!options.bundle || options.isApp) {
+  if (!options.isTest) {
     //extract the included css file to own file
     let p = new ExtractTextPlugin({
-      filename: (options.isApp || options.moduleBundle ? 'style' : pkg.name)  + (options.min && !options.nosuffix ? '.min' : '') + '.css',
+      filename: '[name]'  + (options.min && !options.nosuffix ? '.min' : '') + '.css',
       allChunks: true // there seems to be a bug in dynamically loaded chunk styles are not loaded, workaround: extract all styles from all chunks
     });
     base.plugins.push(p);
@@ -161,18 +147,6 @@ function generateWebpack(options) {
       test: /\.scss$/,
       loader: p.extract(['css-loader', 'sass-loader'])
     };
-  }
-  if (options.isApp) {
-    // create manifest
-    // base.plugins.push(new webpack.optimize.AppCachePlugin());
-  }
-  if (options.commons) {
-    //build a commons plugin
-    base.plugins.push(new webpack.optimize.CommonsChunkPlugin({
-      // The order of this array matters
-      names: ['common'],
-      minChunks: 2
-    }));
   }
   if (options.min) {
     //use a minifier
@@ -203,44 +177,18 @@ function generateWebpackConfig(env) {
   const isDev = !isProduction && !isTest;
 
   const base = {
-    entries: entries,
-    libs: libraryAliases,
-    externals: libraryExternals,
-    modules: modules,
-    ignore: ignores,
     isProduction: isProduction,
     isDev: isDev,
     isTest: isTest
   };
 
   if (isTest) {
-    return generateWebpack(Object.assign({}, base, {
-      bundle: true
-    }));
-  }
-
-  if (type.startsWith('app')) {
-    base.isApp = true;
-    base.bundle = true; //bundle everything together
-    base.name = '[name]'; //multiple entries case
-    base.commons = true; //extract commons module
-  } else if (type === 'bundle') {
-    base.library = true; //expose as library
-    base.moduleBundle = true; //expose as library 'phovea'
-    base.name = pkg.name; //to avoid adding _bundle
-    base.bundle = true;
-  } else { //type === 'lib'
-    base.library = true;
+    return generateWebpack(base);
   }
 
   //single generation
   if (isDev) {
     return generateWebpack(base);
-  } else if (type.startsWith('app')) { //isProduction app
-    return generateWebpack(Object.assign({}, base, {
-        min: true,
-        nosuffix: true
-      }));
   } else { //isProduction
     return [
       //plain
