@@ -40,11 +40,31 @@ export default class Column implements IColumn {
   }
 
   createGroup(row: InnerNode, index: number, document: Document) {
-    return this.updateGroup(this.common(document), row, index);
+    const n = this.common(document);
+    n.innerHTML = `<div class="bin"></div><div class="bin"></div><div class="bin"></div><div class="bin"></div><div class="bin"></div>`;
+    return this.updateGroup(n, row, index);
   }
 
   updateGroup(node: HTMLElement, row: InnerNode, index: number) {
-    node.textContent = `Group(${row.length})@${index.toString()}`;
+    const hist = <number[]>row.aggregate;
+    const max = Math.max(...hist);
+    hist.forEach((bin, i) => {
+      const binNode = <HTMLElement>node.children[i];
+      binNode.style.transform = `translateY(${Math.round((max-bin)*100 / max)}%)`;
+      binNode.textContent = `#${bin}`;
+    });
     return node;
   }
+}
+
+
+export function computeHist(leaves: LeafNode<number>[]) {
+  const bins = [0, 0, 0, 0, 0];
+
+  leaves.forEach((leaf) => {
+    const bin = Math.floor(leaf.item * 5) % 5;
+    bins[bin] ++;
+  });
+
+  return bins;
 }

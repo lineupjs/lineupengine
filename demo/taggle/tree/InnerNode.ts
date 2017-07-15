@@ -9,6 +9,8 @@ export default class InnerNode {
   aggregatedHeight = 100;
   parent: InnerNode = null;
 
+  aggregate: any;
+
   constructor(public readonly name: string) {
 
   }

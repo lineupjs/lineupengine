@@ -6,7 +6,7 @@ import {APrefetchRenderer, IRenderContext} from '../../src/APrefetchRenderer';
 import {nonUniformContext} from '../../src/logic';
 import {StyleManager, TEMPLATE} from '../../src/style';
 import {fromArray, INode, LeafNode, InnerNode, EAggregationType} from './tree';
-import Column from './Column';
+import Column, {computeHist} from './Column';
 import './style.scss';
 
 function setTemplate(root: HTMLElement) {
@@ -58,6 +58,7 @@ export default class TestRenderer extends APrefetchRenderer {
       if (Math.random() < 0.25) {
         inner.aggregation = EAggregationType.AGGREGATED;
         inner.height = groupHeight;
+        inner.aggregate = computeHist(inner.flatLeaves<number>());
       }
     });
 
@@ -94,10 +95,10 @@ export default class TestRenderer extends APrefetchRenderer {
 
     this.columns.forEach((col, i) => {
       const child = row.type === 'leaf' ? col.createSingle(<LeafNode<number>>row, i, document) : col.createGroup(<InnerNode>row, i, document);
-      child.dataset.type = row.type;
       node.appendChild(child);
     });
 
+    node.dataset.type = row.type;
     if (row.height !== this.defaultRowHeight) {
       node.style.height = `${row.height}px`;
     }
@@ -107,9 +108,10 @@ export default class TestRenderer extends APrefetchRenderer {
     const row = this.getRow(index);
     const document = node.ownerDocument;
 
+    const was = node.dataset.type;
+    node.dataset.type = row.type;
     this.columns.forEach((col, i) => {
       const child = <HTMLElement>node.children[i];
-      const was = child.dataset.type;
       if (was !== row.type) {
         const replacement = row.type === 'leaf' ? col.createSingle(<LeafNode<number>>row, i, document) : col.createGroup(<InnerNode>row, i, document);
         node.replaceChild(replacement, child);
