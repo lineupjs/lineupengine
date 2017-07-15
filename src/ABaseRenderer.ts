@@ -42,9 +42,6 @@ export abstract class ABaseRenderer {
     }
   }
 
-  uid: number = 0;
-  puid: number = 0;
-
   private select(index: number): {item: HTMLElement, result: IAbortAblePromise<void>|void} {
     let item: HTMLElement;
     let result: IAbortAblePromise<void>|void;
@@ -57,7 +54,6 @@ export abstract class ABaseRenderer {
       result = this.createRow(item, index);
     } else {
       item = this.node.ownerDocument.createElement('div');
-      item.dataset.uid = String(this.uid++);
       result = this.createRow(item, index);
     }
     item.dataset.index = String(index);
@@ -70,7 +66,6 @@ export abstract class ABaseRenderer {
       proxy = this.loadingPool.pop();
     } else {
       proxy = this.node.ownerDocument.createElement('div');
-      proxy.dataset.uid = 'p' + String(this.puid++);
       proxy.classList.add('loading');
     }
     return proxy;
@@ -81,10 +76,8 @@ export abstract class ABaseRenderer {
     // check if the original dom element is still being manipulated
     if (this.loading.has(item)) {
       const abort = this.loading.get(item);
-      console.log('abort', item.dataset.uid);
       abort.abort();
     } else {
-      console.log('recycle', item.dataset.uid);
       this.pool.push(item);
     }
   }
@@ -108,12 +101,10 @@ export abstract class ABaseRenderer {
     abort.then((result) => {
       if (result === ABORTED) {
         //aborted can recycle the real one
-        console.log('been', real.dataset.uid, 'with', index);
         this.cleanUp(real);
         this.pool.push(real);
       } else {
         //fully loaded
-        console.log('fully', proxy.dataset.uid, real.dataset.uid, 'with', index);
         this.node.replaceChild(real, proxy);
       }
       this.loading.delete(proxy);

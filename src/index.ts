@@ -104,21 +104,16 @@ export default class TestRenderer extends APrefetchRenderer {
     this.style.updateFrozenColumnsShift(this.columns, scrollLeft);
   }
 
-
-
   protected get context(): IRenderContext {
     return this._context;
   }
 
   protected createRow(node: HTMLElement, index: number) {
-    console.log('init', node.dataset.uid, 'with', index);
     this.columns.forEach((col, i) => node.appendChild(col.cell(index, node.ownerDocument)));
   }
 
   protected updateRow(node: HTMLElement, index: number) {
-    console.log('preupdate', node.dataset.uid, 'with', index);
     return abortAble(resolveIn(2000)).then(() => {
-      console.log('update', node.dataset.uid, 'with', index);
       this.columns.forEach((col, i) => col.update(<HTMLElement>node.children[i], index));
     });
   }
