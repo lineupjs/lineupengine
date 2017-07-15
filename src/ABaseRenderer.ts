@@ -82,9 +82,7 @@ export abstract class ABaseRenderer {
     }
   }
 
-  private create(index: number) {
-    const {item, result} = this.select(index);
-
+  private proxy(index: number, item: HTMLElement, result: IAbortAblePromise<void>|void) {
     if (!isAbortAble(result)) {
       return item;
     }
@@ -114,12 +112,34 @@ export abstract class ABaseRenderer {
     return proxy;
   }
 
+  private create(index: number) {
+    const {item, result} = this.select(index);
+
+    return this.proxy(index, item, result);
+  }
+
   protected removeAll() {
     const arr = <HTMLElement[]>Array.from(this.node.children);
     this.node.innerHTML = '';
     arr.forEach((item) => {
       this.recycle(item);
     });
+  }
+
+  protected update() {
+    for(let i = this.visibleFirst; i <= this.visibleLast; ++i) {
+      const item = <HTMLElement>this.node.children[i];
+      if (this.loading.has(item)) {
+       // still loading
+        continue;
+      }
+      const abort = this.updateRow(item, i);
+
+      const proxied = this.proxy(i, item, abort);
+      if (proxied !== item) { //got a proxy back
+        this.node.replaceChild(proxied, item);
+      }
+    }
   }
 
   protected removeFromBeginning(from: number, to: number) {
