@@ -2,7 +2,7 @@
 
 import {EAggregationType, INode, LeafNode, InnerNode} from './';
 
-export function flatLeaves(root: INode, result: LeafNode[] = []) {
+export function flatLeaves<T>(root: INode, result: LeafNode<T>[] = []) {
   if (root.type === 'leaf') {
     result.push(root);
     return result;
@@ -23,7 +23,7 @@ export function fromArray<T>(rows: T[], rowHeight: number, grouper?: (row: T) =>
   const root = new InnerNode('');
 
   const leaves = rows.map((r) => {
-    const n = new LeafNode((r));
+    const n = new LeafNode(r);
     n.height = rowHeight;
     n.parent = root;
     return n;

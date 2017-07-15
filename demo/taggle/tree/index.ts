@@ -11,4 +11,4 @@ export enum EAggregationType {
   UNIFORM
 }
 
-export declare type INode = LeafNode | InnerNode;
+export declare type INode = LeafNode<any> | InnerNode;

@@ -26,12 +26,16 @@ export default class Column implements IColumn {
     return d;
   }
 
-  createSingle(row: LeafNode, index: number, document: Document) {
-    return this.updateSingle(this.common(document), row, index);
+  createSingle(row: LeafNode<number>, index: number, document: Document) {
+    const n = this.common(document);
+    n.innerHTML = `<div class="bar"></div>`;
+    return this.updateSingle(n, row, index);
   }
 
-  updateSingle(node: HTMLElement, row: LeafNode, index: number) {
-    node.textContent = `Single#${row.item}@${index.toString()}`;
+  updateSingle(node: HTMLElement, row: LeafNode<number>, index: number) {
+    const bar = <HTMLElement>node.children[0];
+    bar.style.width = `${Math.round(row.item * 100)}%`;
+    bar.textContent = row.item.toFixed(2);
     return node;
   }
 

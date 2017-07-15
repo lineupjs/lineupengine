@@ -31,7 +31,7 @@ export default class InnerNode {
     return this.name;
   }
 
-  get flatChildren(): INode[] {
+  flatChildren(): INode[] {
     const result: INode[] = [];
     return this.children.reduce((r, child) => flat(child, r), result);
   }
@@ -48,8 +48,8 @@ export default class InnerNode {
     return this.children.reduce((r, n) => n.flatLeavesLength, 0);
   }
 
-  get flatLeaves(): LeafNode[] {
-    const result: LeafNode[] = [];
+  flatLeaves<T>(): LeafNode<T>[] {
+    const result: LeafNode<T>[] = [];
     return this.children.reduce((r, child) => flatLeaves(child, r), result);
   }
 

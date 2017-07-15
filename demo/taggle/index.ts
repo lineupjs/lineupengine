@@ -7,6 +7,7 @@ import {nonUniformContext} from '../../src/logic';
 import {StyleManager, TEMPLATE} from '../../src/style';
 import {fromArray, INode, LeafNode, InnerNode, EAggregationType} from './tree';
 import Column from './Column';
+import './style.scss';
 
 function setTemplate(root: HTMLElement) {
   root.innerHTML = TEMPLATE;
@@ -32,12 +33,10 @@ export default class TestRenderer extends APrefetchRenderer {
     this.defaultRowHeight = 20;
     const tree = this.createTree(numberOfRows, this.defaultRowHeight, 100);
 
-    this.flat = tree.flatChildren;
+    this.flat = tree.flatChildren();
 
-    this.columns = [];
-    for (let i = 0; i < numberOfColumns; ++i) {
-      this.columns.push(new Column(i, i.toString(36), i % 4 === 0));
-    }
+    this.columns = [new Column(0, 'Number', false, 300)];
+
     const exceptions = nonUniformContext(this.flat.map((n) => n.height), this.defaultRowHeight);
 
     this._context = Object.assign({
@@ -51,11 +50,16 @@ export default class TestRenderer extends APrefetchRenderer {
   }
 
   private createTree(numberOfRows: number, leafHeight: number, groupHeight: number): InnerNode {
-    const arr = Array.from(new Array(numberOfRows).keys());
-    const root = fromArray(arr, leafHeight, (row: number) => String(row % 4));
-    const agg = <InnerNode>root.children[1];
-    agg.aggregation = EAggregationType.AGGREGATED;
-    agg.height = groupHeight;
+    const arr = Array.from(new Array(numberOfRows).keys()).map(() => Math.random());
+    const root = fromArray(arr, leafHeight, (row: number) => String(Math.floor(row*4)));
+
+    root.children.forEach((n) => {
+      const inner = <InnerNode>n;
+      if (Math.random() < 0.25) {
+        inner.aggregation = EAggregationType.AGGREGATED;
+        inner.height = groupHeight;
+      }
+    });
 
     return root;
   }
@@ -89,7 +93,7 @@ export default class TestRenderer extends APrefetchRenderer {
     const document = node.ownerDocument;
 
     this.columns.forEach((col, i) => {
-      const child = row.type === 'leaf' ? col.createSingle(<LeafNode>row, i, document) : col.createGroup(<InnerNode>row, i, document);
+      const child = row.type === 'leaf' ? col.createSingle(<LeafNode<number>>row, i, document) : col.createGroup(<InnerNode>row, i, document);
       child.dataset.type = row.type;
       node.appendChild(child);
     });
@@ -107,11 +111,11 @@ export default class TestRenderer extends APrefetchRenderer {
       const child = <HTMLElement>node.children[i];
       const was = child.dataset.type;
       if (was !== row.type) {
-        const replacement = row.type === 'leaf' ? col.createSingle(<LeafNode>row, i, document) : col.createGroup(<InnerNode>row, i, document);
+        const replacement = row.type === 'leaf' ? col.createSingle(<LeafNode<number>>row, i, document) : col.createGroup(<InnerNode>row, i, document);
         node.replaceChild(replacement, child);
       } else {
         if (row.type === 'leaf') {
-          col.updateSingle(child, <LeafNode>row, i);
+          col.updateSingle(child, <LeafNode<number>>row, i);
         } else {
           col.updateGroup(child, <InnerNode>row, i);
         }

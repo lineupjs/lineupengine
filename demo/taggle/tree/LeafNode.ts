@@ -1,11 +1,11 @@
 import InnerNode from './InnerNode';
 
-export default class LeafNode {
+export default class LeafNode<T> {
   readonly type: 'leaf' = 'leaf';
   height = 20;
   parent: InnerNode = null;
 
-  constructor(public readonly item: any) {
+  constructor(public readonly item: T) {
   }
 
   get length() {
