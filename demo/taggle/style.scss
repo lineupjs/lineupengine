@@ -5,6 +5,7 @@
 }
 
 [data-type="leaf"] {
+
   .bar {
     margin: 2px 0;
     position: relative;
@@ -21,17 +22,24 @@
 }
 
 [data-type="inner"] > div {
-  display: flex;
-  align-items: stretch;
-  align-content: stretch;
-  margin: 2px 0;
+  &.string {
+    line-height: 100px;
+    vertical-align: middle;
+  }
 
-  .bin {
-    flex: 1 1 auto;
-    margin: 0 2px;
-    border-radius: 5px 5px 0 0;
-    display: inline-block;
-    transition: all 0.5s;
+  &:not(.string) {
+    display: flex;
+    align-items: stretch;
+    align-content: stretch;
+    margin: 2px 0;
+
+    .bin {
+      flex: 1 1 auto;
+      margin: 0 2px;
+      border-radius: 5px 5px 0 0;
+      display: inline-block;
+      transition: all 0.5s;
+    }
   }
 }
 
@@ -56,9 +64,9 @@
 
 * {
   @include group(0, steelblue);
-  @include group(1, salmon);
+  @include group(1, #fa45bf);
   @include group(2, green);
   @include group(3, orange);
-  @include group(4, yellow);
+  @include group(4, #9c43ff);
   @include group(5, red);
 }

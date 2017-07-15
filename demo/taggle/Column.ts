@@ -60,6 +60,35 @@ export default class Column implements IColumn {
 }
 
 
+export class StringColumn extends Column {
+  createSingle(row: LeafNode<number>, index: number, document: Document) {
+    const n = this.common(document);
+    return this.updateSingle(n, row, index);
+  }
+
+  common(document: Document) {
+    const d = super.common(document);
+    d.classList.add('string');
+    return d;
+  }
+
+  updateSingle(node: HTMLElement, row: LeafNode<number>, index: number) {
+    node.textContent = String(index);
+    return node;
+  }
+
+  createGroup(row: InnerNode, index: number, document: Document) {
+    const n = this.common(document);
+    return this.updateGroup(n, row, index);
+  }
+
+  updateGroup(node: HTMLElement, row: InnerNode, index: number) {
+    node.textContent = `Group ${row.name} #${row.length}`;
+    return node;
+  }
+}
+
+
 export function computeHist(leaves: LeafNode<number>[]) {
   const bins = [0, 0, 0, 0, 0];
 

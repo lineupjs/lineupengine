@@ -6,7 +6,7 @@ import {APrefetchRenderer, IRenderContext} from '../../src/APrefetchRenderer';
 import {nonUniformContext} from '../../src/logic';
 import {StyleManager, TEMPLATE} from '../../src/style';
 import {fromArray, INode, LeafNode, InnerNode, EAggregationType} from './tree';
-import Column, {computeHist} from './Column';
+import Column, {StringColumn, computeHist} from './Column';
 import './style.scss';
 
 function setTemplate(root: HTMLElement) {
@@ -35,7 +35,7 @@ export default class TestRenderer extends APrefetchRenderer {
 
     this.flat = tree.flatChildren();
 
-    this.columns = [new Column(0, 'Number', false, 300)];
+    this.columns = [new StringColumn(0, 'String', true, 200), new Column(1, 'Number', false, 200)];
 
     const exceptions = nonUniformContext(this.flat.map((n) => n.height), this.defaultRowHeight);
 
@@ -53,9 +53,10 @@ export default class TestRenderer extends APrefetchRenderer {
     const arr = Array.from(new Array(numberOfRows).keys()).map(() => Math.random());
     const root = fromArray(arr, leafHeight, (row: number) => String(Math.floor(row*5)));
 
+    root.children.sort((a: any, b: any) => a.name.localeCompare(b.name));
     root.children.forEach((n) => {
       const inner = <InnerNode>n;
-      if (Math.random() < 0.25) {
+      if (Math.random() < 0.3) {
         inner.aggregation = EAggregationType.AGGREGATED;
         inner.height = groupHeight;
         inner.aggregate = computeHist(inner.flatLeaves<number>());
@@ -94,7 +95,7 @@ export default class TestRenderer extends APrefetchRenderer {
     const document = node.ownerDocument;
 
     this.columns.forEach((col, i) => {
-      const child = row.type === 'leaf' ? col.createSingle(<LeafNode<number>>row, i, document) : col.createGroup(<InnerNode>row, i, document);
+      const child = row.type === 'leaf' ? col.createSingle(<LeafNode<number>>row, index, document) : col.createGroup(<InnerNode>row, index, document);
       node.appendChild(child);
     });
 
@@ -117,9 +118,9 @@ export default class TestRenderer extends APrefetchRenderer {
         node.replaceChild(replacement, child);
       } else {
         if (row.type === 'leaf') {
-          col.updateSingle(child, <LeafNode<number>>row, i);
+          col.updateSingle(child, <LeafNode<number>>row, index);
         } else {
-          col.updateGroup(child, <InnerNode>row, i);
+          col.updateGroup(child, <InnerNode>row, index);
         }
       }
     });
