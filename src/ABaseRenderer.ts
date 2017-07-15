@@ -3,7 +3,7 @@
  */
 import {IRowHeightException, IRowHeightExceptionLookup, range} from './logic';
 import {IAbortAblePromise, isAbortAble, ABORTED} from './abortAble';
-export abortAble from './abortAble';
+export {default as abortAble} from './abortAble';
 
 
 export interface IRenderContext {
