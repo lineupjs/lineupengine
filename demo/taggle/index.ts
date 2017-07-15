@@ -17,9 +17,10 @@ function setTemplate(root: HTMLElement) {
 
 export default class TestRenderer extends APrefetchRenderer {
   private readonly style: StyleManager;
-  protected readonly _context: IRenderContext;
+  protected _context: IRenderContext;
 
   private readonly columns: Column[];
+  private readonly tree: InnerNode;
   private flat: INode[] = [];
 
   private readonly defaultRowHeight: number;
@@ -31,22 +32,13 @@ export default class TestRenderer extends APrefetchRenderer {
     const scroller = <HTMLElement>root.querySelector(':scope > main');
 
     this.defaultRowHeight = 20;
-    const tree = this.createTree(numberOfRows, this.defaultRowHeight, 100);
+    this.tree = this.createTree(numberOfRows, this.defaultRowHeight, 100);
 
-    this.flat = tree.flatChildren();
 
     this.columns = [new StringColumn(0, 'String', true, 200), new Column(1, 'Number', false, 200)];
+    this.style = new StyleManager(root, `#taggle`, this.defaultRowHeight);
 
-    const exceptions = nonUniformContext(this.flat.map((n) => n.height), this.defaultRowHeight);
-
-    this._context = Object.assign({
-      defaultRowHeight: this.defaultRowHeight,
-      numberOfRows: this.flat.length,
-      scroller
-    }, exceptions);
-
-    this.style = new StyleManager(root, `#taggle`, this._context.defaultRowHeight);
-
+    this.rebuild();
   }
 
   private createTree(numberOfRows: number, leafHeight: number, groupHeight: number): InnerNode {
@@ -58,9 +50,10 @@ export default class TestRenderer extends APrefetchRenderer {
       const inner = <InnerNode>n;
       if (Math.random() < 0.3) {
         inner.aggregation = EAggregationType.AGGREGATED;
-        inner.height = groupHeight;
-        inner.aggregate = computeHist(inner.flatLeaves<number>());
       }
+
+      inner.aggregatedHeight = groupHeight;
+      inner.aggregate = computeHist(inner.flatLeaves<number>());
     });
 
     return root;
@@ -103,6 +96,31 @@ export default class TestRenderer extends APrefetchRenderer {
     if (row.height !== this.defaultRowHeight) {
       node.style.height = `${row.height}px`;
     }
+
+    node.onclick = (evt) => {
+      const rowNode = <HTMLElement>evt.currentTarget;
+      const index = parseInt(rowNode.dataset.index, 10);
+      const row = this.getRow(index);
+      if (row.type === 'leaf') {
+        row.parent.aggregation = EAggregationType.AGGREGATED;
+      } else {
+        row.aggregation = EAggregationType.UNIFORM;
+      }
+      this.rebuild();
+      this.recreate();
+    };
+  }
+
+  private rebuild() {
+    this.flat = this.tree.flatChildren();
+    const exceptions = nonUniformContext(this.flat.map((n) => n.height), this.defaultRowHeight);
+    const scroller = <HTMLElement>this.root.querySelector(':scope > main');
+
+    this._context = Object.assign({
+      defaultRowHeight: this.defaultRowHeight,
+      numberOfRows: this.flat.length,
+      scroller
+    }, exceptions);
   }
 
   protected updateRow(node: HTMLElement, index: number) {
