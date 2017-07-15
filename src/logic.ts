@@ -111,11 +111,17 @@ export function range(scrollTop: number, clientHeight: number, rowHeight: number
   const offset = scrollTop;
   const offset2 = offset + clientHeight;
 
+  function indexOf(pos: number, indexShift: number) {
+    return Math.min(numberOfRows - 1, indexShift + Math.max(0, Math.floor(pos / rowHeight)));
+  }
+
   function calc(offsetShift: number, indexShift: number, isGuess: boolean = false) {
     const shifted = offset - offsetShift;
     const shifted2 = offset2 - offsetShift;
-    const first = indexShift + Math.max(0, Math.floor(shifted / rowHeight));
-    const last = Math.min(numberOfRows - 1, indexShift + Math.ceil(shifted2 / rowHeight));
+
+    const first = indexOf(shifted, indexShift);
+    const last = indexOf(shifted2, indexShift);
+
     const firstRowPos = offsetShift + (first - indexShift) * rowHeight;
     const endPos = offsetShift + (last + 1 - indexShift) * rowHeight;
 
@@ -131,16 +137,24 @@ export function range(scrollTop: number, clientHeight: number, rowHeight: number
     //uniform
     return r;
   }
-  if (r.last < heightExceptions[0].index) {
+  if (r.last <= heightExceptions[0].index) {
+    if (r.last === heightExceptions[0].index) {
+      return Object.assign(r, { endPos: heightExceptions[0].y2});
+    }
     //console.log('before the first exception = uniform with no shift');
     //console.log(r.first, '@', r.firstRowPos, r.last, '#', r.end, offset, offset2, r.firstRowPos <= offset, offset2 <= r.end);
     return r;
   }
   //the position where the exceptions ends
   const lastPos = heightExceptions[heightExceptions.length - 1];
-  if (offset > lastPos.y2) {
-    //console.log('uniform area after all exceptions');
-    return calc(lastPos.y2, lastPos.index + 1);
+  if (offset >= lastPos.y) {
+    const rest = calc(lastPos.y2, lastPos.index + 1);
+    if (offset < lastPos.y2) {
+      // include me
+      return Object.assign(rest, { first: lastPos.index, firstRowPos: lastPos.y});
+    } else {
+      return rest;
+    }
   }
   //we have some exceptions
   const visible: IRowHeightException[] = [];
@@ -168,7 +182,10 @@ export function range(scrollTop: number, clientHeight: number, rowHeight: number
     const lastException = visible[visible.length - 1];
 
     const first = Math.max(0, firstException.index - Math.max(0, Math.ceil((firstException.y - offset) / rowHeight)));
-    const last = Math.min(numberOfRows - 1, lastException.index + Math.max(0, Math.ceil((offset2 - lastException.y2) / rowHeight)));
+    let last = lastException.index;
+    if (offset2 >= lastException.y2) {
+      last = indexOf(offset2 - lastException.y2, lastException.index + 1);
+    }
     const firstRowPos = firstException.y - (firstException.index - first) * rowHeight;
     const endPos = lastException.y2 + (last - lastException.index) * rowHeight;
 
