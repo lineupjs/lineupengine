@@ -1,7 +1,7 @@
 /**
  * Created by Samuel Gratzl on 13.07.2017.
  */
-import {ABaseRenderer, IRenderContext, abortAble} from './ABaseRenderer';
+import {APrefetchRenderer, IRenderContext, abortAble} from './APrefetchRenderer';
 import {uniformContext} from './logic';
 import {StyleManager, IColumn, setColumn} from './style';
 import './style.scss';
@@ -57,7 +57,7 @@ class Column<T> implements IColumn {
   }
 }
 
-export default class TestRenderer extends ABaseRenderer {
+export default class TestRenderer extends APrefetchRenderer {
   private readonly style: StyleManager;
   protected readonly _context: IRenderContext;
 
