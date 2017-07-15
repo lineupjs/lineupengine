@@ -4,6 +4,7 @@
  * Licensed under the new BSD license, available at http://caleydo.org/license
  **************************************************************************** */
 
+require('jasmine-promises');
 /**
  * find all tests in the spec directory and load them
  */
