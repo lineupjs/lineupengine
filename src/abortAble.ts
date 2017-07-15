@@ -10,8 +10,16 @@ export default function abortAble<T>(loader: Promise<T>) {
   return {
     then<TResult1 = T>(onfulfilled: ((value: T) => TResult1 | PromiseLike<TResult1>)): IAbortAblePromise<TResult1> {
       let aborted: (v: symbol)=>void = null;
+      const isAborted = () => aborted === null;
       const aborter = new Promise<symbol>((resolve) => aborted = resolve);
-      const p = Promise.race<TResult1|symbol>([aborter, loader.then(onfulfilled).then((r) => aborted === null ? ABORTED : r)]);
+      const checkAbort = (r) => isAborted() ? ABORTED : r;
+      const fullfiller = loader.then((r) => {
+        if (isAborted()) {
+          return ABORTED;
+        }
+        return Promise.resolve(onfulfilled(r)).then(checkAbort);
+      });
+      const p = Promise.race<TResult1|symbol>([aborter, fullfiller]);
       return {
         abort: () => {
           if (aborted !== null) {

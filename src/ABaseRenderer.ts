@@ -18,7 +18,7 @@ export interface IRenderContext {
 export abstract class ABaseRenderer {
   private readonly pool: HTMLElement[] = [];
   private readonly loadingPool: HTMLElement[] = [];
-  private readonly loading = new Map<HTMLElement, { abort: IAbortAblePromise<void>, real: HTMLElement}>();
+  private readonly loading = new Map<HTMLElement, IAbortAblePromise<void>>();
 
   protected visibleFirst: number;
   protected visibleForcedFirst: number;
@@ -35,21 +35,6 @@ export abstract class ABaseRenderer {
 
   protected abstract updateRow(node: HTMLElement, index: number): IAbortAblePromise<void>|void;
 
-  removeAll() {
-    const arr = <HTMLElement[]>Array.from(this.node.children);
-    this.node.innerHTML = '';
-    arr.forEach((item) => {
-      this.recycle(item);
-    });
-  }
-
-  removeFromBeginning(from: number, to: number) {
-    return this.remove(from, to, true);
-  }
-
-  removeFromBottom(from: number, to: number) {
-    return this.remove(from, to, false);
-  }
 
   private cleanUp(item: HTMLElement) {
     if (item.style.height) {
@@ -57,63 +42,29 @@ export abstract class ABaseRenderer {
     }
   }
 
-  private recycle(item: HTMLElement) {
-    this.cleanUp(item);
-    // check if the original dom element is still being manipulated
-    if (this.loading.has(item)) {
-      const {abort, real} = this.loading.get(item);
-      console.log('abort', item.dataset.uid, 'of', real.dataset.uid);
-      this.loading.delete(item); // mark as aborted
-      this.loadingPool.push(item);
-      abort.abort();
-    } else {
-      console.log('recycle', item.dataset.uid);
-      this.pool.push(item);
-    }
-  }
-
-  private remove(from: number, to: number, fromBeginning: boolean) {
-    for (let i = from; i <= to; ++i) {
-      const item = <HTMLElement>(fromBeginning ? this.node.firstChild : this.node.lastChild);
-      this.node.removeChild(item);
-      this.recycle(item);
-    }
-  }
-
-  addAtBeginning(from: number, to: number) {
-    return this.add(from, to, true);
-  }
-
-  addAtBottom(from: number, to: number) {
-    return this.add(from, to, false);
-  }
-
   uid: number = 0;
   puid: number = 0;
 
-  private create(index: number) {
+  private select(index: number): {item: HTMLElement, result: IAbortAblePromise<void>|void} {
     let item: HTMLElement;
-    let r: IAbortAblePromise<void>|void;
+    let result: IAbortAblePromise<void>|void;
     if (this.pool.length > 0) {
       item = this.pool.pop();
-      r = this.updateRow(item, index);
+      result = this.updateRow(item, index);
     } else if (this.loadingPool.length > 0) {
       item = this.loadingPool.pop();
       item.classList.remove('loading');
-      r = this.createRow(item, index);
+      result = this.createRow(item, index);
     } else {
       item = this.node.ownerDocument.createElement('div');
       item.dataset.uid = String(this.uid++);
-      r = this.createRow(item, index);
+      result = this.createRow(item, index);
     }
     item.dataset.index = String(index);
+    return {item, result};
+  }
 
-    if (!isAbortAble(r)) {
-      return item;
-    }
-    //lazy loading
-
-    const real = item;
+  private selectProxy() {
     let proxy: HTMLElement;
     if (this.loadingPool.length > 0) {
       proxy = this.loadingPool.pop();
@@ -122,12 +73,39 @@ export abstract class ABaseRenderer {
       proxy.dataset.uid = 'p' + String(this.puid++);
       proxy.classList.add('loading');
     }
+    return proxy;
+  }
+
+  private recycle(item: HTMLElement) {
+    this.cleanUp(item);
+    // check if the original dom element is still being manipulated
+    if (this.loading.has(item)) {
+      const abort = this.loading.get(item);
+      console.log('abort', item.dataset.uid);
+      abort.abort();
+    } else {
+      console.log('recycle', item.dataset.uid);
+      this.pool.push(item);
+    }
+  }
+
+  private create(index: number) {
+    const {item, result} = this.select(index);
+
+    if (!isAbortAble(result)) {
+      return item;
+    }
+    const abort = <IAbortAblePromise<void>>result;
+    //lazy loading
+
+    const real = item;
+    const proxy = this.selectProxy();
     // copy attributes
     proxy.dataset.index = String(index);
     proxy.style.height = real.style.height;
 
-    this.loading.set(proxy, {abort: <IAbortAblePromise<void>>r, real});
-    (<IAbortAblePromise<void>>r).then((result) => {
+    this.loading.set(proxy, abort);
+    abort.then((result) => {
       if (result === ABORTED) {
         //aborted can recycle the real one
         console.log('been', real.dataset.uid, 'with', index);
@@ -138,23 +116,53 @@ export abstract class ABaseRenderer {
         console.log('fully', proxy.dataset.uid, real.dataset.uid, 'with', index);
         this.node.replaceChild(real, proxy);
       }
-      if (this.loading.has(proxy)) {
-        this.loading.delete(proxy);
-        this.cleanUp(proxy);
-        this.loadingPool.push(proxy);
-      }
+      this.loading.delete(proxy);
+      this.cleanUp(proxy);
+      this.loadingPool.push(proxy);
     });
     return proxy;
   }
 
+  protected removeAll() {
+    const arr = <HTMLElement[]>Array.from(this.node.children);
+    this.node.innerHTML = '';
+    arr.forEach((item) => {
+      this.recycle(item);
+    });
+  }
+
+  protected removeFromBeginning(from: number, to: number) {
+    return this.remove(from, to, true);
+  }
+
+  protected removeFromBottom(from: number, to: number) {
+    return this.remove(from, to, false);
+  }
+
+  private remove(from: number, to: number, fromBeginning: boolean) {
+    for (let i = from; i <= to; ++i) {
+      const item = <HTMLElement>(fromBeginning ? this.node.firstChild : this.node.lastChild);
+      this.node.removeChild(item);
+      this.recycle(item);
+    }
+  }
+
+  protected addAtBeginning(from: number, to: number) {
+    return this.add(from, to, true);
+  }
+
+  protected addAtBottom(from: number, to: number) {
+    return this.add(from, to, false);
+  }
+
   private add(from: number, to: number, atBeginning: boolean) {
-    if (!atBeginning) {
-      for (let i = from; i <= to; ++i) {
-        this.node.appendChild(this.create(i));
-      }
-    } else {
+    if (atBeginning) {
       for (let i = to; i >= from; --i) {
         this.node.insertAdjacentElement('afterbegin', this.create(i));
+      }
+    } else {
+      for (let i = from; i <= to; ++i) {
+        this.node.appendChild(this.create(i));
       }
     }
   }
@@ -180,7 +188,6 @@ export abstract class ABaseRenderer {
     let old = body.scrollTop;
     header.scrollLeft = body.scrollLeft;
     body.onscroll = (evt) => {
-      //TODO based on scroll left decide whether certain rankings should be rendered or updated
       const scrollLeft = body.scrollLeft;
       if (header.scrollLeft !== scrollLeft) {
         header.scrollLeft = scrollLeft;
@@ -206,7 +213,6 @@ export abstract class ABaseRenderer {
   protected onScrolledHorizontally(scrollLeft: number) {
     // hook
   }
-
 
   protected onScrolledVertically(scrollTop: number, clientHeight: number, isGoingDown: boolean, scrollLeft: number): 'full' | 'partial' {
     const context = this.context;
