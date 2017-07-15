@@ -43,7 +43,7 @@ export default class TestRenderer extends APrefetchRenderer {
 
   private createTree(numberOfRows: number, leafHeight: number, groupHeight: number): InnerNode {
     const arr = Array.from(new Array(numberOfRows).keys()).map(() => Math.random());
-    const root = fromArray(arr, leafHeight, (row: number) => String(Math.floor(row*5)));
+    const root = fromArray(arr, leafHeight, (row: number) => String(Math.floor(Math.random()*5)));
 
     root.children.sort((a: any, b: any) => a.name.localeCompare(b.name));
     root.children.forEach((n) => {
@@ -132,7 +132,7 @@ export default class TestRenderer extends APrefetchRenderer {
     this.columns.forEach((col, i) => {
       const child = <HTMLElement>node.children[i];
       if (was !== row.type) {
-        const replacement = row.type === 'leaf' ? col.createSingle(<LeafNode<number>>row, i, document) : col.createGroup(<InnerNode>row, i, document);
+        const replacement = row.type === 'leaf' ? col.createSingle(<LeafNode<number>>row, index, document) : col.createGroup(<InnerNode>row, index, document);
         node.replaceChild(replacement, child);
       } else {
         if (row.type === 'leaf') {

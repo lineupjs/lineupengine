@@ -73,7 +73,7 @@ export class StringColumn extends Column {
   }
 
   updateSingle(node: HTMLElement, row: LeafNode<number>, index: number) {
-    node.textContent = String(index);
+    node.textContent = `${row.parent.name}#${row.parent.children.indexOf(row)}`;
     return node;
   }
 
