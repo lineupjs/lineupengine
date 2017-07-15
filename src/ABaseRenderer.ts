@@ -126,6 +126,20 @@ export abstract class ABaseRenderer {
     });
   }
 
+  protected recreate() {
+    const context = this.context;
+
+    this.removeAll();
+
+    const {first, last, firstRowPos} = range(context.scroller.scrollTop, context.scroller.clientHeight, context.defaultRowHeight, context.exceptions, context.numberOfRows);
+
+    this.visibleFirst = this.visibleForcedFirst = first;
+    this.visibleLast = this.visibleForcedLast = last;
+
+    this.addAtBottom(first, last);
+    this.updateOffset(firstRowPos, context.totalHeight);
+  }
+
   protected update() {
     for(let i = this.visibleFirst; i <= this.visibleLast; ++i) {
       const item = <HTMLElement>this.node.children[i];
