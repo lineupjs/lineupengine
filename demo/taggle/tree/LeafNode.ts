@@ -1,7 +1,7 @@
 import InnerNode from './InnerNode';
 
 export default class LeafNode {
-  readonly type: 'leaf';
+  readonly type: 'leaf' = 'leaf';
   height = 20;
   parent: InnerNode = null;
 

@@ -3,8 +3,8 @@ import {flat, flatLeaves} from './utils';
 import LeafNode from './LeafNode';
 
 export default class InnerNode {
-  readonly type: 'inner';
-  children: INode[];
+  readonly type: 'inner' = 'inner';
+  children: INode[] = [];
   aggregation: EAggregationType = EAggregationType.UNIFORM;
   aggregatedHeight = 100;
   parent: InnerNode = null;

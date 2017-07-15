@@ -13,6 +13,15 @@ export interface IColumn {
   readonly frozen: boolean;
 }
 
+export const TEMPLATE = `
+  <header>
+    <article></article>
+  </header>
+  <main>
+    <article></article>
+  </main>`;
+
+
 function repeatStandard(count: number, width: string) {
   return `repeat(${count}, ${width})`;
 }

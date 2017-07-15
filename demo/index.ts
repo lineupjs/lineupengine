@@ -4,15 +4,10 @@
 import 'file-loader?name=demo.html!extract-loader!html-loader!./index.html';
 import {APrefetchRenderer, IRenderContext, abortAble} from '../src/APrefetchRenderer';
 import {uniformContext} from '../src/logic';
-import {StyleManager, IColumn, setColumn} from '../src/style';
+import {StyleManager, IColumn, setColumn, TEMPLATE} from '../src/style';
 
 function setTemplate(root: HTMLElement) {
-  root.innerHTML = `<header>
-    <article></article>
-  </header>
-  <main>
-    <article></article>
-  </main>`;
+  root.innerHTML = TEMPLATE;
   return root;
 }
 

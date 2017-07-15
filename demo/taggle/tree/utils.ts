@@ -19,7 +19,7 @@ export function flat(root: INode, result: INode[] = []) {
 }
 
 
-export function fromArray<T>(rows: T[], rowHeight: number, grouper?: (row: T) => string): INode {
+export function fromArray<T>(rows: T[], rowHeight: number, grouper?: (row: T) => string): InnerNode {
   const root = new InnerNode('');
 
   const leaves = rows.map((r) => {
