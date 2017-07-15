@@ -24,7 +24,7 @@ export default class TestRenderer extends APrefetchRenderer {
 
   private readonly defaultRowHeight: number;
 
-  constructor(private readonly root: HTMLElement, numberOfRows = 100, numberOfColumns = 20) {
+  constructor(private readonly root: HTMLElement, numberOfRows = 1000) {
     super(<HTMLElement>setTemplate(root).querySelector(':scope > main > article'));
     root.id = 'taggle';
     root.classList.add('lineup-engine');
@@ -51,7 +51,7 @@ export default class TestRenderer extends APrefetchRenderer {
 
   private createTree(numberOfRows: number, leafHeight: number, groupHeight: number): InnerNode {
     const arr = Array.from(new Array(numberOfRows).keys()).map(() => Math.random());
-    const root = fromArray(arr, leafHeight, (row: number) => String(Math.floor(row*4)));
+    const root = fromArray(arr, leafHeight, (row: number) => String(Math.floor(row*5)));
 
     root.children.forEach((n) => {
       const inner = <InnerNode>n;

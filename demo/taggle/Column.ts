@@ -33,6 +33,7 @@ export default class Column implements IColumn {
   }
 
   updateSingle(node: HTMLElement, row: LeafNode<number>, index: number) {
+    node.dataset.group = row.parent.name;
     const bar = <HTMLElement>node.children[0];
     bar.style.width = `${Math.round(row.item * 100)}%`;
     bar.textContent = row.item.toFixed(2);
@@ -46,6 +47,7 @@ export default class Column implements IColumn {
   }
 
   updateGroup(node: HTMLElement, row: InnerNode, index: number) {
+    node.dataset.group = row.name;
     const hist = <number[]>row.aggregate;
     const max = Math.max(...hist);
     hist.forEach((bin, i) => {

@@ -8,7 +8,6 @@
   .bar {
     margin: 2px 0;
     position: relative;
-    background: steelblue;
     color: transparent;
     border-radius: 5px;
     transition: all 0.5s;
@@ -17,7 +16,6 @@
   &:hover {
     .bar {
       color: black;
-      background: #5095d1;
     }
   }
 }
@@ -31,13 +29,36 @@
   .bin {
     flex: 1 1 auto;
     margin: 0 2px;
-    background: steelblue;
     border-radius: 5px 5px 0 0;
     display: inline-block;
     transition: all 0.5s;
+  }
+}
+
+@mixin group($id, $color) {
+  [data-group="#{$id}"] {
+    .bin,
+    .bar {
+      background: $color;
+    }
+
+    .bar:hover {
+      background: lighten($color, 10%);
+    }
 
     &:hover {
-      background: #5095d1;
+      .bar {
+        background: lighten($color, 10%);
+      }
     }
   }
+}
+
+* {
+  @include group(0, steelblue);
+  @include group(1, salmon);
+  @include group(2, green);
+  @include group(3, orange);
+  @include group(4, yellow);
+  @include group(5, red);
 }
