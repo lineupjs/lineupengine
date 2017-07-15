@@ -128,7 +128,7 @@ export function range(scrollTop: number, clientHeight: number, rowHeight: number
     //if (!isGuess) {
     //  console.log(first, '@', firstRowPos, last, '#', end, offset, offset2, firstRowPos <= offset, offset2 <= end);
     //}
-    console.assert(!(!isGuess && (firstRowPos > offset || endPos < offset2)));
+    console.assert(!isGuess || !(firstRowPos > offset || (endPos < offset2 && last < numberOfRows - 1)), 'error', isGuess, firstRowPos, endPos, offset, offset2, indexShift, offsetShift);
     return {first, last, firstRowPos, endPos};
   }
 
