@@ -115,6 +115,11 @@ export abstract class ABaseRenderer {
   private create(index: number) {
     const {item, result} = this.select(index);
 
+    const ex = this.context.exceptionsLookup;
+    if (ex.has(index)) {
+      item.style.height = ex.get(index) + 'px';
+    }
+
     return this.proxy(index, item, result);
   }
 
