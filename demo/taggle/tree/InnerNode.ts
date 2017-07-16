@@ -1,32 +1,18 @@
 import {EAggregationType, INode} from './';
 import {flat, flatLeaves} from './utils';
 import LeafNode from './LeafNode';
+import ANode from './ANode';
 
-export default class InnerNode {
+export default class InnerNode extends ANode {
   readonly type: 'inner' = 'inner';
   children: INode[] = [];
   aggregation: EAggregationType = EAggregationType.UNIFORM;
   aggregatedHeight = 100;
-  parent: InnerNode = null;
 
   aggregate: any;
 
   constructor(public readonly name: string) {
-
-  }
-
-  get path() {
-    const r: INode[] = [];
-    let a: INode = this;
-    while (a) {
-      r.push(a);
-      a = a.parent;
-    }
-    return r;
-  }
-
-  toPathString() {
-    return this.path.reverse().join('.');
+    super();
   }
 
   toString() {

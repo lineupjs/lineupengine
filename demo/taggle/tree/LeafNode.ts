@@ -1,11 +1,12 @@
 import InnerNode from './InnerNode';
+import ANode from './ANode';
 
-export default class LeafNode<T> {
+export default class LeafNode<T> extends ANode {
   readonly type: 'leaf' = 'leaf';
   height = 20;
-  parent: InnerNode = null;
 
   constructor(public readonly item: T) {
+    super();
   }
 
   get length() {
@@ -18,14 +19,6 @@ export default class LeafNode<T> {
 
   get flatLeavesLength() {
     return 1;
-  }
-
-  get path() {
-    return [this, ...this.parent.path];
-  }
-
-  toPathString() {
-    return this.path.reverse().join('.');
   }
 
   toString() {
