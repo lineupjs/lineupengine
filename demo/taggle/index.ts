@@ -6,7 +6,7 @@ import {APrefetchRenderer, IRenderContext} from '../../src/APrefetchRenderer';
 import {nonUniformContext} from '../../src/logic';
 import {StyleManager, TEMPLATE} from '../../src/style';
 import {fromArray, INode, LeafNode, InnerNode, EAggregationType} from './tree';
-import {StringColumn, computeHist, ITaggleColumn, NumberColumn} from './column';
+import {StringColumn, computeHist, ITaggleColumn, NumberColumn, HierarchyColumn} from './column';
 import './style.scss';
 
 function setTemplate(root: HTMLElement) {
@@ -34,11 +34,17 @@ export default class TestRenderer extends APrefetchRenderer {
     this.defaultRowHeight = 20;
     this.tree = this.createTree(numberOfRows, this.defaultRowHeight, 100);
 
-
-    this.columns = [new StringColumn(0, 'String', true, 200), new NumberColumn(1, 'Number', false, 200)];
+    {
+      let i = 0;
+      this.columns = [
+        new HierarchyColumn(i++, () => this.rebuild()),
+        new StringColumn(i++, 'String', true, 200),
+        new NumberColumn(i++, 'Number', false, 200)
+      ];
+    }
     this.style = new StyleManager(root, `#taggle`, this.defaultRowHeight);
 
-    this.rebuild();
+    this.rebuildData();
   }
 
   private createTree(numberOfRows: number, leafHeight: number, groupHeight: number): InnerNode {
@@ -93,25 +99,14 @@ export default class TestRenderer extends APrefetchRenderer {
     });
 
     node.dataset.type = row.type;
-    if (row.height !== this.defaultRowHeight) {
-      node.style.height = `${row.height}px`;
-    }
-
-    node.onclick = (evt) => {
-      const rowNode = <HTMLElement>evt.currentTarget;
-      const index = parseInt(rowNode.dataset.index, 10);
-      const row = this.getRow(index);
-      if (row.type === 'leaf') {
-        row.parent.aggregation = EAggregationType.AGGREGATED;
-      } else {
-        row.aggregation = EAggregationType.UNIFORM;
-      }
-      this.rebuild();
-      this.recreate();
-    };
   }
 
   private rebuild() {
+    this.rebuildData();
+    this.recreate();
+  }
+
+  private rebuildData() {
     this.flat = this.tree.flatChildren();
     const exceptions = nonUniformContext(this.flat.map((n) => n.height), this.defaultRowHeight);
     const scroller = <HTMLElement>this.root.querySelector(':scope > main');
@@ -142,9 +137,5 @@ export default class TestRenderer extends APrefetchRenderer {
         }
       }
     });
-
-    if (row.height !== this.defaultRowHeight) {
-      node.style.height = `${row.height}px`;
-    }
   }
 }
