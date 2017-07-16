@@ -8,6 +8,10 @@
 
 .hierarchy > i {
   cursor: pointer;
+
+  &:hover {
+    color: gray;
+  }
 }
 
 [data-type="leaf"] {
