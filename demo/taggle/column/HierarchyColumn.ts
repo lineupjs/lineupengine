@@ -1,9 +1,9 @@
 import {LeafNode, InnerNode, INode, EAggregationType} from '../tree';
 import AColumn from './AColumn';
 
-const CARET_NO = '<i class="fa fa-fw"></i>';
-const CARET_DOWN = '<i class="fa fa-fw fa-caret-down"></i>';
-const CARET_RIGHT = '<i class="fa fa-fw fa-caret-right"></i>';
+const CARET_NO = '<i>&nbsp;</i>';
+const CARET_DOWN = '<i>&#9660;</i>';
+const CARET_RIGHT = '<i>&#9658;</i>';
 
 export default class HierarchyColumn extends AColumn {
   constructor(index: number, private readonly rebuilder: ()=>void) {

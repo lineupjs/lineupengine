@@ -26,10 +26,10 @@ export default class TestRenderer extends APrefetchRenderer {
   private readonly defaultRowHeight: number;
 
   constructor(private readonly root: HTMLElement, numberOfRows = 1000) {
-    super(<HTMLElement>setTemplate(root).querySelector(':scope > main > article'));
+    super(<HTMLElement>setTemplate(root).querySelector('main > article'));
     root.id = 'taggle';
     root.classList.add('lineup-engine');
-    const scroller = <HTMLElement>root.querySelector(':scope > main');
+    const scroller = <HTMLElement>root.querySelector('main');
 
     this.defaultRowHeight = 20;
     this.tree = this.createTree(numberOfRows, this.defaultRowHeight, 100);
@@ -71,8 +71,8 @@ export default class TestRenderer extends APrefetchRenderer {
 
 
   run() {
-    const header = <HTMLElement>this.root.querySelector(':scope > header');
-    const headerNode = <HTMLElement>header.querySelector(':scope > article');
+    const header = <HTMLElement>this.root.querySelector('header');
+    const headerNode = <HTMLElement>header.querySelector('article');
 
     this.style.update(this.columns, 100);
     this.columns.forEach((c) => headerNode.appendChild(c.createHeader(headerNode.ownerDocument)));
@@ -109,7 +109,7 @@ export default class TestRenderer extends APrefetchRenderer {
   private rebuildData() {
     this.flat = this.tree.flatChildren();
     const exceptions = nonUniformContext(this.flat.map((n) => n.height), this.defaultRowHeight);
-    const scroller = <HTMLElement>this.root.querySelector(':scope > main');
+    const scroller = <HTMLElement>this.root.querySelector('main');
 
     this._context = Object.assign({
       defaultRowHeight: this.defaultRowHeight,

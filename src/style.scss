@@ -73,6 +73,18 @@
     }
   }
 
+  > main > article > div {
+    &:hover {
+      outline: 2px solid orange;
+      z-index: 2;
+
+      > *.frozen {
+        outline: 2px solid orange;
+        z-index: 2;
+      }
+    }
+  }
+
   &:not(.ms-edge) > header > article,
   &:not(.ms-edge) > main > article > div {
     > .frozen { // frozen one
