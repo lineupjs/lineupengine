@@ -6,7 +6,7 @@ import {APrefetchRenderer, IRenderContext} from '../../src/APrefetchRenderer';
 import {nonUniformContext} from '../../src/logic';
 import {StyleManager, TEMPLATE} from '../../src/style';
 import {fromArray, INode, LeafNode, InnerNode, EAggregationType} from './tree';
-import Column, {StringColumn, computeHist} from './Column';
+import {StringColumn, computeHist, ITaggleColumn, NumberColumn} from './column';
 import './style.scss';
 
 function setTemplate(root: HTMLElement) {
@@ -19,7 +19,7 @@ export default class TestRenderer extends APrefetchRenderer {
   private readonly style: StyleManager;
   protected _context: IRenderContext;
 
-  private readonly columns: Column[];
+  private readonly columns: ITaggleColumn[];
   private readonly tree: InnerNode;
   private flat: INode[] = [];
 
@@ -35,7 +35,7 @@ export default class TestRenderer extends APrefetchRenderer {
     this.tree = this.createTree(numberOfRows, this.defaultRowHeight, 100);
 
 
-    this.columns = [new StringColumn(0, 'String', true, 200), new Column(1, 'Number', false, 200)];
+    this.columns = [new StringColumn(0, 'String', true, 200), new NumberColumn(1, 'Number', false, 200)];
     this.style = new StyleManager(root, `#taggle`, this.defaultRowHeight);
 
     this.rebuild();
