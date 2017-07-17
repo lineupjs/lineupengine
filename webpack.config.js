@@ -9,7 +9,7 @@ const pkg = require('./package.json');
 const webpack = require('webpack');
 const fs = require('fs');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
-const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
 const now = new Date();
 const prefix = (n) => n < 10 ? ('0' + n) : n.toString();
