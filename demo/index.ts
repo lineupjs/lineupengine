@@ -74,8 +74,6 @@ export default class TestRenderer extends APrefetchRenderer {
     const exceptions = uniformContext(numberOfRows, defaultRowHeight);
 
     this._context = Object.assign({
-      defaultRowHeight,
-      numberOfRows,
       scroller
     }, exceptions);
 

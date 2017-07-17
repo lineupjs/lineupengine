@@ -112,8 +112,6 @@ export default class TestRenderer extends APrefetchRenderer {
     const scroller = <HTMLElement>this.root.querySelector('main');
 
     this._context = Object.assign({
-      defaultRowHeight: this.defaultRowHeight,
-      numberOfRows: this.flat.length,
       scroller
     }, exceptions);
   }

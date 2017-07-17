@@ -1,18 +1,13 @@
 /**
  * Created by Samuel Gratzl on 13.07.2017.
  */
-import {IRowHeightException, IRowHeightExceptionLookup, range} from './logic';
+import {IExceptionContext, IRowHeightException, IRowHeightExceptionLookup, range} from './logic';
 import {IAbortAblePromise, isAbortAble, ABORTED} from './abortAble';
 export {default as abortAble} from './abortAble';
 
 
-export interface IRenderContext {
-  readonly defaultRowHeight: number;
+export interface IRenderContext extends IExceptionContext {
   readonly scroller: HTMLElement;
-  readonly exceptions: IRowHeightException[];
-  readonly exceptionsLookup: IRowHeightExceptionLookup;
-  readonly numberOfRows: number;
-  readonly totalHeight: number;
 }
 
 export abstract class ABaseRenderer {

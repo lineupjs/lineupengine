@@ -24,9 +24,11 @@ export interface IRowHeightExceptionLookup {
 }
 
 export interface IExceptionContext {
-  exceptions: IRowHeightException[];
-  exceptionsLookup: IRowHeightExceptionLookup;
-  totalHeight: number;
+  readonly exceptions: IRowHeightException[];
+  readonly exceptionsLookup: IRowHeightExceptionLookup;
+  readonly totalHeight: number;
+  readonly numberOfRows: number;
+  readonly defaultRowHeight: number;
 }
 
 export function uniformContext(numberOfRows: number, rowHeight: number): IExceptionContext {
@@ -37,16 +39,17 @@ export function uniformContext(numberOfRows: number, rowHeight: number): IExcept
     has: () => false,
     size: 0
   };
-  return {exceptions: [], exceptionsLookup, totalHeight: numberOfRows * rowHeight};
+  return {exceptions: [], exceptionsLookup, totalHeight: numberOfRows * rowHeight, numberOfRows, defaultRowHeight: rowHeight};
 }
 
 export function nonUniformContext(rowHeights: { forEach: (callback: (height: number, index: number)=>any)=>any}, defaultRowHeight: number): IExceptionContext {
   const exceptionsLookup = new Map<number, number>();
   const exceptions: IRowHeightException[] = [];
 
-  let prev = -1, acc = 0, totalHeight = 0;
+  let prev = -1, acc = 0, totalHeight = 0, numberOfRows = 0;
   rowHeights.forEach((height, index) => {
     totalHeight += height;
+    numberOfRows++;
     if (height === defaultRowHeight) {
       //regular
       return;
@@ -58,7 +61,7 @@ export function nonUniformContext(rowHeights: { forEach: (callback: (height: num
     acc = y + height;
     exceptions.push(new RowHeightException(index, y, height));
   });
-  return {exceptionsLookup, exceptions, totalHeight};
+  return {exceptionsLookup, exceptions, totalHeight, defaultRowHeight, numberOfRows};
 }
 
 export function randomContext(numberOfRows: number, defaultRowHeight: number, minRowHeight = 2, maxRowHeight = defaultRowHeight * 10, ratio = 0.2, seed = Date.now()) {
