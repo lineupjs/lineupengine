@@ -6,8 +6,20 @@ import {range} from './logic';
 export {IRenderContext, abortAble} from './ABaseRenderer';
 
 export interface IPrefetchRendererOptions {
+  /**
+   * number of rows to prefetch
+   * @default 20
+   */
   readonly prefetchRows?: number;
+  /**
+   * number of rows extra before cleaning them up
+   * @default 3
+   */
   readonly cleanUpRows?: number;
+  /**
+   * delay to trigger a prefetch or clean up
+   * @default 50ms
+   */
   readonly delay?: number;
 }
 
@@ -125,7 +137,7 @@ export abstract class APrefetchRenderer extends ABaseRenderer {
   }
 
 
-  protected onScrolled(scrollTop: number, clientHeight: number, isGoingDown: boolean, scrollLeft: number): 'full' | 'partial' {
+  protected onScrolledVertically(scrollTop: number, clientHeight: number, isGoingDown: boolean, scrollLeft: number): 'full' | 'partial' {
     const r = super.onScrolledVertically(scrollTop, clientHeight, isGoingDown, scrollLeft);
     if (r === 'full') {
       this.triggerCleanUp(this.visibleForcedFirst, this.visibleForcedLast, isGoingDown);

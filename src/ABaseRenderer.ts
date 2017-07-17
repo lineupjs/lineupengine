@@ -20,19 +20,35 @@ export abstract class ABaseRenderer {
   private readonly loadingPool: HTMLElement[] = [];
   private readonly loading = new Map<HTMLElement, IAbortAblePromise<void>>();
 
-  protected visibleFirst: number;
-  protected visibleForcedFirst: number;
-  protected visibleFirstRowPos: number;
-  protected visibleLast: number;
-  protected visibleForcedLast: number;
+  protected visibleFirst = 0;
+  protected visibleForcedFirst = 0;
+  protected visibleFirstRowPos = 0;
+  protected visibleLast = 0;
+  protected visibleForcedLast = 0;
 
   constructor(protected readonly node: HTMLElement) {
   }
 
+  /**
+   * the current render context, upon change `recreate` the whole table
+   * @returns {IRenderContext}
+   */
   protected abstract get context(): IRenderContext;
 
+  /**
+   * creates a new row
+   * @param {HTMLElement} node the node of the row
+   * @param {number} index the row index
+   * @returns {IAbortAblePromise<void> | void} either an abortable or nothing
+   */
   protected abstract createRow(node: HTMLElement, index: number): IAbortAblePromise<void>|void;
 
+  /**
+   * updates a row
+   * @param {HTMLElement} node the node of the row
+   * @param {number} index the row index
+   * @returns {IAbortAblePromise<void> | void} either an abortable or nothing
+   */
   protected abstract updateRow(node: HTMLElement, index: number): IAbortAblePromise<void>|void;
 
 
@@ -131,19 +147,6 @@ export abstract class ABaseRenderer {
     });
   }
 
-  protected recreate() {
-    const context = this.context;
-
-    this.removeAll();
-
-    const {first, last, firstRowPos} = range(context.scroller.scrollTop, context.scroller.clientHeight, context.defaultRowHeight, context.exceptions, context.numberOfRows);
-
-    this.visibleFirst = this.visibleForcedFirst = first;
-    this.visibleLast = this.visibleForcedLast = last;
-
-    this.addAtBottom(first, last);
-    this.updateOffset(firstRowPos, context.totalHeight);
-  }
 
   protected update() {
     for(let i = this.visibleFirst; i <= this.visibleLast; ++i) {
@@ -210,6 +213,10 @@ export abstract class ABaseRenderer {
     this.node.style.height = `${(totalHeight - firstRowPos).toFixed(0)}px`;
   }
 
+  /**
+   * initializes the table and register the onscroll listener
+   * @param {HTMLElement} header the header to sync
+   */
   protected init(header: HTMLElement) {
     const context = this.context;
     const body = context.scroller;
@@ -231,6 +238,17 @@ export abstract class ABaseRenderer {
       }
     };
 
+    this.recreate();
+  }
+
+  /**
+   * removes all rows and recreates the table
+   */
+  protected recreate() {
+    const context = this.context;
+
+    this.removeAll();
+
     const {first, last, firstRowPos} = range(context.scroller.scrollTop, context.scroller.clientHeight, context.defaultRowHeight, context.exceptions, context.numberOfRows);
 
     this.visibleFirst = this.visibleForcedFirst = first;
@@ -240,10 +258,22 @@ export abstract class ABaseRenderer {
     this.updateOffset(firstRowPos, context.totalHeight);
   }
 
+  /**
+   * scrolling horizontally
+   * @param {number} scrollLeft the current shift
+   */
   protected onScrolledHorizontally(scrollLeft: number) {
     // hook
   }
 
+  /**
+   * scrolling vertically
+   * @param {number} scrollTop
+   * @param {number} clientHeight
+   * @param {boolean} isGoingDown hint whether the scrollTop increases
+   * @param {number} scrollLeft
+   * @returns {"full" | "partial"} full in case of a full rebuild or partial update
+   */
   protected onScrolledVertically(scrollTop: number, clientHeight: number, isGoingDown: boolean, scrollLeft: number): 'full' | 'partial' {
     const context = this.context;
     const {first, last, firstRowPos} = range(scrollTop, clientHeight, context.defaultRowHeight, context.exceptions, context.numberOfRows);
