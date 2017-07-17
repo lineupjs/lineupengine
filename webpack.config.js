@@ -9,6 +9,7 @@ const pkg = require('./package.json');
 const webpack = require('webpack');
 const fs = require('fs');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 
 const now = new Date();
 const prefix = (n) => n < 10 ? ('0' + n) : n.toString();
@@ -156,13 +157,14 @@ function generateWebpack(options) {
         minimize: true,
         debug: false
       }),
-      new webpack.optimize.UglifyJsPlugin({
+      new UglifyJsPlugin({
+        mangle: {
+          screw_ie8: true
+        },
         compress: {
-          warnings: false
+          screw_ie8: true
         },
-        output: {
-          comments: false
-        },
+        comments: false,
         sourceMap: false
       }));
   } else {
