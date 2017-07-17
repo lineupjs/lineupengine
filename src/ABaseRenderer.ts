@@ -93,7 +93,7 @@ export abstract class ABaseRenderer {
     }
   }
 
-  private proxy(index: number, item: HTMLElement, result: IAbortAblePromise<void>|void) {
+  private proxy(item: HTMLElement, result: IAbortAblePromise<void>|void) {
     if (!isAbortAble(result)) {
       return item;
     }
@@ -103,7 +103,7 @@ export abstract class ABaseRenderer {
     const real = item;
     const proxy = this.selectProxy();
     // copy attributes
-    proxy.dataset.index = String(index);
+    proxy.dataset.index = real.dataset.index;
     proxy.style.height = real.style.height;
 
     this.loading.set(proxy, abort);
@@ -131,7 +131,7 @@ export abstract class ABaseRenderer {
       item.style.height = ex.get(index) + 'px';
     }
 
-    return this.proxy(index, item, result);
+    return this.proxy(item, result);
   }
 
   protected removeAll() {
@@ -152,7 +152,7 @@ export abstract class ABaseRenderer {
       }
       const abort = this.updateRow(item, i);
 
-      const proxied = this.proxy(i, item, abort);
+      const proxied = this.proxy(item, abort);
       if (proxied !== item) { //got a proxy back
         this.node.replaceChild(proxied, item);
       }
@@ -176,22 +176,14 @@ export abstract class ABaseRenderer {
   }
 
   protected addAtBeginning(from: number, to: number) {
-    return this.add(from, to, true);
+    for (let i = to; i >= from; --i) {
+      this.node.insertAdjacentElement('afterbegin', this.create(i));
+    }
   }
 
   protected addAtBottom(from: number, to: number) {
-    return this.add(from, to, false);
-  }
-
-  private add(from: number, to: number, atBeginning: boolean) {
-    if (atBeginning) {
-      for (let i = to; i >= from; --i) {
-        this.node.insertAdjacentElement('afterbegin', this.create(i));
-      }
-    } else {
-      for (let i = from; i <= to; ++i) {
-        this.node.appendChild(this.create(i));
-      }
+    for (let i = from; i <= to; ++i) {
+      this.node.appendChild(this.create(i));
     }
   }
 
