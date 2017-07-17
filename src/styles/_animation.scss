@@ -1,0 +1,26 @@
+@import "./vars";
+
+
+.loading {
+  background-image: $engine_loading_static_image;
+  background-blend-mode: overlay;
+  background-size: contain;
+  background-repeat: repeat no-repeat;
+  background-position: center;
+
+  > * {
+    opacity: 0;
+  }
+}
+
+&.animated {
+  > header > article > *,
+  > main > article > div > * {
+    transition: opacity 0.5s;
+    opacity: 1;
+  }
+
+  .loading {
+    background-image: $engine_loading_image;
+  }
+}
