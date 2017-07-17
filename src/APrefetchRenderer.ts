@@ -84,7 +84,7 @@ export abstract class APrefetchRenderer extends ABaseRenderer {
       return;
     }
 
-    this.prefetchTimeout = setTimeout(isGoingDown ? this.prefetchDown.bind(this) : this.prefetchUp.bind(this), 20);
+    this.prefetchTimeout = setTimeout(isGoingDown ? this.prefetchDown.bind(this) : this.prefetchUp.bind(this), this.options.delay);
   }
 
   private cleanUpTop(first: number) {
@@ -133,7 +133,7 @@ export abstract class APrefetchRenderer extends ABaseRenderer {
       return;
     }
 
-    this.prefetchTimeout = setTimeout(isGoingDown ? this.cleanUpTop.bind(this) : this.cleanUpBottom.bind(this), 20, isGoingDown ? first : last);
+    this.prefetchTimeout = setTimeout(isGoingDown ? this.cleanUpTop.bind(this) : this.cleanUpBottom.bind(this), this.options.delay, isGoingDown ? first : last);
   }
 
 
