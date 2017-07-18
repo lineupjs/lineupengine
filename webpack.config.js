@@ -95,25 +95,6 @@ function generateWebpack(options) {
       loaders: webpackloaders.slice()
     },
     devServer: {
-      proxy: {
-        '/api/*': {
-          target: 'http://localhost:9000',
-          secure: false,
-          ws: true
-        },
-        '/login': {
-          target: 'http://localhost:9000',
-          secure: false
-        },
-        '/logout': {
-          target: 'http://localhost:9000',
-          secure: false
-        },
-        '/loggedinas': {
-          target: 'http://localhost:9000',
-          secure: false
-        }
-      },
       contentBase: resolve(__dirname, 'build'),
       watchOptions: {
         aggregateTimeout: 500,
