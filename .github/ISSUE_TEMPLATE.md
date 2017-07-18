@@ -1,6 +1,5 @@
 * Release number or git hash: 
 * Web browser version and OS: 
-* Environment (local or deployed): 
 
 ### Steps to reproduce
 
