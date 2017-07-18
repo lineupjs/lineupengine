@@ -61,8 +61,7 @@ function generateWebpack(options) {
   let base = {
     entry: {
       lineupengine: './index.js',
-      demo: './demo/index.ts',
-      taggle: './demo/taggle/index.ts'
+      demo: './demo/index.ts'
     },
     output: {
       path: resolve(__dirname, 'build'),
