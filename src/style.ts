@@ -70,8 +70,15 @@ export class StyleManager {
     const headerScroller = <HTMLElement>root.querySelector('header');
     const bodyScroller = <HTMLElement>root.querySelector('main');
 
+    let isScrollBarConsidered = false;
     bodyScroller.addEventListener('scroll', () => {
-      const left = headerScroller.scrollLeft = bodyScroller.scrollLeft;
+      const left = bodyScroller.scrollLeft;
+      if (!isScrollBarConsidered) {
+        const scrollBarWidth = headerScroller.clientWidth - bodyScroller.clientWidth;
+        (<HTMLElement>headerScroller.firstElementChild).style.width = `${bodyScroller.scrollWidth + scrollBarWidth}px`;
+        isScrollBarConsidered = true;
+      }
+      headerScroller.scrollLeft = left;
       if (this.extraScrollUpdater) {
         this.extraScrollUpdater(left);
       }

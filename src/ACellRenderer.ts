@@ -137,7 +137,6 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
   private removeColumnFromStart(from: number, to: number) {
     this.forEachRow((row: HTMLElement) => {
       this.removeCellFromStart(row, from, to);
-      verifyRow(row);
     });
   }
 
@@ -258,8 +257,6 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
       const cell = this.selectCell(rowIndex, i, columns, ...extras);
       node.appendChild(cell);
     }
-
-    verifyRow(node);
   }
 
   protected updateRow(node: HTMLElement, rowIndex: number, ...extras: any[]): void {
@@ -309,7 +306,6 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
           this.addCellAtEnd(node, rowIndex, lastIndex + 1, visible.last, columns, ...extras);
         }
     }
-    verifyRow(node);
   }
 
   private onScrolledHorizontallyImpl(scrollLeft: number, clientWidth: number): EScrollResult {
@@ -352,15 +348,6 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
     this.updateColumnOffset(firstRowPos);
     return r;
   }
-}
-
-function verifyRow(row: HTMLElement) {
-  const cols = <HTMLElement[]>Array.from(row.children);
-  const target = cols.length;
-  const have = new Set<string>();
-  cols.forEach((c) => have.add(c.dataset.id!));
-
-  console.assert(target === have.size);
 }
 
 export default ACellRenderer;
