@@ -48,7 +48,7 @@ export default class TestRenderer extends ACellRenderer<Column<number>> {
   protected readonly _context: ICellRenderContext<Column<number>>;
 
   constructor(root: HTMLElement, id: string, numberOfRows = 100, numberOfColumns = 100) {
-    super(root);
+    super(root, PrefetchMixin);
     root.id = id;
 
     const defaultRowHeight = 20;
@@ -91,8 +91,8 @@ export default class TestRenderer extends ACellRenderer<Column<number>> {
   }
 
   protected updateRow(node: HTMLElement, index: number) {
-    //return abortAble(resolveIn(2000)).then(() => {
-    super.updateRow(node, index);
-    //});
+    return abortAble(resolveIn(2000)).then(() => {
+      super.updateRow(node, index);
+    });
   }
 }
