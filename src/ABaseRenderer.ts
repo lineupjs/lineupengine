@@ -3,7 +3,7 @@
  */
 import {IExceptionContext, range} from './logic';
 import {IAbortAblePromise, isAbortAble, ABORTED} from './abortAble';
-import {IMixinAdapter, IMixin, IMixinClass} from './mixin';
+import {IMixinAdapter, IMixin, IMixinClass, EScrollResult} from './mixin';
 
 export {default as abortAble} from './abortAble';
 export {IExceptionContext} from './logic';
@@ -189,7 +189,7 @@ export abstract class ABaseRenderer {
     return this.proxy(item, result);
   }
 
-  protected removeAll() {
+  private removeAll() {
     const arr = <HTMLElement[]>Array.from(this.body.children);
     this.body.innerHTML = '';
     arr.forEach((item) => {
@@ -214,11 +214,11 @@ export abstract class ABaseRenderer {
     }
   }
 
-  protected removeFromBeginning(from: number, to: number) {
+  private removeFromBeginning(from: number, to: number) {
     return this.remove(from, to, true);
   }
 
-  protected removeFromBottom(from: number, to: number) {
+  private removeFromBottom(from: number, to: number) {
     return this.remove(from, to, false);
   }
 
@@ -242,7 +242,7 @@ export abstract class ABaseRenderer {
     }
   }
 
-  protected updateOffset(firstRowPos: number) {
+  private updateOffset(firstRowPos: number) {
     const {totalHeight} = this.context;
     this.visibleFirstRowPos = firstRowPos;
     if (this.visible.first % 2 === 1) {
@@ -278,16 +278,16 @@ export abstract class ABaseRenderer {
    * scrolling vertically
    * @param {number} scrollTop
    * @param {number} clientHeight
-   * @param {boolean} _isGoingDown hint whether the scrollTop increases
+   * @param {boolean} isGoingDown hint whether the scrollTop increases
    * @returns {"full" | "partial"} full in case of a full rebuild or partial update
    */
-  protected onScrolledVertically(scrollTop: number, clientHeight: number, isGoingDown: boolean): 'full' | 'partial' {
+  protected onScrolledVertically(scrollTop: number, clientHeight: number, isGoingDown: boolean): EScrollResult {
     const scrollResult = this.onScrolledImpl(scrollTop, clientHeight);
     this.mixins.forEach((mixin) => mixin.onScrolled(isGoingDown, scrollResult));
     return scrollResult;
   }
 
-  private onScrolledImpl(scrollTop: number, clientHeight: number): 'full' | 'partial' {
+  private onScrolledImpl(scrollTop: number, clientHeight: number): EScrollResult {
     const context = this.context;
     const {first, last, firstRowPos} = range(scrollTop, clientHeight, context.defaultRowHeight, context.exceptions, context.numberOfRows);
 
@@ -296,8 +296,10 @@ export abstract class ABaseRenderer {
 
     if ((first - this.visible.first) >= 0 && (last - this.visible.last) <= 0) {
       //nothing to do
-      return 'full';
+      return EScrollResult.NONE;
     }
+
+    let r: EScrollResult = EScrollResult.PARTIAL;
 
     if (first > this.visible.last || last < this.visible.first) {
       //no overlap, clean and draw everything
@@ -305,6 +307,7 @@ export abstract class ABaseRenderer {
       //removeRows(visibleFirst, visibleLast);
       this.removeAll();
       this.addAtBottom(first, last);
+      r = EScrollResult.ALL;
     } else if (first < this.visible.first) {
       //some first rows missing and some last rows to much
       //console.log(`up added: ${visibleFirst - first + 1} removed: ${visibleLast - last + 1} ${first}:${last} ${offset}`);
@@ -321,7 +324,7 @@ export abstract class ABaseRenderer {
     this.visible.last = last;
 
     this.updateOffset(firstRowPos);
-    return 'partial';
+    return r;
   }
 }
 

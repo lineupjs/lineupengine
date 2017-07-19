@@ -3,6 +3,12 @@
  */
 import {IExceptionContext} from '../logic';
 
+export enum EScrollResult {
+  NONE,
+  ALL,
+  PARTIAL
+}
+
 export interface IMixinAdapter {
   readonly visible: {
     //writable
@@ -26,7 +32,7 @@ export interface IMixinAdapter {
 }
 
 export interface IMixin {
-  onScrolled(isGoingDown: boolean, scrollResult: 'full' | 'partial'): void;
+  onScrolled(isGoingDown: boolean, scrollResult: EScrollResult): void;
 }
 
 export interface IMixinClass {

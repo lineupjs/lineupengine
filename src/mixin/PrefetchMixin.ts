@@ -2,7 +2,7 @@
  * Created by Samuel Gratzl on 13.07.2017.
  */
 import {range} from '../logic';
-import {IMixin, IMixinAdapter} from './IMixin';
+import {EScrollResult, IMixin, IMixinAdapter} from './IMixin';
 
 export {IExceptionContext} from '../logic';
 
@@ -137,8 +137,8 @@ export default class PrefetchMixin implements IMixin {
     this.prefetchTimeout = setTimeout(isGoingDown ? this.cleanUpTop.bind(this) : this.cleanUpBottom.bind(this), this.options.delay, isGoingDown ? first : last);
   }
 
-  onScrolled(isGoingDown: boolean, scrollResult: 'full' | 'partial') {
-    if (scrollResult === 'full') {
+  onScrolled(isGoingDown: boolean, scrollResult: EScrollResult) {
+    if (scrollResult === EScrollResult.NONE) {
       if (this.options.cleanUpRows > 0) {
         this.triggerCleanUp(this.adapter.visible.forcedFirst, this.adapter.visible.forcedLast, isGoingDown);
       }

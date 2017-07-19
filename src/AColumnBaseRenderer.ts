@@ -4,6 +4,7 @@
 import {ABaseRenderer} from './ABaseRenderer';
 import {IColumn, setColumn, StyleManager, TEMPLATE} from './style';
 import {IExceptionContext} from './logic';
+import {IMixinAdapter, IMixin, IMixinClass, EScrollResult} from './mixin';
 
 export interface IColumnRenderContext<T extends IColumn> extends IExceptionContext {
   readonly column: IExceptionContext;
@@ -17,7 +18,7 @@ function setTemplate(root: HTMLElement) {
 }
 
 export abstract class AColumnBaseRenderer<T extends IColumn> extends ABaseRenderer {
-  protected visibleColumns = {
+  protected readonly visibleColumns = {
     first: 0,
     forcedFirst: 0,
     last: 0,
@@ -27,12 +28,50 @@ export abstract class AColumnBaseRenderer<T extends IColumn> extends ABaseRender
 
   private style: StyleManager;
 
-  constructor(protected readonly root: HTMLElement) {
-    super(<HTMLElement>setTemplate(root).querySelector('main > article'));
+  private readonly columnAdapter: IMixinAdapter;
+  private readonly columnMixins: IMixin[];
+
+  constructor(protected readonly root: HTMLElement, ...mixinClasses: IMixinClass[]) {
+    super(<HTMLElement>setTemplate(root).querySelector('main > article'), ...mixinClasses);
+
+    this.columnAdapter = this.createColumnAdapter();
+    this.columnMixins = mixinClasses.map((mixinClass) => new mixinClass(this.columnAdapter));
+
   }
 
   protected get header() {
     return <HTMLElement>this.root.querySelector('header > article');
+  }
+
+  protected get headerScroller() {
+    return <HTMLElement>this.root.querySelector('header');
+  }
+
+   protected addColumnMixin(mixinClass: IMixinClass, options?: any) {
+    this.columnMixins.push(new mixinClass(this.columnAdapter, options));
+  }
+
+  private createColumnAdapter(): IMixinAdapter {
+    const r: any = {
+      visible: this.visibleColumns,
+      addAtBeginning: this.addColumnAtStart.bind(this),
+      addAtBottom: this.addColumnAtEnd.bind(this),
+      removeFromBeginning: this.removeColumnFromStart.bind(this),
+      removeFromBottom: this.removeColumnFromEnd.bind(this),
+      updateOffset: this.updateColumnOffset.bind(this),
+      scroller: this.headerScroller
+    };
+    Object.defineProperties(r, {
+      visibleFirstRowPos: {
+        get: () => this.visibleFirstColumnPos,
+        enumerable: true
+      },
+      context: {
+        get: () => this.context.column,
+        enumerable: true
+      }
+    });
+    return r;
   }
 
   protected init() {
@@ -67,8 +106,15 @@ export abstract class AColumnBaseRenderer<T extends IColumn> extends ABaseRender
     super.init();
   }
 
-  protected onScrolledHorizontally(_scrollLeft: number, _isGoingRight: boolean) {
-    //TODO
+  protected updateColumnOffset(firstColumnPos: number) {
+    this.visibleFirstColumnPos = firstColumnPos;
+    // TODO
+  }
+
+  protected onScrolledHorizontally(scrollLeft: number, isGoingRight: boolean) {
+    const scrollResult = this.onScrolledHorizontallyImpl(scrollLeft);
+    this.columnMixins.forEach((mixin) => mixin.onScrolled(isGoingRight, scrollResult));
+    return scrollResult;
   }
 
   /**
@@ -84,6 +130,27 @@ export abstract class AColumnBaseRenderer<T extends IColumn> extends ABaseRender
   protected abstract createColumn(document: Document, index: number, column: T, ...extras: any[]): HTMLElement;
 
   protected abstract updateColumn(node: HTMLElement, index: number, column: T, ...extras: any[]): HTMLElement | void;
+
+
+  private removeColumnFromStart(from: number, to: number) {
+    return this.removeColumn(from, to, true);
+  }
+
+  private removeColumnFromEnd(from: number, to: number) {
+    return this.removeColumn(from, to, false);
+  }
+
+  private removeColumn(_from: number, _to: number, _fromBeginning: boolean) {
+    //TODO
+  }
+
+  protected addColumnAtStart(_from: number, _to: number) {
+    //TODO
+  }
+
+  protected addColumnAtEnd(_from: number, _to: number) {
+    //TODO
+  }
 
   protected createRow(node: HTMLElement, index: number, ...extras: any[]): void {
     const {columns} = this.context;
@@ -104,6 +171,11 @@ export abstract class AColumnBaseRenderer<T extends IColumn> extends ABaseRender
         node.replaceChild(replacement, child);
       }
     });
+  }
+
+  private onScrolledHorizontallyImpl(_scrollLeft: number): EScrollResult {
+    //TODO
+    return EScrollResult.ALL;
   }
 }
 

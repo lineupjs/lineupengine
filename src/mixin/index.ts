@@ -3,5 +3,5 @@
  */
 
 
-export {IMixin, IMixinAdapter, IMixinClass} from './IMixin';
+export {IMixin, IMixinAdapter, IMixinClass, EScrollResult} from './IMixin';
 export {default as PrefetchMixin} from './PrefetchMixin';
