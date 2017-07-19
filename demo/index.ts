@@ -2,14 +2,10 @@
  * Created by Samuel Gratzl on 13.07.2017.
  */
 import 'file-loader?name=demo.html!extract-loader!html-loader!./index.html';
-import {APrefetchRenderer, IRenderContext, abortAble} from '../src/APrefetchRenderer';
+import {APrefetchRenderer, IExceptionContext, abortAble} from '../src/APrefetchRenderer';
 import {uniformContext} from '../src/logic';
-import {StyleManager, IColumn, setColumn, TEMPLATE} from '../src/style';
+import {StyleManager, IColumn, setColumn, setTemplate} from '../src/style';
 
-function setTemplate(root: HTMLElement) {
-  root.innerHTML = TEMPLATE;
-  return root;
-}
 
 function resolveIn(ms: number) {
   return new Promise<void>((resolve) => {
@@ -54,7 +50,7 @@ class Column<T> implements IColumn {
 
 export default class TestRenderer extends APrefetchRenderer {
   private readonly style: StyleManager;
-  protected readonly _context: IRenderContext;
+  protected readonly _context: IExceptionContext;
 
   private readonly columns: Column<number>[];
 
@@ -62,8 +58,6 @@ export default class TestRenderer extends APrefetchRenderer {
     super(<HTMLElement>setTemplate(root).querySelector(':scope > main > article'));
     root.id = id;
     root.classList.add('lineup-engine');
-    const scroller = <HTMLElement>root.querySelector(':scope > main');
-
 
     const defaultRowHeight = 20;
 
@@ -71,33 +65,24 @@ export default class TestRenderer extends APrefetchRenderer {
     for (let i = 0; i < numberOfColumns; ++i) {
       this.columns.push(new Column(i, i.toString(36), i % 4 === 0));
     }
-    const exceptions = uniformContext(numberOfRows, defaultRowHeight);
+    this._context = uniformContext(numberOfRows, defaultRowHeight);
 
-    this._context = Object.assign({
-      scroller
-    }, exceptions);
-
-    this.style = new StyleManager(root, `#${id}`, this._context.defaultRowHeight);
+    this.style = new StyleManager(root, `#${id}`, defaultRowHeight);
 
   }
 
 
   run() {
-    const header = <HTMLElement>this.root.querySelector(':scope > header');
-    const headerNode = <HTMLElement>header.querySelector(':scope > article');
+    const header = <HTMLElement>this.root.querySelector(':scope > header > article');
 
     this.style.update(this.columns, 100);
-    this.columns.forEach((c) => headerNode.appendChild(c.header(headerNode.ownerDocument)));
+    this.columns.forEach((c) => header.appendChild(c.header(header.ownerDocument)));
 
     //wait till layouted
-    setTimeout(super.init.bind(this), 100, headerNode);
+    setTimeout(super.init.bind(this), 100);
   }
 
-  protected onScrolledHorizontally(scrollLeft: number) {
-    this.style.updateFrozenColumnsShift(this.columns, scrollLeft);
-  }
-
-  protected get context(): IRenderContext {
+  protected get context() {
     return this._context;
   }
 

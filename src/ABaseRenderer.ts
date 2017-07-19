@@ -4,11 +4,8 @@
 import {IExceptionContext, range} from './logic';
 import {IAbortAblePromise, isAbortAble, ABORTED} from './abortAble';
 export {default as abortAble} from './abortAble';
+export {IExceptionContext} from './logic';
 
-
-export interface IRenderContext extends IExceptionContext {
-  readonly scroller: HTMLElement;
-}
 
 export abstract class ABaseRenderer {
   private readonly pool: HTMLElement[] = [];
@@ -23,14 +20,14 @@ export abstract class ABaseRenderer {
   };
   protected visibleFirstRowPos = 0;
 
-  constructor(protected readonly node: HTMLElement) {
+  constructor(protected readonly body: HTMLElement) {
   }
 
   /**
    * the current render context, upon change `recreate` the whole table
    * @returns {IRenderContext}
    */
-  protected abstract get context(): IRenderContext;
+  protected abstract get context(): IExceptionContext;
 
   /**
    * creates a new row
@@ -66,7 +63,7 @@ export abstract class ABaseRenderer {
       item.classList.remove('loading');
       result = this.createRow(item, index);
     } else {
-      item = this.node.ownerDocument.createElement('div');
+      item = this.body.ownerDocument.createElement('div');
       result = this.createRow(item, index);
     }
     item.dataset.index = String(index);
@@ -78,7 +75,7 @@ export abstract class ABaseRenderer {
     if (this.loadingPool.length > 0) {
       proxy = this.loadingPool.pop()!;
     } else {
-      proxy = this.node.ownerDocument.createElement('div');
+      proxy = this.body.ownerDocument.createElement('div');
       proxy.classList.add('loading');
     }
     return proxy;
@@ -116,7 +113,7 @@ export abstract class ABaseRenderer {
         this.pool.push(real);
       } else {
         //fully loaded
-        this.node.replaceChild(real, proxy);
+        this.body.replaceChild(real, proxy);
       }
       this.loading.delete(proxy);
       ABaseRenderer.cleanUp(proxy);
@@ -137,8 +134,8 @@ export abstract class ABaseRenderer {
   }
 
   protected removeAll() {
-    const arr = <HTMLElement[]>Array.from(this.node.children);
-    this.node.innerHTML = '';
+    const arr = <HTMLElement[]>Array.from(this.body.children);
+    this.body.innerHTML = '';
     arr.forEach((item) => {
       this.recycle(item);
     });
@@ -147,7 +144,7 @@ export abstract class ABaseRenderer {
 
   protected update() {
     for(let i = this.visible.first; i <= this.visible.last; ++i) {
-      const item = <HTMLElement>this.node.children[i];
+      const item = <HTMLElement>this.body.children[i];
       if (this.loading.has(item)) {
        // still loading
         continue;
@@ -156,7 +153,7 @@ export abstract class ABaseRenderer {
 
       const proxied = this.proxy(item, abort);
       if (proxied !== item) { //got a proxy back
-        this.node.replaceChild(proxied, item);
+        this.body.replaceChild(proxied, item);
       }
     }
   }
@@ -171,21 +168,21 @@ export abstract class ABaseRenderer {
 
   private remove(from: number, to: number, fromBeginning: boolean) {
     for (let i = from; i <= to; ++i) {
-      const item = <HTMLElement>(fromBeginning ? this.node.firstChild : this.node.lastChild);
-      this.node.removeChild(item);
+      const item = <HTMLElement>(fromBeginning ? this.body.firstChild : this.body.lastChild);
+      this.body.removeChild(item);
       this.recycle(item);
     }
   }
 
   protected addAtBeginning(from: number, to: number) {
     for (let i = to; i >= from; --i) {
-      this.node.insertAdjacentElement('afterbegin', this.create(i));
+      this.body.insertAdjacentElement('afterbegin', this.create(i));
     }
   }
 
   protected addAtBottom(from: number, to: number) {
     for (let i = from; i <= to; ++i) {
-      this.node.appendChild(this.create(i));
+      this.body.appendChild(this.create(i));
     }
   }
 
@@ -193,40 +190,31 @@ export abstract class ABaseRenderer {
     this.visibleFirstRowPos = firstRowPos;
     if (this.visible.first % 2 === 1) {
       //odd start patch for correct background
-      this.node.classList.add('odd');
+      this.body.classList.add('odd');
     } else {
-      this.node.classList.remove('odd');
+      this.body.classList.remove('odd');
     }
 
-    this.node.style.transform = `translate(0, ${firstRowPos.toFixed(0)}px)`;
-    this.node.style.height = `${(totalHeight - firstRowPos).toFixed(0)}px`;
+    this.body.style.transform = `translate(0, ${firstRowPos.toFixed(0)}px)`;
+    this.body.style.height = `${(totalHeight - firstRowPos).toFixed(0)}px`;
   }
 
   /**
    * initializes the table and register the onscroll listener
-   * @param {HTMLElement} header the header to sync
    */
-  protected init(header: HTMLElement) {
-    const context = this.context;
-    const body = context.scroller;
+  protected init() {
+    const scroller = <HTMLElement>this.body.parentElement;
 
     //sync scrolling of header and body
-    let old = body.scrollTop;
-    header.scrollLeft = body.scrollLeft;
-    body.onscroll = () => {
-      const scrollLeft = body.scrollLeft;
-      if (header.scrollLeft !== scrollLeft) {
-        header.scrollLeft = scrollLeft;
-        this.onScrolledHorizontally(scrollLeft);
+    let oldTop = scroller.scrollTop;
+    scroller.addEventListener('scroll', () => {
+      const top = scroller.scrollTop;
+      if (oldTop !== top) {
+        const isGoingDown = top > oldTop;
+        oldTop = top;
+        this.onScrolledVertically(top, scroller.clientHeight, isGoingDown);
       }
-      const top = body.scrollTop;
-      if (old !== top) {
-        const isGoingDown = top > old;
-        old = top;
-        this.onScrolledVertically(top, body.clientHeight, isGoingDown, scrollLeft);
-      }
-    };
-
+    });
     this.recreate();
   }
 
@@ -238,7 +226,8 @@ export abstract class ABaseRenderer {
 
     this.removeAll();
 
-    const {first, last, firstRowPos} = range(context.scroller.scrollTop, context.scroller.clientHeight, context.defaultRowHeight, context.exceptions, context.numberOfRows);
+    const scroller = <HTMLElement>this.body.parentElement;
+    const {first, last, firstRowPos} = range(scroller.scrollTop, scroller.clientHeight, context.defaultRowHeight, context.exceptions, context.numberOfRows);
 
     this.visible.first = this.visible.forcedFirst = first;
     this.visible.last = this.visible.forcedLast = last;
@@ -246,24 +235,14 @@ export abstract class ABaseRenderer {
     this.addAtBottom(first, last);
     this.updateOffset(firstRowPos, context.totalHeight);
   }
-
-  /**
-   * scrolling horizontally
-   * @param {number} _scrollLeft the current shift
-   */
-  protected onScrolledHorizontally(_scrollLeft: number) {
-    // hook
-  }
-
   /**
    * scrolling vertically
    * @param {number} scrollTop
    * @param {number} clientHeight
    * @param {boolean} _isGoingDown hint whether the scrollTop increases
-   * @param {number} _scrollLeft
    * @returns {"full" | "partial"} full in case of a full rebuild or partial update
    */
-  protected onScrolledVertically(scrollTop: number, clientHeight: number, _isGoingDown: boolean, _scrollLeft: number): 'full' | 'partial' {
+  protected onScrolledVertically(scrollTop: number, clientHeight: number, _isGoingDown: boolean): 'full' | 'partial' {
     const context = this.context;
     const {first, last, firstRowPos} = range(scrollTop, clientHeight, context.defaultRowHeight, context.exceptions, context.numberOfRows);
 

@@ -22,6 +22,11 @@ export const TEMPLATE = `
   </main>`;
 
 
+export function setTemplate(root: HTMLElement) {
+  root.innerHTML = TEMPLATE;
+  return root;
+}
+
 function repeatStandard(count: number, width: string) {
   return `repeat(${count}, ${width})`;
 }
@@ -45,11 +50,13 @@ export class StyleManager {
   private readonly stylesheet: CSSStyleSheet;
   private readonly node: HTMLStyleElement;
 
-  constructor(parent: HTMLElement, private readonly id: string, defaultRowHeight: number) {
-    this.node = parent.ownerDocument.createElement('style');
-    parent.appendChild(this.node);
+  private extraScrollUpdater: ((scrollLeft: number)=>void)|null = null;
+
+  constructor(root: HTMLElement, private readonly id: string, defaultRowHeight: number) {
+    this.node = root.ownerDocument.createElement('style');
+    root.appendChild(this.node);
     if(isEdge) {
-      parent.classList.add('ms-edge');
+      root.classList.add('ms-edge');
     }
     this.stylesheet = <CSSStyleSheet>this.node.sheet;
 
@@ -59,6 +66,16 @@ export class StyleManager {
     this.stylesheet.insertRule(`${id} > main > article > div, .lu > header > article {
       /*column rule*/
     }`, 1);
+
+    const headerScroller = <HTMLElement>root.querySelector('header');
+    const bodyScroller = <HTMLElement>root.querySelector('main');
+
+    bodyScroller.addEventListener('scroll', () => {
+      const left = headerScroller.scrollLeft = bodyScroller.scrollLeft;
+      if (this.extraScrollUpdater) {
+        this.extraScrollUpdater(left);
+      }
+    });
   }
 
   destroy() {
@@ -107,6 +124,8 @@ export class StyleManager {
         grid-auto-columns: ${defaultWidth}px;`;
     } else {
       content = `-ms-grid-columns: ${widths};`;
+
+      this.extraScrollUpdater = this.updateFrozenColumnsShift.bind(this, columns, unit);
     }
     this.stylesheet.insertRule(`${this.id} > main > article > div, ${this.id} > header > article { ${content} }`, 1);
 
@@ -134,7 +153,7 @@ export class StyleManager {
     }
   }
 
-  updateFrozenColumnsShift(columns: IColumn[], scrollLeft: number, unit: string = 'px') {
+  private updateFrozenColumnsShift(columns: IColumn[], unit: string, scrollLeft: number) {
     if (!isEdge) {
     return;
     }

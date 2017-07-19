@@ -3,7 +3,7 @@
  */
 import {ABaseRenderer} from './ABaseRenderer';
 import {range} from './logic';
-export {IRenderContext, abortAble} from './ABaseRenderer';
+export {IExceptionContext, abortAble} from './ABaseRenderer';
 
 export interface IPrefetchRendererOptions {
   /**
@@ -59,8 +59,9 @@ export abstract class APrefetchRenderer extends ABaseRenderer {
       return;
     }
     const context = this.context;
-    const fakeOffset = Math.max(context.scroller.scrollTop - this.options.prefetchRows! * context.defaultRowHeight, 0);
-    const height = context.scroller.clientHeight;
+    const scroller = <HTMLElement>this.body.parentElement;
+    const fakeOffset = Math.max(scroller.scrollTop - this.options.prefetchRows! * context.defaultRowHeight, 0);
+    const height = scroller.clientHeight;
     const {first, firstRowPos} = range(fakeOffset, height, context.defaultRowHeight, context.exceptions, context.numberOfRows);
 
     if (first === this.visible.first) {
@@ -136,8 +137,8 @@ export abstract class APrefetchRenderer extends ABaseRenderer {
   }
 
 
-  protected onScrolledVertically(scrollTop: number, clientHeight: number, isGoingDown: boolean, scrollLeft: number): 'full' | 'partial' {
-    const r = super.onScrolledVertically(scrollTop, clientHeight, isGoingDown, scrollLeft);
+  protected onScrolledVertically(scrollTop: number, clientHeight: number, isGoingDown: boolean): 'full' | 'partial' {
+    const r = super.onScrolledVertically(scrollTop, clientHeight, isGoingDown);
 
     if (r === 'full') {
       if (this.options.cleanUpRows > 0) {
