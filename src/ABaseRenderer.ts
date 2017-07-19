@@ -211,7 +211,7 @@ export abstract class ABaseRenderer {
     //sync scrolling of header and body
     let old = body.scrollTop;
     header.scrollLeft = body.scrollLeft;
-    body.onscroll = (evt) => {
+    body.onscroll = () => {
       const scrollLeft = body.scrollLeft;
       if (header.scrollLeft !== scrollLeft) {
         header.scrollLeft = scrollLeft;
@@ -247,9 +247,9 @@ export abstract class ABaseRenderer {
 
   /**
    * scrolling horizontally
-   * @param {number} scrollLeft the current shift
+   * @param {number} _scrollLeft the current shift
    */
-  protected onScrolledHorizontally(scrollLeft: number) {
+  protected onScrolledHorizontally(_scrollLeft: number) {
     // hook
   }
 
@@ -257,11 +257,11 @@ export abstract class ABaseRenderer {
    * scrolling vertically
    * @param {number} scrollTop
    * @param {number} clientHeight
-   * @param {boolean} isGoingDown hint whether the scrollTop increases
-   * @param {number} scrollLeft
+   * @param {boolean} _isGoingDown hint whether the scrollTop increases
+   * @param {number} _scrollLeft
    * @returns {"full" | "partial"} full in case of a full rebuild or partial update
    */
-  protected onScrolledVertically(scrollTop: number, clientHeight: number, isGoingDown: boolean, scrollLeft: number): 'full' | 'partial' {
+  protected onScrolledVertically(scrollTop: number, clientHeight: number, _isGoingDown: boolean, _scrollLeft: number): 'full' | 'partial' {
     const context = this.context;
     const {first, last, firstRowPos} = range(scrollTop, clientHeight, context.defaultRowHeight, context.exceptions, context.numberOfRows);
 

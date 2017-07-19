@@ -104,7 +104,7 @@ describe('logic', () => {
   function expectRange(r: IVisibleRange, first: number, last: number, firstRowPos: number, endPos: number) {
     expect(r.first).toBe(first, 'first failed');
     expect(r.last).toBe(last, 'last failed');
-    expect(r.firstRowPos).toBe(r.firstRowPos, 'firstRowsPos failed');
+    expect(r.firstRowPos).toBe(firstRowPos, 'firstRowsPos failed');
     expect(r.endPos).toBe(endPos, 'endPos failed');
   }
 

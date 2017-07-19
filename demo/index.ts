@@ -102,7 +102,7 @@ export default class TestRenderer extends APrefetchRenderer {
   }
 
   protected createRow(node: HTMLElement, index: number) {
-    this.columns.forEach((col, i) => node.appendChild(col.cell(index, node.ownerDocument)));
+    this.columns.forEach((col) => node.appendChild(col.cell(index, node.ownerDocument)));
   }
 
   protected updateRow(node: HTMLElement, index: number) {

@@ -2,7 +2,7 @@
 import abortAble, {ABORTED, isAbortAble} from '../src/abortAble';
 
 
-function resolveIn<T>(ms: number, result?: T) {
+function resolveIn<T>(this: any, ms: number, result?: T) {
   return new Promise<T>((resolve) => {
     setTimeout(resolve.bind(this, result), ms);
   });
