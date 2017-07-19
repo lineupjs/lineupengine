@@ -47,20 +47,20 @@ class Column<T> implements IColumn {
 export default class TestRenderer extends ACellRenderer<Column<number>> {
   protected readonly _context: ICellRenderContext<Column<number>>;
 
-  constructor(root: HTMLElement, id: string, numberOfRows = 100, numberOfColumns = 20) {
-    super(root, PrefetchMixin);
+  constructor(root: HTMLElement, id: string, numberOfRows = 100, numberOfColumns = 100) {
+    super(root);
     root.id = id;
 
     const defaultRowHeight = 20;
 
     const columns: Column<number>[] = [];
     for (let i = 0; i < numberOfColumns; ++i) {
-      columns.push(new Column(i, i.toString(36), i % 4 === 0));
+      columns.push(new Column(i, i.toString(36), false));
     }
     this._context = Object.assign({
       columns,
       column: uniformContext(columns.length, 100),
-      htmlId: id
+      htmlId: `#${id}`
     }, uniformContext(numberOfRows, defaultRowHeight));
 
   }
@@ -91,8 +91,8 @@ export default class TestRenderer extends ACellRenderer<Column<number>> {
   }
 
   protected updateRow(node: HTMLElement, index: number) {
-    return abortAble(resolveIn(2000)).then(() => {
-      super.updateRow(node, index);
-    });
+    //return abortAble(resolveIn(2000)).then(() => {
+    super.updateRow(node, index);
+    //});
   }
 }

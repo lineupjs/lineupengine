@@ -55,7 +55,7 @@ export abstract class ARowRenderer {
     return r;
   }
 
-  private get bodyScroller() {
+  protected get bodyScroller() {
     return <HTMLElement>this.body.parentElement;
   }
 
@@ -85,7 +85,7 @@ export abstract class ARowRenderer {
    * initializes the table and register the onscroll listener
    */
   protected init() {
-    const scroller = <HTMLElement>this.body.parentElement;
+    const scroller = this.bodyScroller;
 
     //sync scrolling of header and body
     let oldTop = scroller.scrollTop;
@@ -228,13 +228,13 @@ export abstract class ARowRenderer {
     }
   }
 
-  protected addAtBeginning(from: number, to: number) {
+  private addAtBeginning(from: number, to: number) {
     for (let i = to; i >= from; --i) {
       this.body.insertAdjacentElement('afterbegin', this.create(i));
     }
   }
 
-  protected addAtBottom(from: number, to: number) {
+  private addAtBottom(from: number, to: number) {
     for (let i = from; i <= to; ++i) {
       this.body.appendChild(this.create(i));
     }
@@ -289,37 +289,38 @@ export abstract class ARowRenderer {
     const context = this.context;
     const {first, last, firstRowPos} = range(scrollTop, clientHeight, context.defaultRowHeight, context.exceptions, context.numberOfRows);
 
-    this.visible.forcedFirst = first;
-    this.visible.forcedLast = last;
+    const visible = this.visible;
+    visible.forcedFirst = first;
+    visible.forcedLast = last;
 
-    if ((first - this.visible.first) >= 0 && (last - this.visible.last) <= 0) {
+    if ((first - visible.first) >= 0 && (last - visible.last) <= 0) {
       //nothing to do
       return EScrollResult.NONE;
     }
 
     let r: EScrollResult = EScrollResult.PARTIAL;
 
-    if (first > this.visible.last || last < this.visible.first) {
+    if (first > visible.last || last < visible.first) {
       //no overlap, clean and draw everything
       //console.log(`ff added: ${last - first + 1} removed: ${visibleLast - visibleFirst + 1} ${first}:${last} ${offset}`);
       //removeRows(visibleFirst, visibleLast);
       this.removeAll();
       this.addAtBottom(first, last);
       r = EScrollResult.ALL;
-    } else if (first < this.visible.first) {
+    } else if (first < visible.first) {
       //some first rows missing and some last rows to much
       //console.log(`up added: ${visibleFirst - first + 1} removed: ${visibleLast - last + 1} ${first}:${last} ${offset}`);
-      this.removeFromBottom(last + 1, this.visible.last);
-      this.addAtBeginning(first, this.visible.first - 1);
+      this.removeFromBottom(last + 1, visible.last);
+      this.addAtBeginning(first, visible.first - 1);
     } else {
       //console.log(`do added: ${last - visibleLast + 1} removed: ${first - visibleFirst + 1} ${first}:${last} ${offset}`);
       //some last rows missing and some first rows to much
-      this.removeFromBeginning(this.visible.first, first - 1);
-      this.addAtBottom(this.visible.last + 1, last);
+      this.removeFromBeginning(visible.first, first - 1);
+      this.addAtBottom(visible.last + 1, last);
     }
 
-    this.visible.first = first;
-    this.visible.last = last;
+    visible.first = first;
+    visible.last = last;
 
     this.updateOffset(firstRowPos);
     return r;

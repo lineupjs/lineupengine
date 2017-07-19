@@ -3,7 +3,7 @@
  */
 import {ARowRenderer} from './ARowRenderer';
 import {IColumn, setColumn, StyleManager, TEMPLATE} from './style';
-import {IExceptionContext} from './logic';
+import {IExceptionContext, range} from './logic';
 import {IMixinAdapter, IMixin, IMixinClass, EScrollResult} from './mixin';
 
 export interface ICellRenderContext<T extends IColumn> extends IExceptionContext {
@@ -18,6 +18,12 @@ function setTemplate(root: HTMLElement) {
 }
 
 export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
+  /**
+   * pool of cels per column
+   * @type {Array}
+   */
+  private readonly cellPool: HTMLElement[][] = [];
+
   protected readonly visibleColumns = {
     first: 0,
     forcedFirst: 0,
@@ -48,7 +54,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
     return <HTMLElement>this.root.querySelector('header');
   }
 
-   protected addColumnMixin(mixinClass: IMixinClass, options?: any) {
+  protected addColumnMixin(mixinClass: IMixinClass, options?: any) {
     this.columnMixins.push(new mixinClass(this.columnAdapter, options));
   }
 
@@ -79,41 +85,36 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
     const context = this.context;
 
     this.style = new StyleManager(this.root, context.htmlId, context.defaultRowHeight);
-    this.style.update(this.context.columns, 150);
-
-    this.visibleColumns.last = this.visibleColumns.forcedLast = context.column.numberOfRows - 1;
+    this.style.update(this.context.columns, context.column.defaultRowHeight);
 
     //create all header columns
     const header = this.header;
     const document = header.ownerDocument;
     context.columns.forEach((col) => {
       header.appendChild(this.createHeader(document, col));
+      //init pool
+      this.cellPool.push([]);
     });
 
 
     const scroller = <HTMLElement>this.body.parentElement;
 
     //sync scrolling of header and body
-    let oldTop = scroller.scrollTop;
+    let oldLeft = scroller.scrollLeft;
     scroller.addEventListener('scroll', () => {
-      const top = scroller.scrollTop;
-      if (oldTop !== top) {
-        const isGoingDown = top > oldTop;
-        oldTop = top;
-        this.onScrolledVertically(top, scroller.clientHeight, isGoingDown);
+      const left = scroller.scrollLeft;
+      if (oldLeft !== left) {
+        const isGoingRight = left > oldLeft;
+        oldLeft = left;
+        this.onScrolledHorizontally(left, scroller.clientWidth, isGoingRight);
       }
     });
 
     super.init();
   }
 
-  protected updateColumnOffset(firstColumnPos: number) {
-    this.visibleFirstColumnPos = firstColumnPos;
-    // TODO
-  }
-
-  protected onScrolledHorizontally(scrollLeft: number, isGoingRight: boolean) {
-    const scrollResult = this.onScrolledHorizontallyImpl(scrollLeft);
+  protected onScrolledHorizontally(scrollLeft: number, clientWidth: number, isGoingRight: boolean) {
+    const scrollResult = this.onScrolledHorizontallyImpl(scrollLeft, clientWidth);
     this.columnMixins.forEach((mixin) => mixin.onScrolled(isGoingRight, scrollResult));
     return scrollResult;
   }
@@ -134,50 +135,232 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
 
 
   private removeColumnFromStart(from: number, to: number) {
-    return this.removeColumn(from, to, true);
+    this.forEachRow((row: HTMLElement) => {
+      this.removeCellFromStart(row, from, to);
+      verifyRow(row);
+    });
+  }
+
+  private removeCellFromStart(row: HTMLElement, from: number, to: number) {
+    for (let i = from; i <= to; ++i) {
+      const node = <HTMLElement>row.firstElementChild;
+      row.removeChild(node);
+      this.recycleCell(node, i);
+    }
   }
 
   private removeColumnFromEnd(from: number, to: number) {
-    return this.removeColumn(from, to, false);
-  }
-
-  private removeColumn(_from: number, _to: number, _fromBeginning: boolean) {
-    //TODO
-  }
-
-  protected addColumnAtStart(_from: number, _to: number) {
-    //TODO
-  }
-
-  protected addColumnAtEnd(_from: number, _to: number) {
-    //TODO
-  }
-
-  protected createRow(node: HTMLElement, index: number, ...extras: any[]): void {
-    const {columns} = this.context;
-    const document = node.ownerDocument;
-    columns.forEach((column) => {
-      const child = this.createCell(document, index, column, ...extras);
-      setColumn(child, column);
-      node.appendChild(child);
+    this.forEachRow((row: HTMLElement) => {
+      this.removeCellFromEnd(row, from, to);
     });
   }
 
-  protected updateRow(node: HTMLElement, index: number, ...extras: any[]): void {
-    const {columns} = this.context;
-    columns.forEach((column, i) => {
-      const child = <HTMLElement>node.children[i];
-      const replacement = this.updateCell(child, index, column, ...extras);
-      if (replacement !== undefined && replacement !== child) { //have a replacement
-        node.replaceChild(replacement, child);
+  private removeCellFromEnd(row: HTMLElement, from: number, to: number) {
+    for (let i = to; i >= from; --i) {
+      const node = <HTMLElement>row.lastElementChild;
+      row.removeChild(node);
+      this.recycleCell(node, i);
+    }
+  }
+
+  private removeAllColumns() {
+    this.forEachRow((row: HTMLElement) => {
+      this.removeAllCells(row);
+    });
+  }
+
+  private removeAllCells(row: HTMLElement, shift = this.visibleColumns.first) {
+    const arr = <HTMLElement[]>Array.from(row.children);
+    row.innerHTML = '';
+    arr.forEach((item, i) => {
+      this.recycleCell(item, i + shift);
+    });
+  }
+
+  private forEachRow(callback: (row: HTMLElement, rowIndex: number) => void) {
+    Array.from(this.body.children).forEach((row: HTMLElement, index) => {
+      if (row.classList.contains('loading')) {
+        return; //skip loading ones
       }
+      callback(row, index + this.visible.first);
     });
   }
 
-  private onScrolledHorizontallyImpl(_scrollLeft: number): EScrollResult {
-    //TODO
-    return EScrollResult.ALL;
+  private selectCell(row: number, column: number, columns: T[], ...extras: any[]): HTMLElement {
+    const pool = this.cellPool[column];
+    const columnObj = columns[column];
+    if (pool.length > 0) {
+      const item = pool.pop()!;
+      const r = this.updateCell(item, row, columnObj, ...extras);
+      return r ? r : item;
+    } else {
+      const r = this.createCell(this.body.ownerDocument, row, columnObj, ...extras);
+      setColumn(r, columnObj);
+      return r;
+    }
   }
+
+  private recycleCell(item: HTMLElement, column: number) {
+    this.cellPool[column].push(item);
+  }
+
+  private addColumnAtStart(from: number, to: number) {
+    const {columns} = this.context;
+    this.forEachRow((row: HTMLElement, rowIndex: number) => {
+      this.addCellAtStart(row, rowIndex, from, to, columns);
+    });
+  }
+
+  private addCellAtStart(row: HTMLElement, rowIndex: number, from: number, to: number, columns: T[], ...extras: any[]) {
+    for (let i = to; i >= from; --i) {
+      const cell = this.selectCell(rowIndex, i, columns, ...extras);
+      row.insertAdjacentElement('afterbegin', cell);
+    }
+  }
+
+  private addColumnAtEnd(from: number, to: number) {
+    const {columns} = this.context;
+    this.forEachRow((row: HTMLElement, rowIndex: number) => {
+      this.addCellAtEnd(row, rowIndex, from, to, columns);
+    });
+  }
+
+  private addCellAtEnd(row: HTMLElement, rowIndex: number, from: number, to: number, columns: T[], ...extras: any[]) {
+    for (let i = from; i <= to; ++i) {
+      const cell = this.selectCell(rowIndex, i, columns, ...extras);
+      row.appendChild(cell);
+    }
+  }
+
+  protected recreate() {
+    const context = this.context;
+
+    const scroller = this.bodyScroller;
+    const {first, last, firstRowPos} = range(scroller.scrollLeft, scroller.clientWidth, context.column.defaultRowHeight, context.column.exceptions, context.column.numberOfRows);
+
+    this.visibleColumns.first = this.visibleColumns.forcedFirst = first;
+    this.visibleColumns.last = this.visibleColumns.forcedLast = last;
+
+    super.recreate();
+    this.updateColumnOffset(firstRowPos);
+  }
+
+  private updateColumnOffset(firstColumnPos: number) {
+    this.visibleFirstColumnPos = firstColumnPos;
+    // TODO
+  }
+
+  protected createRow(node: HTMLElement, rowIndex: number, ...extras: any[]): void {
+    const {columns} = this.context;
+    const visible = this.visibleColumns;
+
+    for (let i = visible.first; i <= visible.last; ++i) {
+      const cell = this.selectCell(rowIndex, i, columns, ...extras);
+      node.appendChild(cell);
+    }
+
+    verifyRow(node);
+  }
+
+  protected updateRow(node: HTMLElement, rowIndex: number, ...extras: any[]): void {
+    const {columns} = this.context;
+    const visible = this.visibleColumns;
+
+    //columns may not match anymore if it is a pooled item a long time ago
+    const existing = <HTMLElement[]>Array.from(node.children);
+
+    switch (existing.length) {
+      case 0:
+        this.addCellAtStart(node, rowIndex, visible.first, visible.last, columns, ...extras);
+        break;
+      case 1:
+        const old = existing[0];
+        const id = old.dataset.id!;
+        const columnIndex = columns.findIndex((c) => c.id === id);
+        node.removeChild(old);
+        this.recycleCell(old, columnIndex);
+        this.addCellAtStart(node, rowIndex, visible.first, visible.last, columns, ...extras);
+        break;
+      default: //>=2
+        const firstId = existing[0].dataset.id!;
+        const lastId = existing[existing.length - 1].dataset.id!;
+        const firstIndex = columns.findIndex((c) => c.id === firstId);
+        const lastIndex = columns.findIndex((c) => c.id === lastId);
+
+        if (firstIndex === visible.first && lastIndex === visible.last) {
+          //match update
+          existing.forEach((child, i) => {
+            const cell = this.updateCell(child, rowIndex, columns[i + visible.first], ...extras);
+            if (cell && cell !== child) {
+              node.replaceChild(cell, child);
+            }
+          });
+        } else if (visible.last > firstIndex || visible.first < lastIndex) {
+          //no match at all
+          this.removeAllCells(node, firstIndex);
+          this.addCellAtStart(node, rowIndex, visible.first, visible.last, columns, ...extras);
+        } else if (visible.first < firstIndex) {
+          //some first rows missing and some last rows to much
+          this.removeCellFromEnd(node, visible.last + 1, firstIndex);
+          this.addCellAtStart(node, rowIndex, visible.first, firstIndex - 1, columns, ...extras);
+        } else {
+          //some last rows missing and some first rows to much
+          this.removeCellFromStart(node, firstIndex, visible.first - 1);
+          this.addCellAtEnd(node, rowIndex, lastIndex + 1, visible.last, columns, ...extras);
+        }
+    }
+    verifyRow(node);
+  }
+
+  private onScrolledHorizontallyImpl(scrollLeft: number, clientWidth: number): EScrollResult {
+    const column = this.context.column;
+    const {first, last, firstRowPos} = range(scrollLeft, clientWidth, column.defaultRowHeight, column.exceptions, column.numberOfRows);
+
+    const visible = this.visibleColumns;
+    visible.forcedFirst = first;
+    visible.forcedLast = last;
+
+    if ((first - visible.first) >= 0 && (last - visible.last) <= 0) {
+      //nothing to do
+      return EScrollResult.NONE;
+    }
+
+    let r: EScrollResult = EScrollResult.PARTIAL;
+
+    if (first > visible.last || last < visible.first) {
+      //no overlap, clean and draw everything
+      //console.log(`ff added: ${last - first + 1} removed: ${visibleLast - visibleFirst + 1} ${first}:${last} ${offset}`);
+      //removeRows(visibleFirst, visibleLast);
+      this.removeAllColumns();
+      this.addColumnAtEnd(first, last);
+      r = EScrollResult.ALL;
+    } else if (first < visible.first) {
+      //some first rows missing and some last rows to much
+      //console.log(`up added: ${visibleFirst - first + 1} removed: ${visibleLast - last + 1} ${first}:${last} ${offset}`);
+      this.removeColumnFromEnd(last + 1, visible.last);
+      this.addColumnAtStart(first, visible.first - 1);
+    } else {
+      //console.log(`do added: ${last - visibleLast + 1} removed: ${first - visibleFirst + 1} ${first}:${last} ${offset}`);
+      //some last rows missing and some first rows to much
+      this.removeColumnFromStart(visible.first, first - 1);
+      this.addColumnAtEnd(visible.last + 1, last);
+    }
+
+    visible.first = first;
+    visible.last = last;
+
+    this.updateColumnOffset(firstRowPos);
+    return r;
+  }
+}
+
+function verifyRow(row: HTMLElement) {
+  const cols = <HTMLElement[]>Array.from(row.children);
+  const target = cols.length;
+  const have = new Set<string>();
+  cols.forEach((c) => have.add(c.dataset.id!));
+
+  console.assert(target === have.size);
 }
 
 export default ACellRenderer;
