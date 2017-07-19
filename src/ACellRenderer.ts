@@ -1,12 +1,12 @@
 /**
  * Created by Samuel Gratzl on 19.07.2017.
  */
-import {ABaseRenderer} from './ABaseRenderer';
+import {ARowRenderer} from './ARowRenderer';
 import {IColumn, setColumn, StyleManager, TEMPLATE} from './style';
 import {IExceptionContext} from './logic';
 import {IMixinAdapter, IMixin, IMixinClass, EScrollResult} from './mixin';
 
-export interface IColumnRenderContext<T extends IColumn> extends IExceptionContext {
+export interface ICellRenderContext<T extends IColumn> extends IExceptionContext {
   readonly column: IExceptionContext;
   readonly columns: T[];
   readonly htmlId: string;
@@ -17,7 +17,7 @@ function setTemplate(root: HTMLElement) {
   return root;
 }
 
-export abstract class AColumnBaseRenderer<T extends IColumn> extends ABaseRenderer {
+export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
   protected readonly visibleColumns = {
     first: 0,
     forcedFirst: 0,
@@ -33,6 +33,7 @@ export abstract class AColumnBaseRenderer<T extends IColumn> extends ABaseRender
 
   constructor(protected readonly root: HTMLElement, ...mixinClasses: IMixinClass[]) {
     super(<HTMLElement>setTemplate(root).querySelector('main > article'), ...mixinClasses);
+    root.classList.add('lineup-engine');
 
     this.columnAdapter = this.createColumnAdapter();
     this.columnMixins = mixinClasses.map((mixinClass) => new mixinClass(this.columnAdapter));
@@ -119,17 +120,17 @@ export abstract class AColumnBaseRenderer<T extends IColumn> extends ABaseRender
 
   /**
    * the current render context, upon change `recreate` the whole table
-   * @returns {IRenderContext}
+   * @returns {ICellRenderContext}
    */
-  protected abstract get context(): IColumnRenderContext<T>;
+  protected abstract get context(): ICellRenderContext<T>;
 
   protected abstract createHeader(document: Document, column: T, ...extras: any[]): HTMLElement;
 
   protected abstract updateHeader(node: HTMLElement, column: T, ...extras: any[]): HTMLElement | void;
 
-  protected abstract createColumn(document: Document, index: number, column: T, ...extras: any[]): HTMLElement;
+  protected abstract createCell(document: Document, index: number, column: T, ...extras: any[]): HTMLElement;
 
-  protected abstract updateColumn(node: HTMLElement, index: number, column: T, ...extras: any[]): HTMLElement | void;
+  protected abstract updateCell(node: HTMLElement, index: number, column: T, ...extras: any[]): HTMLElement | void;
 
 
   private removeColumnFromStart(from: number, to: number) {
@@ -156,7 +157,7 @@ export abstract class AColumnBaseRenderer<T extends IColumn> extends ABaseRender
     const {columns} = this.context;
     const document = node.ownerDocument;
     columns.forEach((column) => {
-      const child = this.createColumn(document, index, column, ...extras);
+      const child = this.createCell(document, index, column, ...extras);
       setColumn(child, column);
       node.appendChild(child);
     });
@@ -166,7 +167,7 @@ export abstract class AColumnBaseRenderer<T extends IColumn> extends ABaseRender
     const {columns} = this.context;
     columns.forEach((column, i) => {
       const child = <HTMLElement>node.children[i];
-      const replacement = this.updateColumn(child, index, column, ...extras);
+      const replacement = this.updateCell(child, index, column, ...extras);
       if (replacement !== undefined && replacement !== child) { //have a replacement
         node.replaceChild(replacement, child);
       }
@@ -179,4 +180,4 @@ export abstract class AColumnBaseRenderer<T extends IColumn> extends ABaseRender
   }
 }
 
-export default AColumnBaseRenderer;
+export default ACellRenderer;

@@ -5,11 +5,9 @@ import {IExceptionContext, range} from './logic';
 import {IAbortAblePromise, isAbortAble, ABORTED} from './abortAble';
 import {IMixinAdapter, IMixin, IMixinClass, EScrollResult} from './mixin';
 
-export {default as abortAble} from './abortAble';
-export {IExceptionContext} from './logic';
+export declare type IRowRenderContext = IExceptionContext;
 
-
-export abstract class ABaseRenderer {
+export abstract class ARowRenderer {
   private readonly pool: HTMLElement[] = [];
   private readonly loadingPool: HTMLElement[] = [];
   private readonly loading = new Map<HTMLElement, IAbortAblePromise<void>>();
@@ -63,9 +61,9 @@ export abstract class ABaseRenderer {
 
   /**
    * the current render context, upon change `recreate` the whole table
-   * @returns {IRenderContext}
+   * @returns {IRowRenderContext}
    */
-  protected abstract get context(): IExceptionContext;
+  protected abstract get context(): IRowRenderContext;
 
   /**
    * creates a new row
@@ -138,7 +136,7 @@ export abstract class ABaseRenderer {
   }
 
   private recycle(item: HTMLElement) {
-    ABaseRenderer.cleanUp(item);
+    ARowRenderer.cleanUp(item);
     // check if the original dom element is still being manipulated
     if (this.loading.has(item)) {
       const abort = this.loading.get(item)!;
@@ -165,14 +163,14 @@ export abstract class ABaseRenderer {
     abort.then((result) => {
       if (result === ABORTED) {
         //aborted can recycle the real one
-        ABaseRenderer.cleanUp(real);
+        ARowRenderer.cleanUp(real);
         this.pool.push(real);
       } else {
         //fully loaded
         this.body.replaceChild(real, proxy);
       }
       this.loading.delete(proxy);
-      ABaseRenderer.cleanUp(proxy);
+      ARowRenderer.cleanUp(proxy);
       this.loadingPool.push(proxy);
     });
     return proxy;
@@ -328,4 +326,4 @@ export abstract class ABaseRenderer {
   }
 }
 
-export default ABaseRenderer;
+export default ARowRenderer;

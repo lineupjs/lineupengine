@@ -2,10 +2,7 @@
  * Created by Samuel Gratzl on 13.07.2017.
  */
 import 'file-loader?name=demo.html!extract-loader!html-loader!./index.html';
-import {APrefetchRenderer, IExceptionContext, abortAble} from '../src/APrefetchRenderer';
-import {uniformContext} from '../src/logic';
-import {StyleManager, IColumn, setColumn, setTemplate} from '../src/style';
-
+import {ICellRenderContext, abortAble, ACellRenderer, uniformContext, IColumn, PrefetchMixin} from '../src';
 
 function resolveIn(ms: number) {
   return new Promise<void>((resolve) => {
@@ -28,7 +25,6 @@ class Column<T> implements IColumn {
       d.classList.add('frozen');
     }
     d.dataset.id = this.id;
-    setColumn(d, this);
     return d;
   }
 
@@ -48,36 +44,44 @@ class Column<T> implements IColumn {
   }
 }
 
-export default class TestRenderer extends APrefetchRenderer {
-  private readonly style: StyleManager;
-  protected readonly _context: IExceptionContext;
+export default class TestRenderer extends ACellRenderer<Column<number>> {
+  protected readonly _context: ICellRenderContext<Column<number>>;
 
-  private readonly columns: Column<number>[];
-
-  constructor(private readonly root: HTMLElement, id: string, numberOfRows = 100, numberOfColumns = 20) {
-    super(<HTMLElement>setTemplate(root).querySelector(':scope > main > article'));
+  constructor(root: HTMLElement, id: string, numberOfRows = 100, numberOfColumns = 20) {
+    super(root, PrefetchMixin);
     root.id = id;
-    root.classList.add('lineup-engine');
 
     const defaultRowHeight = 20;
 
-    this.columns = [];
+    const columns: Column<number>[] = [];
     for (let i = 0; i < numberOfColumns; ++i) {
-      this.columns.push(new Column(i, i.toString(36), i % 4 === 0));
+      columns.push(new Column(i, i.toString(36), i % 4 === 0));
     }
-    this._context = uniformContext(numberOfRows, defaultRowHeight);
-
-    this.style = new StyleManager(root, `#${id}`, defaultRowHeight);
+    this._context = Object.assign({
+      columns,
+      column: uniformContext(columns.length, 100),
+      htmlId: id
+    }, uniformContext(numberOfRows, defaultRowHeight));
 
   }
 
+  protected createHeader(document: Document, column: Column<number>) {
+    return column.header(document);
+  }
+
+  protected updateHeader() {
+    // nothing do to
+  }
+
+  protected createCell(document: Document, index: number, column: Column<number>) {
+    return column.cell(index, document);
+  }
+
+  protected updateCell(node: HTMLElement, index: number, column: Column<number>) {
+    return column.update(node, index);
+  }
 
   run() {
-    const header = <HTMLElement>this.root.querySelector(':scope > header > article');
-
-    this.style.update(this.columns, 100);
-    this.columns.forEach((c) => header.appendChild(c.header(header.ownerDocument)));
-
     //wait till layouted
     setTimeout(super.init.bind(this), 100);
   }
@@ -86,13 +90,9 @@ export default class TestRenderer extends APrefetchRenderer {
     return this._context;
   }
 
-  protected createRow(node: HTMLElement, index: number) {
-    this.columns.forEach((col) => node.appendChild(col.cell(index, node.ownerDocument)));
-  }
-
   protected updateRow(node: HTMLElement, index: number) {
     return abortAble(resolveIn(2000)).then(() => {
-      this.columns.forEach((col, i) => col.update(<HTMLElement>node.children[i], index));
+      super.updateRow(node, index);
     });
   }
 }

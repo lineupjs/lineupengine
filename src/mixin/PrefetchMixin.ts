@@ -4,8 +4,6 @@
 import {range} from '../logic';
 import {EScrollResult, IMixin, IMixinAdapter} from './IMixin';
 
-export {IExceptionContext} from '../logic';
-
 export interface IPrefetchRendererOptions {
   /**
    * number of rows to prefetch
