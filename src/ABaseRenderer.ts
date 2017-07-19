@@ -1,7 +1,7 @@
 /**
  * Created by Samuel Gratzl on 13.07.2017.
  */
-import {IExceptionContext, IRowHeightException, IRowHeightExceptionLookup, range} from './logic';
+import {IExceptionContext, range} from './logic';
 import {IAbortAblePromise, isAbortAble, ABORTED} from './abortAble';
 export {default as abortAble} from './abortAble';
 
@@ -57,10 +57,10 @@ export abstract class ABaseRenderer {
     let item: HTMLElement;
     let result: IAbortAblePromise<void>|void;
     if (this.pool.length > 0) {
-      item = this.pool.pop();
+      item = this.pool.pop()!;
       result = this.updateRow(item, index);
     } else if (this.loadingPool.length > 0) {
-      item = this.loadingPool.pop();
+      item = this.loadingPool.pop()!;
       item.classList.remove('loading');
       result = this.createRow(item, index);
     } else {
@@ -74,7 +74,7 @@ export abstract class ABaseRenderer {
   private selectProxy() {
     let proxy: HTMLElement;
     if (this.loadingPool.length > 0) {
-      proxy = this.loadingPool.pop();
+      proxy = this.loadingPool.pop()!;
     } else {
       proxy = this.node.ownerDocument.createElement('div');
       proxy.classList.add('loading');
@@ -86,7 +86,7 @@ export abstract class ABaseRenderer {
     this.cleanUp(item);
     // check if the original dom element is still being manipulated
     if (this.loading.has(item)) {
-      const abort = this.loading.get(item);
+      const abort = this.loading.get(item)!;
       abort.abort();
     } else {
       this.pool.push(item);

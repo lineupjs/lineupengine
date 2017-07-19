@@ -23,11 +23,10 @@ export interface IPrefetchRendererOptions {
   readonly delay?: number;
 }
 
-
 export abstract class APrefetchRenderer extends ABaseRenderer {
   private prefetchTimeout: number = -1;
 
-  private readonly options: IPrefetchRendererOptions = {
+  private readonly options = {
     prefetchRows: 20,
     cleanUpRows: 3,
     delay: 50
@@ -56,13 +55,13 @@ export abstract class APrefetchRenderer extends ABaseRenderer {
 
   private prefetchUp() {
     this.prefetchTimeout = -1;
-    if (this.visibleFirst <= (this.visibleForcedFirst - this.options.prefetchRows)) {
+    if (this.visibleFirst <= (this.visibleForcedFirst - this.options.prefetchRows!)) {
       return;
     }
     const context = this.context;
-    const fakeOffset = Math.max(context.scroller.scrollTop - this.options.prefetchRows * context.defaultRowHeight, 0);
+    const fakeOffset = Math.max(context.scroller.scrollTop - this.options.prefetchRows! * context.defaultRowHeight, 0);
     const height = context.scroller.clientHeight;
-    const {first, last, firstRowPos} = range(fakeOffset, height, context.defaultRowHeight, context.exceptions, context.numberOfRows);
+    const {first, firstRowPos} = range(fakeOffset, height, context.defaultRowHeight, context.exceptions, context.numberOfRows);
 
     if (first === this.visibleFirst) {
       return;
@@ -102,7 +101,7 @@ export abstract class APrefetchRenderer extends ABaseRenderer {
     if (context.exceptions.length > 0) {
       for (let i = this.visibleFirst; i < newFirst; ++i) {
         if (context.exceptionsLookup.has(i)) {
-          shift += context.exceptionsLookup.get(i) - context.defaultRowHeight;
+          shift += context.exceptionsLookup.get(i)! - context.defaultRowHeight;
         }
       }
     }

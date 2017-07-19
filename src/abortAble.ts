@@ -9,7 +9,7 @@ export const ABORTED = Symbol('aborted');
 export default function abortAble<T>(loader: Promise<T>) {
   return {
     then<TResult1 = T>(onfulfilled: ((value: T) => TResult1 | PromiseLike<TResult1>)): IAbortAblePromise<TResult1> {
-      let aborted: (v: symbol)=>void = null;
+      let aborted: ((v: symbol)=>void)|null = null;
       const isAborted = () => aborted === null;
       const aborter = new Promise<symbol>((resolve) => aborted = resolve);
       const fullfiller = loader.then((r) => {

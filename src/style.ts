@@ -45,7 +45,7 @@ export class StyleManager {
   private readonly stylesheet: CSSStyleSheet;
   private readonly node: HTMLStyleElement;
 
-  constructor(private readonly parent: HTMLElement, private readonly id: string, private readonly defaultRowHeight: number) {
+  constructor(parent: HTMLElement, private readonly id: string, defaultRowHeight: number) {
     this.node = parent.ownerDocument.createElement('style');
     parent.appendChild(this.node);
     if(isEdge) {

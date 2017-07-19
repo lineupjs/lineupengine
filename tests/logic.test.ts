@@ -24,7 +24,7 @@ describe('logic', () => {
     const checks = indexAndHeight.reduce((acc, indexOrHeight, i) => {
       const isIndex = i % 2 === 0;
       if (isIndex) {
-        acc.push({index: indexOrHeight, height: null});
+        acc.push({index: indexOrHeight, height: 0});
       } else {
         acc[acc.length - 1].height = indexOrHeight;
       }
@@ -150,7 +150,7 @@ describe('logic', () => {
       describe('single', () => {
         const data = new Array(numberOfRows).fill(rowHeight);
         data[3] = rowHeight + 1;
-        const {exceptions, exceptionsLookup, totalHeight} = nonUniformContext(data, rowHeight);
+        const {exceptions, totalHeight} = nonUniformContext(data, rowHeight);
 
         it('single0', () => {
           expectRange(range(0, 0, rowHeight, exceptions, numberOfRows), 0, 0, 0, rowHeight);
@@ -181,7 +181,7 @@ describe('logic', () => {
         const data = new Array(numberOfRows).fill(rowHeight);
         data[3] = rowHeight + 1;
         data[7] = rowHeight + 1;
-        const {exceptions, exceptionsLookup, totalHeight} = nonUniformContext(data, rowHeight);
+        const {exceptions, totalHeight} = nonUniformContext(data, rowHeight);
 
         const ex3Middle = exceptions[0].y + 1;
         const ex7Middle = exceptions[1].y + 1;

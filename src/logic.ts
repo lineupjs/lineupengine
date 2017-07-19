@@ -18,7 +18,7 @@ class RowHeightException implements IRowHeightException {
 
 export interface IRowHeightExceptionLookup {
   keys(): IterableIterator<number>;
-  get(index: number): number;
+  get(index: number): number|undefined;
   has(index: number): boolean;
   readonly size: number;
 }
