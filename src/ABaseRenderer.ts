@@ -3,6 +3,8 @@
  */
 import {IExceptionContext, range} from './logic';
 import {IAbortAblePromise, isAbortAble, ABORTED} from './abortAble';
+import {IMixinAdapter, IMixin, IMixinClass} from './mixin';
+
 export {default as abortAble} from './abortAble';
 export {IExceptionContext} from './logic';
 
@@ -12,7 +14,7 @@ export abstract class ABaseRenderer {
   private readonly loadingPool: HTMLElement[] = [];
   private readonly loading = new Map<HTMLElement, IAbortAblePromise<void>>();
 
-  protected visible = {
+  protected readonly visible = {
     first: 0,
     forcedFirst: 0,
     last: 0,
@@ -20,7 +22,43 @@ export abstract class ABaseRenderer {
   };
   protected visibleFirstRowPos = 0;
 
-  constructor(protected readonly body: HTMLElement) {
+  private readonly adapter: IMixinAdapter;
+  private readonly mixins: IMixin[];
+
+  constructor(protected readonly body: HTMLElement, ...mixinClasses: IMixinClass[]) {
+    this.adapter = this.createAdapter();
+    this.mixins = mixinClasses.map((mixinClass) => new mixinClass(this.adapter));
+  }
+
+  protected addMixin(mixinClass: IMixinClass, options?: any) {
+    this.mixins.push(new mixinClass(this.adapter, options));
+  }
+
+  private createAdapter(): IMixinAdapter {
+    const r: any = {
+      visible: this.visible,
+      addAtBeginning: this.addAtBeginning.bind(this),
+      addAtBottom: this.addAtBottom.bind(this),
+      removeFromBeginning: this.removeFromBeginning.bind(this),
+      removeFromBottom: this.removeFromBottom.bind(this),
+      updateOffset: this.updateOffset.bind(this),
+      scroller: this.bodyScroller
+    };
+    Object.defineProperties(r, {
+      visibleFirstRowPos: {
+        get: () => this.visibleFirstRowPos,
+        enumerable: true
+      },
+      context: {
+        get: () => this.context,
+        enumerable: true
+      }
+    });
+    return r;
+  }
+
+  private get bodyScroller() {
+    return <HTMLElement>this.body.parentElement;
   }
 
   /**
@@ -35,7 +73,7 @@ export abstract class ABaseRenderer {
    * @param {number} index the row index
    * @returns {IAbortAblePromise<void> | void} either an abortable or nothing
    */
-  protected abstract createRow(node: HTMLElement, index: number): IAbortAblePromise<void>|void;
+  protected abstract createRow(node: HTMLElement, index: number): IAbortAblePromise<void> | void;
 
   /**
    * updates a row
@@ -43,8 +81,26 @@ export abstract class ABaseRenderer {
    * @param {number} index the row index
    * @returns {IAbortAblePromise<void> | void} either an abortable or nothing
    */
-  protected abstract updateRow(node: HTMLElement, index: number): IAbortAblePromise<void>|void;
+  protected abstract updateRow(node: HTMLElement, index: number): IAbortAblePromise<void> | void;
 
+  /**
+   * initializes the table and register the onscroll listener
+   */
+  protected init() {
+    const scroller = <HTMLElement>this.body.parentElement;
+
+    //sync scrolling of header and body
+    let oldTop = scroller.scrollTop;
+    scroller.addEventListener('scroll', () => {
+      const top = scroller.scrollTop;
+      if (oldTop !== top) {
+        const isGoingDown = top > oldTop;
+        oldTop = top;
+        this.onScrolledVertically(top, scroller.clientHeight, isGoingDown);
+      }
+    });
+    this.recreate();
+  }
 
   private static cleanUp(item: HTMLElement) {
     if (item.style.height) {
@@ -52,9 +108,9 @@ export abstract class ABaseRenderer {
     }
   }
 
-  private select(index: number): {item: HTMLElement, result: IAbortAblePromise<void>|void} {
+  private select(index: number): { item: HTMLElement, result: IAbortAblePromise<void> | void } {
     let item: HTMLElement;
-    let result: IAbortAblePromise<void>|void;
+    let result: IAbortAblePromise<void> | void;
     if (this.pool.length > 0) {
       item = this.pool.pop()!;
       result = this.updateRow(item, index);
@@ -92,7 +148,7 @@ export abstract class ABaseRenderer {
     }
   }
 
-  private proxy(item: HTMLElement, result: IAbortAblePromise<void>|void) {
+  private proxy(item: HTMLElement, result: IAbortAblePromise<void> | void) {
     if (!isAbortAble(result)) {
       return item;
     }
@@ -143,10 +199,10 @@ export abstract class ABaseRenderer {
 
 
   protected update() {
-    for(let i = this.visible.first; i <= this.visible.last; ++i) {
+    for (let i = this.visible.first; i <= this.visible.last; ++i) {
       const item = <HTMLElement>this.body.children[i];
       if (this.loading.has(item)) {
-       // still loading
+        // still loading
         continue;
       }
       const abort = this.updateRow(item, i);
@@ -186,7 +242,8 @@ export abstract class ABaseRenderer {
     }
   }
 
-  protected updateOffset(firstRowPos: number, totalHeight: number) {
+  protected updateOffset(firstRowPos: number) {
+    const {totalHeight} = this.context;
     this.visibleFirstRowPos = firstRowPos;
     if (this.visible.first % 2 === 1) {
       //odd start patch for correct background
@@ -200,25 +257,6 @@ export abstract class ABaseRenderer {
   }
 
   /**
-   * initializes the table and register the onscroll listener
-   */
-  protected init() {
-    const scroller = <HTMLElement>this.body.parentElement;
-
-    //sync scrolling of header and body
-    let oldTop = scroller.scrollTop;
-    scroller.addEventListener('scroll', () => {
-      const top = scroller.scrollTop;
-      if (oldTop !== top) {
-        const isGoingDown = top > oldTop;
-        oldTop = top;
-        this.onScrolledVertically(top, scroller.clientHeight, isGoingDown);
-      }
-    });
-    this.recreate();
-  }
-
-  /**
    * removes all rows and recreates the table
    */
   protected recreate() {
@@ -226,15 +264,16 @@ export abstract class ABaseRenderer {
 
     this.removeAll();
 
-    const scroller = <HTMLElement>this.body.parentElement;
+    const scroller = this.bodyScroller;
     const {first, last, firstRowPos} = range(scroller.scrollTop, scroller.clientHeight, context.defaultRowHeight, context.exceptions, context.numberOfRows);
 
     this.visible.first = this.visible.forcedFirst = first;
     this.visible.last = this.visible.forcedLast = last;
 
     this.addAtBottom(first, last);
-    this.updateOffset(firstRowPos, context.totalHeight);
+    this.updateOffset(firstRowPos);
   }
+
   /**
    * scrolling vertically
    * @param {number} scrollTop
@@ -242,7 +281,13 @@ export abstract class ABaseRenderer {
    * @param {boolean} _isGoingDown hint whether the scrollTop increases
    * @returns {"full" | "partial"} full in case of a full rebuild or partial update
    */
-  protected onScrolledVertically(scrollTop: number, clientHeight: number, _isGoingDown: boolean): 'full' | 'partial' {
+  protected onScrolledVertically(scrollTop: number, clientHeight: number, isGoingDown: boolean): 'full' | 'partial' {
+    const scrollResult = this.onScrolledImpl(scrollTop, clientHeight);
+    this.mixins.forEach((mixin) => mixin.onScrolled(isGoingDown, scrollResult));
+    return scrollResult;
+  }
+
+  private onScrolledImpl(scrollTop: number, clientHeight: number): 'full' | 'partial' {
     const context = this.context;
     const {first, last, firstRowPos} = range(scrollTop, clientHeight, context.defaultRowHeight, context.exceptions, context.numberOfRows);
 
@@ -275,7 +320,7 @@ export abstract class ABaseRenderer {
     this.visible.first = first;
     this.visible.last = last;
 
-    this.updateOffset(firstRowPos, context.totalHeight);
+    this.updateOffset(firstRowPos);
     return 'partial';
   }
 }

@@ -1,9 +1,10 @@
 /**
  * Created by Samuel Gratzl on 13.07.2017.
  */
-import {ABaseRenderer} from './ABaseRenderer';
-import {range} from './logic';
-export {IExceptionContext, abortAble} from './ABaseRenderer';
+import {range} from '../logic';
+import {IMixin, IMixinAdapter} from './IMixin';
+
+export {IExceptionContext} from '../logic';
 
 export interface IPrefetchRendererOptions {
   /**
@@ -23,7 +24,7 @@ export interface IPrefetchRendererOptions {
   readonly delay?: number;
 }
 
-export abstract class APrefetchRenderer extends ABaseRenderer {
+export default class PrefetchMixin implements IMixin {
   private prefetchTimeout: number = -1;
 
   private readonly options = {
@@ -32,47 +33,46 @@ export abstract class APrefetchRenderer extends ABaseRenderer {
     delay: 50
   };
 
-
-  constructor(node: HTMLElement, options: IPrefetchRendererOptions = {}) {
-    super(node);
+  constructor(private readonly adapter: IMixinAdapter, options?: IPrefetchRendererOptions) {
     Object.assign(this.options, options);
+    return this;
   }
 
 
   private prefetchDown() {
     this.prefetchTimeout = -1;
-    const context = this.context;
-    const nextLast = Math.min(this.visible.last + this.options.prefetchRows, context.numberOfRows - 1);
+    const context = this.adapter.context;
+    const nextLast = Math.min(this.adapter.visible.last + this.options.prefetchRows, context.numberOfRows - 1);
     // add some rows in advance
-    if (this.visible.last === nextLast && this.visible.last >= (this.visible.forcedLast + this.options.prefetchRows)) {
+    if (this.adapter.visible.last === nextLast && this.adapter.visible.last >= (this.adapter.visible.forcedLast + this.options.prefetchRows)) {
       return;
     }
 
-    this.addAtBottom(this.visible.last + 1, nextLast);
+    this.adapter.addAtBottom(this.adapter.visible.last + 1, nextLast);
     //console.log('prefetch', visibleFirst, visibleLast + 1, '=>', nextLast, ranking.children.length);
-    this.visible.last = nextLast;
+    this.adapter.visible.last = nextLast;
   }
 
   private prefetchUp() {
     this.prefetchTimeout = -1;
-    if (this.visible.first <= (this.visible.forcedFirst - this.options.prefetchRows!)) {
+    if (this.adapter.visible.first <= (this.adapter.visible.forcedFirst - this.options.prefetchRows!)) {
       return;
     }
-    const context = this.context;
-    const scroller = <HTMLElement>this.body.parentElement;
+    const context = this.adapter.context;
+    const scroller = this.adapter.scroller;
     const fakeOffset = Math.max(scroller.scrollTop - this.options.prefetchRows! * context.defaultRowHeight, 0);
     const height = scroller.clientHeight;
     const {first, firstRowPos} = range(fakeOffset, height, context.defaultRowHeight, context.exceptions, context.numberOfRows);
 
-    if (first === this.visible.first) {
+    if (first === this.adapter.visible.first) {
       return;
     }
 
-    this.addAtBeginning(first, this.visible.first - 1);
+    this.adapter.addAtBeginning(first, this.adapter.visible.first - 1);
     //console.log('prefetch up ', visibleFirst, '=>', first, visibleLast, ranking.children.length);
-    this.visible.first = first;
+    this.adapter.visible.first = first;
 
-    this.updateOffset(firstRowPos, context.totalHeight);
+    this.adapter.updateOffset(firstRowPos);
   }
 
   private triggerPrefetch(isGoingDown: boolean) {
@@ -80,7 +80,8 @@ export abstract class APrefetchRenderer extends ABaseRenderer {
       clearTimeout(this.prefetchTimeout);
     }
 
-    if ((isGoingDown && this.visible.last >= (this.visible.forcedLast + this.options.prefetchRows)) || (!isGoingDown && this.visible.first <= (this.visible.forcedFirst - this.options.prefetchRows))) {
+    if ((isGoingDown && this.adapter.visible.last >= (this.adapter.visible.forcedLast + this.options.prefetchRows)) ||
+      (!isGoingDown && this.adapter.visible.first <= (this.adapter.visible.forcedFirst - this.options.prefetchRows))) {
       return;
     }
 
@@ -91,23 +92,23 @@ export abstract class APrefetchRenderer extends ABaseRenderer {
     this.prefetchTimeout = -1;
     const newFirst = first - this.options.cleanUpRows;
 
-    if (newFirst <= this.visible.first) {
+    if (newFirst <= this.adapter.visible.first) {
       return;
     }
 
-    this.removeFromBeginning(this.visible.first, newFirst - 1);
-    const context = this.context;
+    this.adapter.removeFromBeginning(this.adapter.visible.first, newFirst - 1);
+    const context = this.adapter.context;
     //console.log('cleanup up ', visibleFirst, '=>', newFirst, visibleLast, ranking.children.length);
-    let shift = (newFirst - this.visible.first) * context.defaultRowHeight;
+    let shift = (newFirst - this.adapter.visible.first) * context.defaultRowHeight;
     if (context.exceptions.length > 0) {
-      for (let i = this.visible.first; i < newFirst; ++i) {
+      for (let i = this.adapter.visible.first; i < newFirst; ++i) {
         if (context.exceptionsLookup.has(i)) {
           shift += context.exceptionsLookup.get(i)! - context.defaultRowHeight;
         }
       }
     }
-    this.visible.first = newFirst;
-    this.updateOffset(this.visibleFirstRowPos + shift, context.totalHeight);
+    this.adapter.visible.first = newFirst;
+    this.adapter.updateOffset(this.adapter.visibleFirstRowPos + shift);
 
     this.prefetchDown();
   }
@@ -115,12 +116,12 @@ export abstract class APrefetchRenderer extends ABaseRenderer {
   private cleanUpBottom(last: number) {
     this.prefetchTimeout = -1;
     const newLast = last + this.options.cleanUpRows;
-    if (this.visible.last <= newLast) {
+    if (this.adapter.visible.last <= newLast) {
       return;
     }
-    this.removeFromBottom(newLast + 1, this.visible.last);
+    this.adapter.removeFromBottom(newLast + 1, this.adapter.visible.last);
     //console.log('cleanup bottom', visibleFirst, visibleLast, '=>', newLast, ranking.children.length);
-    this.visible.last = newLast;
+    this.adapter.visible.last = newLast;
 
     this.prefetchUp();
   }
@@ -129,26 +130,20 @@ export abstract class APrefetchRenderer extends ABaseRenderer {
     if (this.prefetchTimeout >= 0) {
       clearTimeout(this.prefetchTimeout);
     }
-    if ((isGoingDown && (first - this.options.cleanUpRows) <= this.visible.first) || (!isGoingDown && this.visible.last <= (last + this.options.cleanUpRows))) {
+    if ((isGoingDown && (first - this.options.cleanUpRows) <= this.adapter.visible.first) || (!isGoingDown && this.adapter.visible.last <= (last + this.options.cleanUpRows))) {
       return;
     }
 
     this.prefetchTimeout = setTimeout(isGoingDown ? this.cleanUpTop.bind(this) : this.cleanUpBottom.bind(this), this.options.delay, isGoingDown ? first : last);
   }
 
-
-  protected onScrolledVertically(scrollTop: number, clientHeight: number, isGoingDown: boolean): 'full' | 'partial' {
-    const r = super.onScrolledVertically(scrollTop, clientHeight, isGoingDown);
-
-    if (r === 'full') {
+  onScrolled(isGoingDown: boolean, scrollResult: 'full' | 'partial') {
+    if (scrollResult === 'full') {
       if (this.options.cleanUpRows > 0) {
-        this.triggerCleanUp(this.visible.forcedFirst, this.visible.forcedLast, isGoingDown);
+        this.triggerCleanUp(this.adapter.visible.forcedFirst, this.adapter.visible.forcedLast, isGoingDown);
       }
     } else if (this.options.prefetchRows > 0) {
       this.triggerPrefetch(isGoingDown);
     }
-    return r;
   }
 }
-
-export default APrefetchRenderer;
