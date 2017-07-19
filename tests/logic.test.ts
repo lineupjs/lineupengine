@@ -142,7 +142,7 @@ describe('logic', () => {
       });
 
       it('center', () => {
-        expectRange(range(18, 18, rowHeight, exceptions, numberOfRows), 3, 7, 2 * rowHeight, 8 * rowHeight);
+        expectRange(range(18, 18, rowHeight, exceptions, numberOfRows), 3, 7, 3 * rowHeight, 8 * rowHeight);
       });
     });
 
@@ -187,7 +187,7 @@ describe('logic', () => {
         const ex7Middle = exceptions[1].y + 1;
 
         it('betweenOutOut', () => {
-          expectRange(range(ex3Middle - 3,(ex7Middle - 3) - (ex3Middle - 3), rowHeight, exceptions, numberOfRows), 2, 6, 2 * rowHeight + 1, 7 * rowHeight + 1);
+          expectRange(range(ex3Middle - 3,(ex7Middle - 3) - (ex3Middle - 3), rowHeight, exceptions, numberOfRows), 2, 6, 2 * rowHeight, 7 * rowHeight + 1);
         });
 
         it('betweenInOut', () => {
@@ -199,7 +199,7 @@ describe('logic', () => {
         });
 
         it('betweenOutIn', () => {
-          expectRange(range(ex3Middle - 3, ex7Middle - (ex3Middle - 3), rowHeight, exceptions, numberOfRows), 2, 7, 2 * rowHeight + 1, 8 * rowHeight + 1 + 1);
+          expectRange(range(ex3Middle - 3, ex7Middle - (ex3Middle - 3), rowHeight, exceptions, numberOfRows), 2, 7, 2 * rowHeight, 8 * rowHeight + 1 + 1);
         });
 
         it('full', () => {
