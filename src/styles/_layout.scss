@@ -59,7 +59,7 @@
     }
   }
 
-  > main > article > div {
+  > main:not(.scrolling) > article > div {
     &:hover {
       outline: $engine_hover_outline_color;
       z-index: 2;

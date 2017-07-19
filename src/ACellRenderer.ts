@@ -37,12 +37,16 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
   private readonly columnAdapter: IMixinAdapter;
   private readonly columnMixins: IMixin[];
 
+  private readonly columnFragment: DocumentFragment;
+
   constructor(protected readonly root: HTMLElement, ...mixinClasses: IMixinClass[]) {
     super(<HTMLElement>setTemplate(root).querySelector('main > article'), ...mixinClasses);
     root.classList.add('lineup-engine');
 
     this.columnAdapter = this.createColumnAdapter();
     this.columnMixins = mixinClasses.map((mixinClass) => new mixinClass(this.columnAdapter));
+
+    this.columnFragment = root.ownerDocument.createDocumentFragment();
 
   }
 
@@ -88,13 +92,16 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
     this.style.update(this.context.columns, context.column.defaultRowHeight);
 
     //create all header columns
-    const header = this.header;
-    const document = header.ownerDocument;
-    context.columns.forEach((col) => {
-      header.appendChild(this.createHeader(document, col));
-      //init pool
-      this.cellPool.push([]);
-    });
+    {
+      const fragment = this.columnFragment;
+      const document = fragment.ownerDocument;
+      context.columns.forEach((col) => {
+        fragment.appendChild(this.createHeader(document, col));
+        //init pool
+        this.cellPool.push([]);
+      });
+      this.header.appendChild(fragment);
+    }
 
 
     const scroller = <HTMLElement>this.body.parentElement;
@@ -177,12 +184,17 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
   }
 
   private forEachRow(callback: (row: HTMLElement, rowIndex: number) => void) {
-    Array.from(this.body.children).forEach((row: HTMLElement, index) => {
-      if (row.classList.contains('loading')) {
-        return; //skip loading ones
+    const rows = Array.from(this.body.children);
+    const fragment = this.columnFragment;
+    this.body.innerHTML = '';
+    rows.forEach((row: HTMLElement, index) => {
+      if (!row.classList.contains('loading')) {
+        //skip loading ones
+        callback(row, index + this.visible.first);
       }
-      callback(row, index + this.visible.first);
+      fragment.appendChild(row);
     });
+    this.body.appendChild(fragment);
   }
 
   private selectCell(row: number, column: number, columns: T[], ...extras: any[]): HTMLElement {
@@ -211,9 +223,9 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
   }
 
   private addCellAtStart(row: HTMLElement, rowIndex: number, from: number, to: number, columns: T[], ...extras: any[]) {
-    for (let i = to; i >= from; --i) {
+    for (let i = from; i <= to; ++i) {
       const cell = this.selectCell(rowIndex, i, columns, ...extras);
-      row.insertAdjacentElement('afterbegin', cell);
+      row.insertBefore(cell, row.firstChild);
     }
   }
 

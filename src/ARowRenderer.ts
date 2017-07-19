@@ -12,6 +12,8 @@ export abstract class ARowRenderer {
   private readonly loadingPool: HTMLElement[] = [];
   private readonly loading = new Map<HTMLElement, IAbortAblePromise<void>>();
 
+  private readonly fragment: DocumentFragment;
+
   protected readonly visible = {
     first: 0,
     forcedFirst: 0,
@@ -26,6 +28,8 @@ export abstract class ARowRenderer {
   constructor(protected readonly body: HTMLElement, ...mixinClasses: IMixinClass[]) {
     this.adapter = this.createAdapter();
     this.mixins = mixinClasses.map((mixinClass) => new mixinClass(this.adapter));
+
+    this.fragment = body.ownerDocument.createDocumentFragment();
   }
 
   protected addMixin(mixinClass: IMixinClass, options?: any) {
@@ -197,19 +201,20 @@ export abstract class ARowRenderer {
 
 
   protected update() {
-    for (let i = this.visible.first; i <= this.visible.last; ++i) {
-      const item = <HTMLElement>this.body.children[i];
+    const first = this.visible.first;
+    const fragment = this.fragment;
+    const items = Array.from(this.body.children);
+    this.body.innerHTML = '';
+    items.forEach((item: HTMLElement, i) => {
       if (this.loading.has(item)) {
         // still loading
-        continue;
+        return;
       }
-      const abort = this.updateRow(item, i);
+      const abort = this.updateRow(item, i + first);
 
-      const proxied = this.proxy(item, abort);
-      if (proxied !== item) { //got a proxy back
-        this.body.replaceChild(proxied, item);
-      }
-    }
+      fragment.appendChild(this.proxy(item, abort));
+    });
+    this.body.appendChild(fragment);
   }
 
   private removeFromBeginning(from: number, to: number) {
@@ -229,14 +234,20 @@ export abstract class ARowRenderer {
   }
 
   private addAtBeginning(from: number, to: number) {
-    for (let i = to; i >= from; --i) {
-      this.body.insertAdjacentElement('afterbegin', this.create(i));
+    const fragment = this.fragment;
+    for (let i = from; i <= to; ++i) {
+      fragment.appendChild(this.create(i));
     }
+    this.body.insertBefore(fragment, this.body.firstChild);
   }
 
   private addAtBottom(from: number, to: number) {
+    const parent = (to - from) > 1 ? this.fragment : this.body;
     for (let i = from; i <= to; ++i) {
-      this.body.appendChild(this.create(i));
+      parent.appendChild(this.create(i));
+    }
+    if ((to - from) > 1) {
+      this.body.appendChild(this.fragment);
     }
   }
 
