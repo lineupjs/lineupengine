@@ -15,11 +15,13 @@ export abstract class ABaseRenderer {
   private readonly loadingPool: HTMLElement[] = [];
   private readonly loading = new Map<HTMLElement, IAbortAblePromise<void>>();
 
-  protected visibleFirst = 0;
-  protected visibleForcedFirst = 0;
+  protected visible = {
+    first: 0,
+    forcedFirst: 0,
+    last: 0,
+    forcedLast: 0
+  };
   protected visibleFirstRowPos = 0;
-  protected visibleLast = 0;
-  protected visibleForcedLast = 0;
 
   constructor(protected readonly node: HTMLElement) {
   }
@@ -47,7 +49,7 @@ export abstract class ABaseRenderer {
   protected abstract updateRow(node: HTMLElement, index: number): IAbortAblePromise<void>|void;
 
 
-  private cleanUp(item: HTMLElement) {
+  private static cleanUp(item: HTMLElement) {
     if (item.style.height) {
       item.style.height = null;
     }
@@ -83,7 +85,7 @@ export abstract class ABaseRenderer {
   }
 
   private recycle(item: HTMLElement) {
-    this.cleanUp(item);
+    ABaseRenderer.cleanUp(item);
     // check if the original dom element is still being manipulated
     if (this.loading.has(item)) {
       const abort = this.loading.get(item)!;
@@ -110,14 +112,14 @@ export abstract class ABaseRenderer {
     abort.then((result) => {
       if (result === ABORTED) {
         //aborted can recycle the real one
-        this.cleanUp(real);
+        ABaseRenderer.cleanUp(real);
         this.pool.push(real);
       } else {
         //fully loaded
         this.node.replaceChild(real, proxy);
       }
       this.loading.delete(proxy);
-      this.cleanUp(proxy);
+      ABaseRenderer.cleanUp(proxy);
       this.loadingPool.push(proxy);
     });
     return proxy;
@@ -144,7 +146,7 @@ export abstract class ABaseRenderer {
 
 
   protected update() {
-    for(let i = this.visibleFirst; i <= this.visibleLast; ++i) {
+    for(let i = this.visible.first; i <= this.visible.last; ++i) {
       const item = <HTMLElement>this.node.children[i];
       if (this.loading.has(item)) {
        // still loading
@@ -189,7 +191,7 @@ export abstract class ABaseRenderer {
 
   protected updateOffset(firstRowPos: number, totalHeight: number) {
     this.visibleFirstRowPos = firstRowPos;
-    if (this.visibleFirst % 2 === 1) {
+    if (this.visible.first % 2 === 1) {
       //odd start patch for correct background
       this.node.classList.add('odd');
     } else {
@@ -238,8 +240,8 @@ export abstract class ABaseRenderer {
 
     const {first, last, firstRowPos} = range(context.scroller.scrollTop, context.scroller.clientHeight, context.defaultRowHeight, context.exceptions, context.numberOfRows);
 
-    this.visibleFirst = this.visibleForcedFirst = first;
-    this.visibleLast = this.visibleForcedLast = last;
+    this.visible.first = this.visible.forcedFirst = first;
+    this.visible.last = this.visible.forcedLast = last;
 
     this.addAtBottom(first, last);
     this.updateOffset(firstRowPos, context.totalHeight);
@@ -265,34 +267,34 @@ export abstract class ABaseRenderer {
     const context = this.context;
     const {first, last, firstRowPos} = range(scrollTop, clientHeight, context.defaultRowHeight, context.exceptions, context.numberOfRows);
 
-    this.visibleForcedFirst = first;
-    this.visibleForcedLast = last;
+    this.visible.forcedFirst = first;
+    this.visible.forcedLast = last;
 
-    if ((first - this.visibleFirst) >= 0 && (last - this.visibleLast) <= 0) {
+    if ((first - this.visible.first) >= 0 && (last - this.visible.last) <= 0) {
       //nothing to do
       return 'full';
     }
 
-    if (first > this.visibleLast || last < this.visibleFirst) {
+    if (first > this.visible.last || last < this.visible.first) {
       //no overlap, clean and draw everything
       //console.log(`ff added: ${last - first + 1} removed: ${visibleLast - visibleFirst + 1} ${first}:${last} ${offset}`);
       //removeRows(visibleFirst, visibleLast);
       this.removeAll();
       this.addAtBottom(first, last);
-    } else if (first < this.visibleFirst) {
+    } else if (first < this.visible.first) {
       //some first rows missing and some last rows to much
       //console.log(`up added: ${visibleFirst - first + 1} removed: ${visibleLast - last + 1} ${first}:${last} ${offset}`);
-      this.removeFromBottom(last + 1, this.visibleLast);
-      this.addAtBeginning(first, this.visibleFirst - 1);
+      this.removeFromBottom(last + 1, this.visible.last);
+      this.addAtBeginning(first, this.visible.first - 1);
     } else {
       //console.log(`do added: ${last - visibleLast + 1} removed: ${first - visibleFirst + 1} ${first}:${last} ${offset}`);
       //some last rows missing and some first rows to much
-      this.removeFromBeginning(this.visibleFirst, first - 1);
-      this.addAtBottom(this.visibleLast + 1, last);
+      this.removeFromBeginning(this.visible.first, first - 1);
+      this.addAtBottom(this.visible.last + 1, last);
     }
 
-    this.visibleFirst = first;
-    this.visibleLast = last;
+    this.visible.first = first;
+    this.visible.last = last;
 
     this.updateOffset(firstRowPos, context.totalHeight);
     return 'partial';
