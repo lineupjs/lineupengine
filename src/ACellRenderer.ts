@@ -110,11 +110,12 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
     let oldLeft = scroller.scrollLeft;
     scroller.addEventListener('scroll', () => {
       const left = scroller.scrollLeft;
-      if (oldLeft !== left) {
-        const isGoingRight = left > oldLeft;
-        oldLeft = left;
-        this.onScrolledHorizontally(left, scroller.clientWidth, isGoingRight);
+      if (oldLeft === left) {
+        return;
       }
+      const isGoingRight = left > oldLeft;
+      oldLeft = left;
+      this.onScrolledHorizontally(left, scroller.clientWidth, isGoingRight);
     });
 
     super.init();
@@ -204,11 +205,10 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
       const item = pool.pop()!;
       const r = this.updateCell(item, row, columnObj, ...extras);
       return r ? r : item;
-    } else {
-      const r = this.createCell(this.body.ownerDocument, row, columnObj, ...extras);
-      setColumn(r, columnObj);
-      return r;
     }
+    const r = this.createCell(this.body.ownerDocument, row, columnObj, ...extras);
+    setColumn(r, columnObj);
+    return r;
   }
 
   private recycleCell(item: HTMLElement, column: number) {

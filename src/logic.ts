@@ -109,6 +109,12 @@ export interface IVisibleRange {
 
 /**
  * computes the visible range
+ * @param {number} scrollTop top scrolling
+ * @param {number} clientHeight visible height
+ * @param {number} rowHeight height of a row by default
+ * @param {IRowHeightException[]} heightExceptions exceptions of this default height
+ * @param {number} numberOfRows the number of rows
+ * @return {IVisibleRange} the computed visible range
  */
 export function range(scrollTop: number, clientHeight: number, rowHeight: number, heightExceptions: IRowHeightException[], numberOfRows: number): IVisibleRange {
   const offset = scrollTop;
@@ -155,9 +161,8 @@ export function range(scrollTop: number, clientHeight: number, rowHeight: number
     if (offset < lastPos.y2) {
       // include me
       return Object.assign(rest, { first: lastPos.index, firstRowPos: lastPos.y});
-    } else {
-      return rest;
     }
+    return rest;
   }
   //we have some exceptions
   const visible: IRowHeightException[] = [];

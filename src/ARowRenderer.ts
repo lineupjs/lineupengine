@@ -87,6 +87,7 @@ export abstract class ARowRenderer {
 
   /**
    * initializes the table and register the onscroll listener
+   * @returns {void} nothing
    */
   protected init() {
     const scroller = this.bodyScroller;
@@ -95,11 +96,12 @@ export abstract class ARowRenderer {
     let oldTop = scroller.scrollTop;
     scroller.addEventListener('scroll', () => {
       const top = scroller.scrollTop;
-      if (oldTop !== top) {
-        const isGoingDown = top > oldTop;
-        oldTop = top;
-        this.onScrolledVertically(top, scroller.clientHeight, isGoingDown);
+      if (oldTop === top) {
+        return;
       }
+      const isGoingDown = top > oldTop;
+      oldTop = top;
+      this.onScrolledVertically(top, scroller.clientHeight, isGoingDown);
     });
     this.recreate();
   }
@@ -185,7 +187,7 @@ export abstract class ARowRenderer {
 
     const ex = this.context.exceptionsLookup;
     if (ex.has(index)) {
-      item.style.height = ex.get(index) + 'px';
+      item.style.height = `${ex.get(index)}px`;
     }
 
     return this.proxy(item, result);
@@ -273,6 +275,7 @@ export abstract class ARowRenderer {
 
   /**
    * removes all rows and recreates the table
+   * @returns {void} nothing
    */
   protected recreate() {
     const context = this.context;
@@ -291,10 +294,10 @@ export abstract class ARowRenderer {
 
   /**
    * scrolling vertically
-   * @param {number} scrollTop
-   * @param {number} clientHeight
+   * @param {number} scrollTop top scrolling
+   * @param {number} clientHeight visible height
    * @param {boolean} isGoingDown hint whether the scrollTop increases
-   * @returns {"full" | "partial"} full in case of a full rebuild or partial update
+   * @return {EScrollResult} full in case of a full rebuild or partial update
    */
   protected onScrolledVertically(scrollTop: number, clientHeight: number, isGoingDown: boolean): EScrollResult {
     const scrollResult = this.onScrolledImpl(scrollTop, clientHeight);

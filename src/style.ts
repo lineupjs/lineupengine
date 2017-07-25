@@ -95,15 +95,15 @@ export class StyleManager {
 
     let r = '';
     columns.forEach(({width}) => {
-      if (lastWidth !== width) {
-        if (count > 0) {
-          r += count === 1 ? `${lastWidth}${unit} ` : `${repeat(count, `${lastWidth}${unit}`)} `;
-        }
-        count = 1;
-        lastWidth = width;
-      } else {
+      if (lastWidth === width) {
         count++;
+        return;
       }
+      if (count > 0) {
+        r += count === 1 ? `${lastWidth}${unit} ` : `${repeat(count, `${lastWidth}${unit}`)} `;
+      }
+      count = 1;
+      lastWidth = width;
     });
 
     if (count > 0) {
@@ -148,16 +148,17 @@ export class StyleManager {
       this.stylesheet.deleteRule(2);
     }
     const frozen = columns.filter((c) => c.frozen);
-    if (frozen.length > 1 && !isEdge) {
-      //create the correct left offset
-      let offset = frozen[0].width;
-      frozen.slice(1).forEach((c) => {
-        this.stylesheet.insertRule(`${this.id} > main > article > div > .frozen[data-id="${c.id}"], ${this.id} > header > article .frozen[data-id="${c.id}"] {
-    left: ${offset}${unit};
-  }`, 2);
-        offset += c.width;
-      });
+    if (frozen.length <=0 || isEdge) {
+      return;
     }
+    //create the correct left offset
+    let offset = frozen[0].width;
+    frozen.slice(1).forEach((c) => {
+      this.stylesheet.insertRule(`${this.id} > main > article > div > .frozen[data-id="${c.id}"], ${this.id} > header > article .frozen[data-id="${c.id}"] {
+  left: ${offset}${unit};
+}`, 2);
+      offset += c.width;
+    });
   }
 
   private updateFrozenColumnsShift(columns: IColumn[], unit: string, scrollLeft: number) {
@@ -171,19 +172,20 @@ export class StyleManager {
     }
 
     const hasFrozen = columns.some((c) => c.frozen);
-    if (hasFrozen) {
-      //create the correct left offset
-      let offset = 0;
-      let frozenWidth = 0;
-      columns.forEach((c) => {
-        if (c.frozen && offset < (scrollLeft + frozenWidth)) {
-          this.stylesheet.insertRule(`${this.id} > main > article > div > .frozen[data-id="${c.id}"], ${this.id} > header > article .frozen[data-id="${c.id}"] {
-    transform: translate(${scrollLeft - offset + frozenWidth}${unit}, 0);
-  }`, 2);
-          frozenWidth += c.width;
-        }
-        offset += c.width;
-      });
+    if (!hasFrozen) {
+      return;
     }
+    //create the correct left offset
+    let offset = 0;
+    let frozenWidth = 0;
+    columns.forEach((c) => {
+      if (c.frozen && offset < (scrollLeft + frozenWidth)) {
+        this.stylesheet.insertRule(`${this.id} > main > article > div > .frozen[data-id="${c.id}"], ${this.id} > header > article .frozen[data-id="${c.id}"] {
+  transform: translate(${scrollLeft - offset + frozenWidth}${unit}, 0);
+}`, 2);
+        frozenWidth += c.width;
+      }
+      offset += c.width;
+    });
   }
 }
