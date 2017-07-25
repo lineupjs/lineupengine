@@ -150,7 +150,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
   private removeCellFromStart(row: HTMLElement, from: number, to: number) {
     for (let i = from; i <= to; ++i) {
       const node = <HTMLElement>row.firstElementChild;
-      row.removeChild(node);
+      node.remove();
       this.recycleCell(node, i);
     }
   }
@@ -164,7 +164,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
   private removeCellFromEnd(row: HTMLElement, from: number, to: number) {
     for (let i = to; i >= from; --i) {
       const node = <HTMLElement>row.lastElementChild;
-      row.removeChild(node);
+      node.remove();
       this.recycleCell(node, i);
     }
   }
@@ -358,6 +358,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
     visible.last = last;
 
     this.updateColumnOffset(firstRowPos);
+
     return r;
   }
 }

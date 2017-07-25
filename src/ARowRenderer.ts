@@ -228,12 +228,16 @@ export abstract class ARowRenderer {
   private remove(from: number, to: number, fromBeginning: boolean) {
     for (let i = from; i <= to; ++i) {
       const item = <HTMLElement>(fromBeginning ? this.body.firstChild : this.body.lastChild);
-      this.body.removeChild(item);
+      item.remove();
       this.recycle(item);
     }
   }
 
   private addAtBeginning(from: number, to: number) {
+    if (from === to) {
+      this.body.insertBefore(this.create(from), this.body.firstChild);
+      return;
+    }
     const fragment = this.fragment;
     for (let i = from; i <= to; ++i) {
       fragment.appendChild(this.create(i));
@@ -242,13 +246,15 @@ export abstract class ARowRenderer {
   }
 
   private addAtBottom(from: number, to: number) {
-    const parent = (to - from) > 1 ? this.fragment : this.body;
+    if (from === to) {
+      this.body.appendChild(this.create(from));
+      return;
+    }
+    const fragment = this.fragment;
     for (let i = from; i <= to; ++i) {
-      parent.appendChild(this.create(i));
+      fragment.appendChild(this.create(i));
     }
-    if ((to - from) > 1) {
-      this.body.appendChild(this.fragment);
-    }
+    this.body.appendChild(fragment);
   }
 
   private updateOffset(firstRowPos: number) {
