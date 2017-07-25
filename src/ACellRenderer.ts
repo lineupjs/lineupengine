@@ -94,20 +94,12 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
     const context = this.context;
 
     this.style = new StyleManager(this.root, context.htmlId, context.defaultRowHeight);
-    this.style.update(this.context.columns, context.column.defaultRowHeight);
+    this.style.update(context.columns, context.column.defaultRowHeight);
 
-    //create all header columns
-    {
-      const fragment = this.columnFragment;
-      const document = fragment.ownerDocument;
-      context.columns.forEach((col) => {
-        fragment.appendChild(this.createHeader(document, col));
-        //init pool
-        this.cellPool.push([]);
-      });
-      this.header.appendChild(fragment);
-    }
-
+    context.columns.forEach(() => {
+      //init pool
+      this.cellPool.push([]);
+    });
 
     const scroller = <HTMLElement>this.body.parentElement;
 
@@ -345,6 +337,20 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
     if (context.hasFrozenColumns === undefined) {
       context.hasFrozenColumns = context.columns.some((c) => c.frozen);
     }
+
+    this.style.update(context.columns, context.column.defaultRowHeight);
+
+    //create all header columns
+    {
+      const fragment = this.columnFragment;
+      const document = fragment.ownerDocument;
+      this.header.innerHTML = '';
+      context.columns.forEach((col) => {
+        fragment.appendChild(this.createHeader(document, col));
+      });
+      this.header.appendChild(fragment);
+    }
+
 
     const scroller = this.bodyScroller;
     const {first, last, firstRowPos} = range(scroller.scrollLeft, scroller.clientWidth, context.column.defaultRowHeight, context.column.exceptions, context.column.numberOfRows);
