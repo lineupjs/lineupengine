@@ -223,7 +223,7 @@ export function frozenDelta(current: number[], target: number[]): { added: numbe
 }
 
 
-export function updateFrozen(old: number[], columns: { frozen: boolean }[], first: number): { union: number[], added: number[], removed: number[] } {
+export function updateFrozen(old: number[], columns: { frozen: boolean }[], first: number): { target: number[], added: number[], removed: number[] } {
   const oldLast = old.length === 0 ? 0 : old[old.length - 1] + 1;
   const added: number[] = [];
   const removed: number[] = [];
@@ -244,5 +244,5 @@ export function updateFrozen(old: number[], columns: { frozen: boolean }[], firs
       old.push(i);
     }
   }
-  return {union: old, added, removed};
+  return {target: old, added, removed};
 }

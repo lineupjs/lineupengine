@@ -6,7 +6,7 @@ import {IColumn, setColumn, StyleManager, TEMPLATE} from './style';
 import {IExceptionContext, range, updateFrozen, frozenDelta} from './logic';
 import {IMixinAdapter, IMixin, IMixinClass, EScrollResult} from './mixin';
 
-const debug = true;
+const debug = false;
 
 export interface ICellRenderContext<T extends IColumn> extends IExceptionContext {
   readonly column: IExceptionContext;
@@ -352,8 +352,8 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
     this.visibleColumns.first = this.visibleColumns.forcedFirst = first;
     this.visibleColumns.last = this.visibleColumns.forcedLast = last;
     if (context.hasFrozenColumns) {
-      const {union} = updateFrozen([], context.columns, first);
-      this.visibleColumns.frozen = union;
+      const {target} = updateFrozen([], context.columns, first);
+      this.visibleColumns.frozen = target;
     }
 
     super.recreate();
@@ -487,15 +487,16 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
       }
       return 0;
     }
-    const {union, added, removed} = updateFrozen(visible.frozen, columns, first);
-    visible.frozen = union;
+    const old = visible.frozen.length;
+    const {target, added, removed} = updateFrozen(visible.frozen, columns, first);
     if (removed.length > 0) {
-      this.removeFrozenColumns(removed, union.length);
+      this.removeFrozenColumns(removed, old - removed.length);
     }
     if (added.length > 0) {
-      this.insertFrozenColumns(added, union.length);
+      this.insertFrozenColumns(added, old - removed.length);
     }
-    return visible.frozen.length;
+    visible.frozen = target;
+    return target.length;
   }
 
   private onScrolledHorizontallyImpl(scrollLeft: number, clientWidth: number): EScrollResult {
