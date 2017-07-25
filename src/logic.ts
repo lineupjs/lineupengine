@@ -203,3 +203,46 @@ export function range(scrollTop: number, clientHeight: number, rowHeight: number
     return {first, last, firstRowPos, endPos};
   }
 }
+
+
+export function frozenDelta(current: number[], target: number[]): { added: number[], removed: number[], common: number } {
+  const clength = current.length;
+  const tlength = target.length;
+  if (clength === 0) {
+    return {added: target, removed: [], common: 0};
+  }
+  if (tlength === 0) {
+    return {added: [], removed: current, common: 0};
+  }
+  if (clength === tlength) { //since sorted and left increasing true
+    return {added: [], removed: [], common: clength};
+  }
+  const removed = current.slice(Math.min(tlength, clength));
+  const added = target.slice(Math.min(tlength, clength));
+  return {added, removed, common: clength - removed.length};
+}
+
+
+export function updateFrozen(old: number[], columns: { frozen: boolean }[], first: number): { union: number[], added: number[], removed: number[] } {
+  const oldLast = old.length === 0 ? 0 : old[old.length - 1] + 1;
+  const added: number[] = [];
+  const removed: number[] = [];
+
+  for (let i = old.length - 1; i >= 0; --i) {
+    const index = old[i];
+    if (index >= first) {
+      removed.push(old.pop()!);
+    } else {
+      // can stop since sorted and it will never happen again
+      break;
+    }
+  }
+  //added
+  for (let i = oldLast; i < first; ++i) {
+    if (columns[i].frozen) {
+      added.push(i);
+      old.push(i);
+    }
+  }
+  return {union: old, added, removed};
+}

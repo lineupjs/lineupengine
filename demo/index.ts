@@ -49,7 +49,7 @@ export default class TestRenderer extends ACellRenderer<Column<number>> {
 
     const columns: Column<number>[] = [];
     for (let i = 0; i < numberOfColumns; ++i) {
-      columns.push(new Column(i, i.toString(36), false));
+      columns.push(new Column(i, i.toString(36), i % 4 === 0));
     }
     this._context = Object.assign({
       columns,

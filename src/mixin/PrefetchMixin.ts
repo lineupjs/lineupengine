@@ -66,7 +66,9 @@ export default class PrefetchMixin implements IMixin {
       return;
     }
 
-    this.adapter.addAtBeginning(first, this.adapter.visible.first - 1);
+    const frozenShift = this.adapter.syncFrozen ? this.adapter.syncFrozen(first) : 0;
+
+    this.adapter.addAtBeginning(first, this.adapter.visible.first - 1, frozenShift);
     //console.log('prefetch up ', visibleFirst, '=>', first, visibleLast, ranking.children.length);
     this.adapter.visible.first = first;
 
@@ -88,13 +90,15 @@ export default class PrefetchMixin implements IMixin {
 
   private cleanUpTop(first: number) {
     this.prefetchTimeout = -1;
-    const newFirst = first - this.options.cleanUpRows;
+    const newFirst = Math.max(0, first - this.options.cleanUpRows);
 
     if (newFirst <= this.adapter.visible.first) {
       return;
     }
 
-    this.adapter.removeFromBeginning(this.adapter.visible.first, newFirst - 1);
+    const frozenShift = this.adapter.syncFrozen ? this.adapter.syncFrozen(newFirst) : 0;
+
+    this.adapter.removeFromBeginning(this.adapter.visible.first, newFirst - 1, frozenShift);
     const context = this.adapter.context;
     //console.log('cleanup up ', visibleFirst, '=>', newFirst, visibleLast, ranking.children.length);
     let shift = (newFirst - this.adapter.visible.first) * context.defaultRowHeight;

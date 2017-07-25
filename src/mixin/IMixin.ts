@@ -22,13 +22,19 @@ export interface IMixinAdapter {
   readonly context: IExceptionContext;
   readonly scroller: HTMLElement;
 
-  addAtBeginning(from: number, to: number): void;
+  addAtBeginning(from: number, to: number, frozenShift: number): void;
   addAtBottom(from: number, to: number): void;
 
-  removeFromBeginning(from: number, to: number): void;
+  removeFromBeginning(from: number, to: number, frozenShift: number): void;
   removeFromBottom(from: number, to: number): void;
 
   updateOffset(firstRowPos: number): void;
+
+  /**
+   * @param {number} first
+   * @return {number} frozenShift
+   */
+  syncFrozen?(first: number): number;
 }
 
 export interface IMixin {
