@@ -6,6 +6,8 @@ import {IColumn, setColumn, StyleManager, TEMPLATE} from './style';
 import {IExceptionContext, range} from './logic';
 import {IMixinAdapter, IMixin, IMixinClass, EScrollResult} from './mixin';
 
+const debug = false;
+
 export interface ICellRenderContext<T extends IColumn> extends IExceptionContext {
   readonly column: IExceptionContext;
   readonly columns: T[];
@@ -146,6 +148,9 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
     this.forEachRow((row: HTMLElement) => {
       this.removeCellFromStart(row, from, to);
     });
+    if (debug) {
+      this.verifyRows();
+    }
   }
 
   private removeCellFromStart(row: HTMLElement, from: number, to: number) {
@@ -154,12 +159,18 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
       node.remove();
       this.recycleCell(node, i);
     }
+    if (debug) {
+      verifyRow(row, -1, this.context.columns);
+    }
   }
 
   private removeColumnFromEnd(from: number, to: number) {
     this.forEachRow((row: HTMLElement) => {
       this.removeCellFromEnd(row, from, to);
     });
+    if (debug) {
+      this.verifyRows();
+    }
   }
 
   private removeCellFromEnd(row: HTMLElement, from: number, to: number) {
@@ -168,12 +179,18 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
       node.remove();
       this.recycleCell(node, i);
     }
+    if (debug) {
+      verifyRow(row, -1, this.context.columns);
+    }
   }
 
   private removeAllColumns() {
     this.forEachRow((row: HTMLElement) => {
       this.removeAllCells(row);
     });
+    if (debug) {
+      this.verifyRows();
+    }
   }
 
   private removeAllCells(row: HTMLElement, shift = this.visibleColumns.first) {
@@ -182,6 +199,9 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
     arr.forEach((item, i) => {
       this.recycleCell(item, i + shift);
     });
+    if (debug) {
+      verifyRow(row, -1, this.context.columns);
+    }
   }
 
   private forEachRow(callback: (row: HTMLElement, rowIndex: number) => void) {
@@ -223,12 +243,18 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
     this.forEachRow((row: HTMLElement, rowIndex: number) => {
       this.addCellAtStart(row, rowIndex, from, to, columns);
     });
+    if (debug) {
+      this.verifyRows();
+    }
   }
 
   private addCellAtStart(row: HTMLElement, rowIndex: number, from: number, to: number, columns: T[], ...extras: any[]) {
-    for (let i = from; i <= to; ++i) {
+    for (let i = to; i >= from; --i) {
       const cell = this.selectCell(rowIndex, i, columns, ...extras);
       row.insertBefore(cell, row.firstChild);
+    }
+    if (debug) {
+      verifyRow(row, rowIndex, this.context.columns);
     }
   }
 
@@ -237,12 +263,23 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
     this.forEachRow((row: HTMLElement, rowIndex: number) => {
       this.addCellAtEnd(row, rowIndex, from, to, columns);
     });
+    if (debug) {
+      this.verifyRows();
+    }
+  }
+
+  private verifyRows() {
+    const {columns} = this.context;
+    this.forEachRow((row, rowIndex) => verifyRow(row, rowIndex, columns));
   }
 
   private addCellAtEnd(row: HTMLElement, rowIndex: number, from: number, to: number, columns: T[], ...extras: any[]) {
     for (let i = from; i <= to; ++i) {
       const cell = this.selectCell(rowIndex, i, columns, ...extras);
       row.appendChild(cell);
+    }
+    if (debug) {
+      verifyRow(row, rowIndex, this.context.columns);
     }
   }
 
@@ -257,6 +294,11 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
 
     super.recreate();
     this.updateColumnOffset(firstRowPos);
+  }
+
+  protected clearPool() {
+    super.clearPool();
+    this.cellPool.forEach((p) => p.splice(0, p.length));
   }
 
   private updateColumnOffset(firstColumnPos: number) {
@@ -365,6 +407,18 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
 
     return r;
   }
+
+}
+
+function verifyRow(row: HTMLElement, index: number, columns: IColumn[]) {
+  const cols = <HTMLElement[]>Array.from(row.children);
+  //sort incrementally
+  if (cols.length <= 1) {
+    return;
+  }
+  const colObjs = cols.map((c) => columns.find((d) => d.id === c.dataset.id)!);
+  console.assert(colObjs.every((d) => Boolean(d)), 'all columns must exist', index);
+  console.assert(colObjs.every((d, i) => i > 0 && d.index >= colObjs[i - 1]!.index), 'all columns in ascending order', index);
 }
 
 export default ACellRenderer;

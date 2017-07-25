@@ -282,6 +282,8 @@ export abstract class ARowRenderer {
 
     this.removeAll();
 
+    this.clearPool();
+
     const scroller = this.bodyScroller;
     const {first, last, firstRowPos} = range(scroller.scrollTop, scroller.clientHeight, context.defaultRowHeight, context.exceptions, context.numberOfRows);
 
@@ -290,6 +292,11 @@ export abstract class ARowRenderer {
 
     this.addAtBottom(first, last);
     this.updateOffset(firstRowPos);
+  }
+
+  protected clearPool() {
+    // clear pool
+    this.pool.splice(0, this.pool.length);
   }
 
   /**
