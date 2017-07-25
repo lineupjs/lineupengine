@@ -32,7 +32,7 @@ const webpackloaders = [
     test: /\.(png|jpg)$/,
     loader: 'url-loader',
     query: {
-      limit: 10000, //inline <= 10kb
+      limit: 10000 //inline <= 10kb
     }
   },
   {
@@ -58,14 +58,14 @@ const webpackloaders = [
  * generate a webpack configuration
  */
 function generateWebpack(options) {
-  let base = {
+  const base = {
     entry: {
       lineupengine: './index.js',
       demo: './demo/index.ts'
     },
     output: {
       path: resolve(__dirname, 'build'),
-      filename: '[name]' + (options.min && !options.nosuffix ? '.min' : '') + '.js',
+      filename: `[name]${options.min && !options.nosuffix ? '.min' : ''}.js`,
       chunkFilename: '[chunkhash].js',
       publicPath: '', //no public path = relative
       library: 'lineupengine',
@@ -120,8 +120,8 @@ function generateWebpack(options) {
 
   if (!options.isTest) {
     //extract the included css file to own file
-    let p = new ExtractTextPlugin({
-      filename: '[name]'  + (options.min && !options.nosuffix ? '.min' : '') + '.css',
+    const p = new ExtractTextPlugin({
+      filename: `[name]${options.min && !options.nosuffix ? '.min' : ''}.css`,
       allChunks: true // there seems to be a bug in dynamically loaded chunk styles are not loaded, workaround: extract all styles from all chunks
     });
     base.plugins.push(p);
@@ -138,14 +138,13 @@ function generateWebpack(options) {
         debug: false
       }),
       new UglifyJsPlugin({
-        mangle: {
-          screw_ie8: true
+        uglifyOptions: {
+          ecma: 6,
+          mange: true,
+          compress: true,
+          warnings: true
         },
-        compress: {
-          screw_ie8: true
-        },
-        comments: false,
-        sourceMap: false
+        extractComments: false
       }));
   } else {
     //generate source maps
@@ -155,8 +154,8 @@ function generateWebpack(options) {
 }
 
 function generateWebpackConfig(env) {
-  const isTest = env === 'test' || env.env === 'test';
-  const isProduction = env === 'prod' || env.env === 'prod';
+  const isTest = env === 'test';
+  const isProduction = env === 'prod';
   const isDev = !isProduction && !isTest;
 
   const base = {
