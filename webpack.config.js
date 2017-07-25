@@ -155,8 +155,8 @@ function generateWebpack(options) {
 }
 
 function generateWebpackConfig(env) {
-  const isTest = env === 'test';
-  const isProduction = env === 'prod';
+  const isTest = env === 'test' || env.env === 'test';
+  const isProduction = env === 'prod' || env.env === 'prod';
   const isDev = !isProduction && !isTest;
 
   const base = {
