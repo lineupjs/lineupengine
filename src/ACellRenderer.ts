@@ -204,6 +204,9 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
     if (pool.length > 0) {
       const item = pool.pop()!;
       const r = this.updateCell(item, row, columnObj, ...extras);
+      if (r && r !== item) {
+        setColumn(r, columnObj);
+      }
       return r ? r : item;
     }
     const r = this.createCell(this.body.ownerDocument, row, columnObj, ...extras);
@@ -301,6 +304,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
           existing.forEach((child, i) => {
             const cell = this.updateCell(child, rowIndex, columns[i + visible.first], ...extras);
             if (cell && cell !== child) {
+              setColumn(cell, columns[i + visible.first]);
               node.replaceChild(cell, child);
             }
           });
