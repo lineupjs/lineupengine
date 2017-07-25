@@ -36,7 +36,7 @@
     "posttest": "npm run lint",
     "test:watch": "karma start --autoWatch=true --singleRun=false",
     "build:dev": "webpack",
-    "build": "webpack --verbose --debug --env=prod",
+    "build": "webpack --env=prod",
     "start": "webpack-dev-server --inline",
     "start:hot": "webpack-dev-server --inline --hot",
     "watch": "webpack --watch",
