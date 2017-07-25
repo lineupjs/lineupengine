@@ -26,6 +26,18 @@ Building
 npm run build
 ```
 
+Notes
+-----
+
+```
+firefox max DOM height: 17.800.000px < 17899999px
+edge max DOM height: 10000000px < 1099999px
+
+scrollHeight
+chrome:  33.554.431px translate + height
+firefox: 17.895.566px marginTop + height
+edge:    3.033.917px height
+```
 
 
 ***
