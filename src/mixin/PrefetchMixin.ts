@@ -9,29 +9,29 @@ export interface IPrefetchRendererOptions {
    * number of rows to prefetch
    * @default 20
    */
-  readonly prefetchRows?: number;
+  readonly prefetchRows: number;
   /**
    * number of rows extra before cleaning them up
    * @default 3
    */
-  readonly cleanUpRows?: number;
+  readonly cleanUpRows: number;
   /**
    * delay to trigger a prefetch or clean up
    * @default 50ms
    */
-  readonly delay?: number;
+  readonly delay: number;
 }
 
 export default class PrefetchMixin implements IMixin {
   private prefetchTimeout: number = -1;
 
-  private readonly options = {
+  private readonly options: IPrefetchRendererOptions = {
     prefetchRows: 20,
     cleanUpRows: 3,
     delay: 50
   };
 
-  constructor(private readonly adapter: IMixinAdapter, options?: IPrefetchRendererOptions) {
+  constructor(private readonly adapter: IMixinAdapter, options?: Partial<IPrefetchRendererOptions>) {
     Object.assign(this.options, options);
     return this;
   }

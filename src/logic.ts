@@ -222,7 +222,6 @@ export function frozenDelta(current: number[], target: number[]): { added: numbe
   return {added, removed, common: clength - removed.length};
 }
 
-
 export function updateFrozen(old: number[], columns: { frozen: boolean }[], first: number): { target: number[], added: number[], removed: number[] } {
   const oldLast = old.length === 0 ? 0 : old[old.length - 1] + 1;
   const added: number[] = [];
