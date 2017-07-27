@@ -74,6 +74,7 @@
   &:not(.ms-edge) > header > article,
   &:not(.ms-edge) > main > article > div {
     > .frozen { // frozen one
+
       position: sticky;
       left: 0;
     }
