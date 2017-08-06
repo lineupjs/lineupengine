@@ -7,7 +7,7 @@ import './style.scss';
 
 const template = `<header></header>
 <aside></aside>
-<main></main><style></style>`;
+<main><div></div></main><style></style>`;
 
 
 export interface ICellContext {
@@ -26,6 +26,7 @@ export abstract class ACellRenderer {
 
   constructor(private readonly root: HTMLElement) {
     root.innerHTML = template;
+    root.classList.add('lineup-cell-engine');
     this.fragment = root.ownerDocument.createDocumentFragment();
   }
 
@@ -98,7 +99,7 @@ export abstract class ACellRenderer {
   }
 
   private buildTree(row: IExceptionContext, col: IExceptionContext) {
-    const build = (index: number, rowFirst: number, rowLast: number, colFirst: number, colLast: number, rowTotal: number, colTotal: number) {
+    const build = (index: number, rowFirst: number, rowLast: number, colFirst: number, colLast: number, rowTotal: number, colTotal: number) => {
       const rowCount = rowLast - rowFirst + 1;
       const colCount = colLast - colFirst + 1;
       if (rowCount <= leafCount && colCount <= leafCount) {
@@ -125,11 +126,22 @@ export abstract class ACellRenderer {
   }
 
   protected recreate() {
-    const {row, col} = this.context;
-    this.tree = this.buildTree(row, col);
+    const context = this.context;
+    const body = this.body;
+    this.tree = this.buildTree(context.row, context.col);
+
+    //clear
+    const root = <HTMLElement>body.firstElementChild!;
+    Array.from(root.children).forEach((c) => this.recycle(<HTMLElement>c));
+    this.clearPool();
+
+    const col = range(body.scrollLeft, body.clientWidth, context.col.defaultRowHeight, context.col.exceptions, context.col.numberOfRows);
+    const row = range(body.scrollTop, body.clientHeight, context.row.defaultRowHeight, context.row.exceptions, context.row.numberOfRows);
+
+    this.render(this.tree, root, row.first, row.last, col.first, col.last);
   }
 
-  private onScroll(left: number, top: number, width: number, height: number, isGoingDown: boolean, isGoingRight: boolean) {
+  private onScroll(left: number, top: number, width: number, height: number, _isGoingDown: boolean, _isGoingRight: boolean) {
     const context = this.context;
 
     const col = range(left, width, context.col.defaultRowHeight, context.col.exceptions, context.col.numberOfRows);
@@ -141,6 +153,7 @@ export abstract class ACellRenderer {
   private renderLeaf(leaf: QuadTreeLeafNode, parent: HTMLElement) {
     const doc = this.doc;
     const children = <HTMLElement[]>Array.from(parent.children);
+    parent.dataset.leafCols = String(leaf.colCount);
     parent.innerHTML = '';
 
     for(let row = leaf.rowFirst; row <= leaf.rowLast; ++row) {
@@ -156,7 +169,6 @@ export abstract class ACellRenderer {
         } else {
           item = this.createCell(doc, row, col);
         }
-        (<any>item.style).gridArea = `${row - leaf.rowFirst + 1} / ${col - leaf.colFirst + 1}`;
         item.dataset.row = String(row);
         item.dataset.col = String(col);
         parent.appendChild(item);
@@ -168,6 +180,8 @@ export abstract class ACellRenderer {
   private render(node: QuadTreeNode, parent: HTMLElement, rowFirst: number, rowLast: number, colFirst: number, colLast: number) {
     parent.dataset.node=node.type;
     parent.dataset.index=String(node.index);
+    parent.dataset.colPath=node.colId;
+    parent.dataset.rowPath=node.rowId;
     (<any>parent.style).gridArea = node.area;
 
     if (node.type === 'leaf') {
@@ -175,18 +189,14 @@ export abstract class ACellRenderer {
     }
     const inner = <QuadTreeInnerNode>node;
 
-    const cache = <(HTMLElement|null)[]>[null, null, null, null];
-    Array.from(parent.children).forEach((c) => {
-      const n = <HTMLElement>c;
-      cache[parseInt(n.dataset.index!, 10)] = n;
-    });
-    parent.innerHTML = '';
-
+    const cache = <HTMLElement[]>Array.from(parent.children);
     const render = (index: number) => {
       const c = cache[index];
-      if (c) { //assume up to date
-        cache[index] = null; //mark as used
-        return c;
+      if (c && c.dataset.node !== 'placeholder') {
+        return c;  //assume up to date
+      }
+      if (c) {
+        this.recyclePlaceholder(c);
       }
       const child = inner.children[index];
       let node: HTMLElement;
@@ -198,6 +208,27 @@ export abstract class ACellRenderer {
       return this.render(child, node, rowFirst, rowLast, colFirst, colLast);
     };
 
+    const placeholder = (index: number) => {
+      const c = cache[index];
+      if (c && c.dataset.node === 'placeholder') {
+        return c;  //assume up to date
+      }
+      if (c) {
+        this.recycle(c);
+      }
+      const child = inner.children[index];
+      const node = this.poolInner.length > 0 ? this.poolInner.pop()! : this.doc.createElement('div');
+      node.dataset.type = 'placeholder';
+      node.dataset.index=String(child.index);
+      node.dataset.colPath=child.colId;
+      node.dataset.rowPath=child.rowId;
+      (<any>node.style).gridArea = child.area;
+
+      node.style.width = `${child.width}px`;
+      node.style.height = `${child.height}px`;
+      return node;
+    };
+
     const showLeft = !(inner.colFirst > colLast || inner.colMiddle < colFirst);
     const showRight = !(inner.colMiddle > colLast || inner.colLast < colFirst);
     const showTop = !(inner.rowFirst > rowLast || inner.rowMiddle < rowFirst);
@@ -205,22 +236,24 @@ export abstract class ACellRenderer {
 
     if (showLeft && showTop) {
       parent.appendChild(render(TOP_LEFT));
+    } else {
+      parent.appendChild(placeholder(TOP_LEFT));
     }
     if (showRight && showTop) {
       parent.appendChild(render(TOP_RIGHT));
+    } else {
+      parent.appendChild(placeholder(TOP_RIGHT));
     }
     if (showLeft && showBottom) {
       parent.appendChild(render(BOTTOM_LEFT));
+    } else {
+      parent.appendChild(placeholder(BOTTOM_LEFT));
     }
     if (showRight && showBottom) {
       parent.appendChild(render(BOTTOM_RIGHT));
+    } else {
+      parent.appendChild(placeholder(BOTTOM_RIGHT));
     }
-    //recycle not used cached items
-    cache.forEach((c) => {
-      if (c) {
-        this.recycle(c);
-      }
-    });
     return parent;
   }
 
@@ -232,18 +265,32 @@ export abstract class ACellRenderer {
     //recycle all leaves
     const leaves = <HTMLElement[]>Array.from(node.querySelectorAll('[data-node=leaf]'));
     //recycle all inner nodes
-    const inner = <HTMLElement[]>Array.from(node.querySelectorAll('[data-node=inner]'));
+    const inner = <HTMLElement[]>Array.from(node.querySelectorAll('[data-node=inner], [data-node=placeholder'));
     node.innerHTML = '';
     leaves.forEach((node) => this.recycleLeaf(node));
     inner.forEach((node) => {
       node.innerHTML = '';
-      this.poolInner.push(node);
+      this.poolInner.push(ACellRenderer.cleanUp(node));
     });
-    this.poolInner.push(node);
+    this.poolInner.push(ACellRenderer.cleanUp(node));
+  }
+
+  private static cleanUp(node: HTMLElement) {
+    if (node.style.width) {
+      node.style.width = null;
+    }
+    if (node.style.height) {
+      node.style.height = null;
+    }
+    return node;
   }
 
   private recycleLeaf(node: HTMLElement) {
-    this.poolLeaves.push(node);
+    this.poolLeaves.push(ACellRenderer.cleanUp(node));
+  }
+
+  private recyclePlaceholder(node: HTMLElement) {
+    this.poolInner.push(ACellRenderer.cleanUp(node));
   }
 
 

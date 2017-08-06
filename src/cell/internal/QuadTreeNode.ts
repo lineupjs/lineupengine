@@ -86,11 +86,11 @@ export class QuadTreeInnerNode extends AQuadTreeNode {
   readonly children: QuadTreeNode[] = [];
 
   get colMiddle() {
-    return Math.floor(this.colFirst + this.colCount / 2);
+    return Math.floor(this.colFirst + this.colCount / 2) - 1;
   }
 
   get rowMiddle() {
-    return Math.floor(this.rowFirst + this.rowCount / 2);
+    return Math.floor(this.rowFirst + this.rowCount / 2) - 1;
   }
 }
 
