@@ -22,20 +22,6 @@ abstract class AQuadTreeNode {
     return this.colTotal;
   }
 
-  get area() {
-    switch (this.index) {
-      case 0:
-        return `1 / 1`;
-      case 1:
-        return `1 / 2`;
-      case 2:
-        return `2 / 1`;
-      case 3:
-        return `2 / 2`;
-    }
-    return '1 / 1';
-  }
-
   get rowId() {
     let id = this.index < 2 ? '0' : '1';
     let p = this.parent;
@@ -57,7 +43,7 @@ abstract class AQuadTreeNode {
   }
 
   get id() {
-    let id = '${this.index}';
+    let id = String(this.index);
     let p = this.parent;
     while (p !== null) {
       id = `${p.index}-${id}`;

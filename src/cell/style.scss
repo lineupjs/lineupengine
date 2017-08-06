@@ -60,12 +60,22 @@
     grid-template-rows: auto auto;
     grid-gap: 0;
 
+    > *:first-child {
+      grid-area: 1 / 1 / 1 / 1;
+    }
+
     > *:nth-child(2) {
+      grid-area: 1 / 2 / 1 / 2;
       background-color: rgba(0, 0, 0, 0.2);
     }
 
     > *:nth-child(3) {
+      grid-area: 2 / 1 / 2 / 1;
       background-color: rgba(0, 0, 0, 0.2);
+    }
+
+    > *:last-child {
+      grid-area: 2 / 2 / 2 / 2;
     }
   }
 }
