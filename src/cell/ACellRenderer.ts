@@ -1,58 +1,14 @@
-import {IExceptionContext} from '../logic';
+import {IExceptionContext, range} from '../logic';
+import QuadTreeNode, {
+  QuadTreeLeafNode, QuadTreeInnerNode, TOP_LEFT, BOTTOM_LEFT,
+  TOP_RIGHT, BOTTOM_RIGHT
+} from './internal/QuadTreeNode';
+import './style.scss';
 
 const template = `<header></header>
 <aside></aside>
 <main></main><style></style>`;
 
-type Slice = [number, number];
-
-abstract class AQuadTreeNode {
-  parent: QuadTreeInnerNode|null  = null;
-
-  constructor(public readonly index: number, public readonly rowFirst: number, public readonly rowLast: number, public readonly colFirst: number, public readonly colLast: number, public readonly rowTotal: number, public readonly colTotal: number) {
-
-  }
-
-  get rowCount() {
-    //since inclusive
-    return this.rowLast - this.rowFirst + 1;
-  }
-
-  get colCount() {
-    return this.colLast - this.colFirst + 1;
-  }
-
-  get width() {
-    return this.rowTotal;
-  }
-
-  get height() {
-    return this.colTotal;
-  }
-
-  get id() {
-    let id = '${this.index}';
-    let p = this.parent;
-    while (p !== null) {
-      id = `${p.index}-${id}`;
-    }
-    return id;
-  }
-}
-
-class QuadTreeLeafNode {
-
-}
-
-class QuadTreeInnerNode {
-  /**
-   * 1 | 2
-   * 3 | 4
-   */
-  readonly children: QuadTreeNode[] = [];
-}
-
-type QuadTreeNode = QuadTreeInnerNode|QuadTreeLeafNode;
 
 export interface ICellContext {
   row: IExceptionContext;
@@ -62,21 +18,15 @@ export interface ICellContext {
 const leafCount = 4; //don't split further than 4x4 grids
 
 export abstract class ACellRenderer {
-  private readonly pool: HTMLElement[] = [];
+  private readonly poolLeaves: HTMLElement[] = [];
+  private readonly poolInner: HTMLElement[] = [];
   private readonly fragment: DocumentFragment;
-
-  protected readonly visible = {
-    rowFirst: 0,
-    rowLast: 0,
-    colFirst: 0,
-    colLast: 0
-  };
 
   private tree: QuadTreeNode;
 
   constructor(private readonly root: HTMLElement) {
     root.innerHTML = template;
-    this.fragment = body.ownerDocument.createDocumentFragment();
+    this.fragment = root.ownerDocument.createDocumentFragment();
   }
 
   protected abstract get context(): ICellContext;
@@ -96,32 +46,14 @@ export abstract class ACellRenderer {
     return <HTMLElement>this.root.children[1]!;
   }
 
-  protected createCell(doc: Document, row: number, col: number): HTMLElement {
-    const node = document.createElement('div');
-    node.textContent = `Cell#${row}/${col}`;
-    return node;
-  }
-  protected updateCell(node: HTMLElement, row: number, col: number): HTMLElement | void {
-    node.textContent = `Cell#${row}/${col}`;
-  }
+  protected abstract createCell(doc: Document, row: number, col: number): HTMLElement;
+  protected abstract updateCell(node: HTMLElement, row: number, col: number): HTMLElement | void;
 
-  protected createRowHeader(doc: Document, row: number): HTMLElement {
-    const node = document.createElement('div');
-    node.textContent = `Row#${row}`;
-    return node;
-  }
-  protected updateRowHeader(node: HTMLElement, row: number): HTMLElement | void {
-    node.textContent = `Row${row}`;
-  }
+  protected abstract createRowHeader(doc: Document, row: number): HTMLElement;
+  protected abstract updateRowHeader(node: HTMLElement, row: number): HTMLElement | void;
 
-  protected createColumnHeader(doc: Document, col: number): HTMLElement {
-    const node = document.createElement('div');
-    node.textContent = `Col#${col}`;
-    return node;
-  }
-  protected updateColumnHeader(node: HTMLElement, col: number): HTMLElement | void {
-    node.textContent = `Col${col}`;
-  }
+  protected abstract createColumnHeader(doc: Document, col: number): HTMLElement;
+  protected abstract updateColumnHeader(node: HTMLElement, col: number): HTMLElement | void;
 
   protected init() {
     const body = this.body;
@@ -130,7 +62,7 @@ export abstract class ACellRenderer {
 
     let oldTop = body.scrollTop;
     let oldLeft = body.scrollLeft;
-    body.addEventListener('scroll', (evt) => {
+    body.addEventListener('scroll', () => {
       const left = body.scrollLeft;
       const top = body.scrollTop;
       if (oldTop === top && oldLeft === left) {
@@ -146,7 +78,7 @@ export abstract class ACellRenderer {
       colHeader.scrollLeft = left;
 
       this.onScroll(left, top, body.clientWidth, body.clientHeight, isGoingDown, isGoingRight);
-    }
+    });
 
     this.recreate();
   }
@@ -174,23 +106,20 @@ export abstract class ACellRenderer {
       }
       const inner = new QuadTreeInnerNode(index, rowFirst, rowLast, colFirst, colLast, rowTotal, colTotal);
 
-      const rowMiddle =  Math.floor(rowCount / 2);
-      const colMiddle = Math.floor(colCount / 2);
-
-      const leftSlice = ACellRenderer.sliceHeight(col, colFirst, colMiddle);
+      const leftSlice = ACellRenderer.sliceHeight(col, colFirst, inner.colMiddle);
       const rightSlice = colTotal - leftSlice;
 
-      const topSlice = ACellRenderer.sliceHeight(row, rowFirst, rowMiddle);
+      const topSlice = ACellRenderer.sliceHeight(row, rowFirst, inner.rowMiddle);
       const bottomSlice = rowTotal - topSlice;
 
-      inner.children.push(build(0, rowFirst, rowMiddle, colFirst, colMiddle, topSlice, leftSlice));
-      inner.children.push(build(1, rowFirst, rowMiddle, colMiddle + 1, colLast, topSlice, rightSlice));
-      inner.children.push(build(2, rowMiddle + 1, rowLast, colFirst, colMiddle, bottomSlice, leftSlice));
-      inner.children.push(build(3, rowMiddle + 1, rowLast, colMiddle + 1, colLast, bottomSlice, rightSlice));
+      inner.children.push(build(TOP_LEFT, rowFirst, inner.rowMiddle, colFirst, inner.colMiddle, topSlice, leftSlice));
+      inner.children.push(build(TOP_RIGHT, rowFirst, inner.rowMiddle, inner.colMiddle + 1, colLast, topSlice, rightSlice));
+      inner.children.push(build(BOTTOM_LEFT, inner.rowMiddle + 1, rowLast, colFirst, inner.colMiddle, bottomSlice, leftSlice));
+      inner.children.push(build(BOTTOM_RIGHT, inner.rowMiddle + 1, rowLast, inner.colMiddle + 1, colLast, bottomSlice, rightSlice));
 
       inner.children.forEach((c) => c.parent = inner);
       return inner;
-    }
+    };
 
     return build(0, 0, row.numberOfRows - 1, 0, col.numberOfRows - 1, row.totalHeight, col.totalHeight);
   }
@@ -202,53 +131,126 @@ export abstract class ACellRenderer {
 
   private onScroll(left: number, top: number, width: number, height: number, isGoingDown: boolean, isGoingRight: boolean) {
     const context = this.context;
-    const visible = this.visible;
 
-    //TODO
+    const col = range(left, width, context.col.defaultRowHeight, context.col.exceptions, context.col.numberOfRows);
+    const row = range(top, height, context.row.defaultRowHeight, context.row.exceptions, context.row.numberOfRows);
+
+    this.render(this.tree, this.body, row.first, row.last, col.first, col.last);
   }
 
-  private renderLeaf(node: HTMLElement, leaf: QuadTreeLeafNode) {
-    const parent = this.doc.createElement('div');
-    parent.dataset.tree = leaf.id;
+  private renderLeaf(leaf: QuadTreeLeafNode, parent: HTMLElement) {
+    const doc = this.doc;
+    const children = <HTMLElement[]>Array.from(parent.children);
+    parent.innerHTML = '';
+
     for(let row = leaf.rowFirst; row <= leaf.rowLast; ++row) {
       for(let col = leaf.colFirst; col <= leaf.colLast; ++col) {
-        parent.appendChild(this.select(row, col));
+        let item: HTMLElement;
+        if (children.length > 0) {
+          item = children.shift()!;
+          const change = this.updateCell(item, row, col);
+          if (change && change !== item) {
+            children.unshift(item);
+            item = change;
+          }
+        } else {
+          item = this.createCell(doc, row, col);
+        }
+        (<any>item.style).gridArea = `${row - leaf.rowFirst + 1} / ${col - leaf.colFirst + 1}`;
+        item.dataset.row = String(row);
+        item.dataset.col = String(col);
+        parent.appendChild(item);
       }
     }
-    node.appendChild(parent);
+    return parent;
+  }
+
+  private render(node: QuadTreeNode, parent: HTMLElement, rowFirst: number, rowLast: number, colFirst: number, colLast: number) {
+    parent.dataset.node=node.type;
+    parent.dataset.index=String(node.index);
+    (<any>parent.style).gridArea = node.area;
+
+    if (node.type === 'leaf') {
+      return this.renderLeaf(<QuadTreeLeafNode>node, parent);
+    }
+    const inner = <QuadTreeInnerNode>node;
+
+    const cache = <(HTMLElement|null)[]>[null, null, null, null];
+    Array.from(parent.children).forEach((c) => {
+      const n = <HTMLElement>c;
+      cache[parseInt(n.dataset.index!, 10)] = n;
+    });
+    parent.innerHTML = '';
+
+    const render = (index: number) => {
+      const c = cache[index];
+      if (c) { //assume up to date
+        cache[index] = null; //mark as used
+        return c;
+      }
+      const child = inner.children[index];
+      let node: HTMLElement;
+      if (child.type === 'inner') {
+        node = this.poolInner.length > 0 ? this.poolInner.pop()! : this.doc.createElement('div');
+      } else {
+        node = this.poolLeaves.length > 0 ? this.poolLeaves.pop()! : this.doc.createElement('div');
+      }
+      return this.render(child, node, rowFirst, rowLast, colFirst, colLast);
+    };
+
+    const showLeft = !(inner.colFirst > colLast || inner.colMiddle < colFirst);
+    const showRight = !(inner.colMiddle > colLast || inner.colLast < colFirst);
+    const showTop = !(inner.rowFirst > rowLast || inner.rowMiddle < rowFirst);
+    const showBottom  = !(inner.rowMiddle > rowLast || inner.rowLast < rowFirst);
+
+    if (showLeft && showTop) {
+      parent.appendChild(render(TOP_LEFT));
+    }
+    if (showRight && showTop) {
+      parent.appendChild(render(TOP_RIGHT));
+    }
+    if (showLeft && showBottom) {
+      parent.appendChild(render(BOTTOM_LEFT));
+    }
+    if (showRight && showBottom) {
+      parent.appendChild(render(BOTTOM_RIGHT));
+    }
+    //recycle not used cached items
+    cache.forEach((c) => {
+      if (c) {
+        this.recycle(c);
+      }
+    });
+    return parent;
+  }
+
+  private recycle(node: HTMLElement) {
+    if (node.dataset.node === 'leaf') {
+      this.recycleLeaf(node);
+      return;
+    }
+    //recycle all leaves
+    const leaves = <HTMLElement[]>Array.from(node.querySelectorAll('[data-node=leaf]'));
+    //recycle all inner nodes
+    const inner = <HTMLElement[]>Array.from(node.querySelectorAll('[data-node=inner]'));
+    node.innerHTML = '';
+    leaves.forEach((node) => this.recycleLeaf(node));
+    inner.forEach((node) => {
+      node.innerHTML = '';
+      this.poolInner.push(node);
+    });
+    this.poolInner.push(node);
+  }
+
+  private recycleLeaf(node: HTMLElement) {
+    this.poolLeaves.push(node);
   }
 
 
   protected clearPool() {
     // clear pool
-    this.pool.splice(0, this.pool.length);
-  }
-
-  private static cleanUp(item: HTMLElement) {
-    if (item.style.height) {
-      item.style.height = null;
-    }
-    if (item.style.width) {
-      item.style.width = null;
-    }
-  }
-
-  private select(row: number, col: number): HTMLElement {
-    let item: HTMLElement;
-    if (this.pool.length > 0) {
-      item = this.pool.pop()!;
-      item = this.updateCell(item, row, col) || item;
-    } else {
-      item = this.createCell(this.doc, row, col);
-    }
-    item.dataset.row = String(row);
-    item.dataset.col = String(col);
-    return item;
-  }
-
-  private recycle(item: HTMLElement) {
-    ACellRenderer.cleanUp(item);
-    this.pool.push(item);
+    this.poolInner.splice(0, this.poolInner.length);
+    this.poolLeaves.splice(0, this.poolLeaves.length);
   }
 }
 

@@ -1,0 +1,46 @@
+.cell-renderer {
+  [data-node=leaf] {
+    display: flex;
+    flex-wrap: wrap;
+    position: relative;
+
+    > * {
+      flex: 0 0 auto;
+      position: relative;
+      width: 20px;
+      height: 20px;
+    }
+
+  }
+
+  [data-node=inner] {
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-template-rows: auto auto;
+  }
+
+  > header {
+    display: flex;
+    flex-direction: column;
+
+    > * {
+      flex: 0 0 20px;
+    }
+  }
+
+  > aside {
+    display: flex;
+    flex-direction: row;
+
+    > * {
+      flex: 1 1 20px;
+    }
+  }
+
+  [data-col=3] {
+    width: 30px;
+  }
+  [data-row=2] {
+    height: 50px;
+  }
+}
