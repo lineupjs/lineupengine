@@ -112,7 +112,13 @@ export class StyleManager {
     return r;
   }
 
-  update(columns: IColumn[], defaultWidth: number, unit: string = 'px') {
+  update(defaultRowHeight: number, columns: IColumn[], defaultWidth: number, unit: string = 'px') {
+    this.stylesheet.deleteRule(0);
+    this.stylesheet.insertRule(`${this.id} > main > article > div {
+      height: ${defaultRowHeight}px;
+    }`, 0);
+
+
     this.stylesheet.deleteRule(1);
 
     if (columns.length === 0) {

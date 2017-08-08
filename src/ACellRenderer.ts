@@ -94,7 +94,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
     const context = this.context;
 
     this.style = new StyleManager(this.root, context.htmlId, context.defaultRowHeight);
-    this.style.update(context.columns, context.column.defaultRowHeight);
+    this.style.update(context.defaultRowHeight, context.columns, context.column.defaultRowHeight);
 
     context.columns.forEach(() => {
       //init pool
@@ -338,7 +338,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
       context.hasFrozenColumns = context.columns.some((c) => c.frozen);
     }
 
-    this.style.update(context.columns, context.column.defaultRowHeight);
+    this.style.update(context.defaultRowHeight, context.columns, context.column.defaultRowHeight);
 
     //create all header columns
     {
