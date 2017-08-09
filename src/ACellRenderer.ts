@@ -36,7 +36,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
   };
   protected visibleFirstColumnPos = 0;
 
-  private style: StyleManager;
+  protected style: StyleManager;
 
   private readonly columnAdapter: IMixinAdapter;
   private readonly columnMixins: IMixin[];

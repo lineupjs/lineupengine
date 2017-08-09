@@ -63,7 +63,7 @@ export class StyleManager {
     this.stylesheet.insertRule(`${id} > main > article > div {
       height: ${defaultRowHeight}px;
     }`, 0);
-    this.stylesheet.insertRule(`${id} > main > article > div, .lu > header > article {
+    this.stylesheet.insertRule(`${id} > main > article > div, ${id} > header > article {
       /*column rule*/
     }`, 1);
 
@@ -123,7 +123,7 @@ export class StyleManager {
 
     if (columns.length === 0) {
       //restore dummy rule
-      this.stylesheet.insertRule(`${this.id} > main > article > div, .lu > header > article {
+      this.stylesheet.insertRule(`${this.id} > main > article > div, ${this.id} > header > article {
         /*column rule*/
       }`, 1);
     }

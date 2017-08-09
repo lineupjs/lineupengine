@@ -284,6 +284,7 @@ export abstract class ARowRenderer {
 
     this.clearPool();
 
+    this.updateOffset(0);
     const scroller = this.bodyScroller;
     const {first, last, firstRowPos} = range(scroller.scrollTop, scroller.clientHeight, context.defaultRowHeight, context.exceptions, context.numberOfRows);
 
