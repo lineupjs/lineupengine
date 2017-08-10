@@ -231,20 +231,6 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
     }
   }
 
-  private forEachRow(callback: (row: HTMLElement, rowIndex: number) => void) {
-    const rows = Array.from(this.body.children);
-    const fragment = this.columnFragment;
-    this.body.innerHTML = '';
-    rows.forEach((row: HTMLElement, index) => {
-      if (!row.classList.contains('loading')) {
-        //skip loading ones
-        callback(row, index + this.visible.first);
-      }
-      fragment.appendChild(row);
-    });
-    this.body.appendChild(fragment);
-  }
-
   private selectCell(row: number, column: number, columns: T[], ...extras: any[]): HTMLElement {
     const pool = this.cellPool[column];
     const columnObj = columns[column];
