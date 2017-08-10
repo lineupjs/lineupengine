@@ -89,7 +89,7 @@ export class StyleManager {
     this.node.remove();
   }
 
-  private static columnWidths(columns: IColumn[], unit: string = 'px') {
+  static columnWidths(columns: {width: number}[], unit: string = 'px') {
     let lastWidth = 0;
     let count = 0;
 
