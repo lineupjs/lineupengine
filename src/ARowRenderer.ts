@@ -2,8 +2,8 @@
  * Created by Samuel Gratzl on 13.07.2017.
  */
 import {IExceptionContext, range} from './logic';
-import {IAbortAblePromise, isAbortAble, ABORTED} from './abortAble';
-import {IMixinAdapter, IMixin, IMixinClass, EScrollResult} from './mixin';
+import {ABORTED, IAbortAblePromise, isAbortAble} from './abortAble';
+import {EScrollResult, IMixin, IMixinAdapter, IMixinClass} from './mixin';
 
 export declare type IRowRenderContext = IExceptionContext;
 
@@ -219,6 +219,26 @@ export abstract class ARowRenderer {
     this.body.appendChild(fragment);
   }
 
+  protected forEachRow(callback: (row: HTMLElement, rowIndex: number) => void, inplace: boolean = false) {
+    const rows = Array.from(this.body.children);
+    const fragment = this.fragment;
+    if (!inplace) {
+      this.body.innerHTML = '';
+    }
+    rows.forEach((row: HTMLElement, index) => {
+      if (!row.classList.contains('loading')) {
+        //skip loading ones
+        callback(row, index + this.visible.first);
+      }
+      if (!inplace) {
+        fragment.appendChild(row);
+      }
+    });
+    if (!inplace) {
+      this.body.appendChild(fragment);
+    }
+  }
+
   private removeFromBeginning(from: number, to: number) {
     return this.remove(from, to, true);
   }
@@ -284,6 +304,7 @@ export abstract class ARowRenderer {
 
     this.clearPool();
 
+    this.updateOffset(0);
     const scroller = this.bodyScroller;
     const {first, last, firstRowPos} = range(scroller.scrollTop, scroller.clientHeight, context.defaultRowHeight, context.exceptions, context.numberOfRows);
 

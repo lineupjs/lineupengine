@@ -63,7 +63,7 @@ export class StyleManager {
     this.stylesheet.insertRule(`${id} > main > article > div {
       height: ${defaultRowHeight}px;
     }`, 0);
-    this.stylesheet.insertRule(`${id} > main > article > div, .lu > header > article {
+    this.stylesheet.insertRule(`${id} > main > article > div, ${id} > header > article {
       /*column rule*/
     }`, 1);
 
@@ -89,7 +89,7 @@ export class StyleManager {
     this.node.remove();
   }
 
-  private static columnWidths(columns: IColumn[], unit: string = 'px') {
+  static columnWidths(columns: {width: number}[], unit: string = 'px') {
     let lastWidth = 0;
     let count = 0;
 
@@ -112,12 +112,18 @@ export class StyleManager {
     return r;
   }
 
-  update(columns: IColumn[], defaultWidth: number, unit: string = 'px') {
+  update(defaultRowHeight: number, columns: IColumn[], defaultWidth: number, unit: string = 'px') {
+    this.stylesheet.deleteRule(0);
+    this.stylesheet.insertRule(`${this.id} > main > article > div {
+      height: ${defaultRowHeight}px;
+    }`, 0);
+
+
     this.stylesheet.deleteRule(1);
 
     if (columns.length === 0) {
       //restore dummy rule
-      this.stylesheet.insertRule(`${this.id} > main > article > div, .lu > header > article {
+      this.stylesheet.insertRule(`${this.id} > main > article > div, ${this.id} > header > article {
         /*column rule*/
       }`, 1);
     }

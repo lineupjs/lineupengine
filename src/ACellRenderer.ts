@@ -36,7 +36,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
   };
   protected visibleFirstColumnPos = 0;
 
-  private style: StyleManager;
+  protected style: StyleManager;
 
   private readonly columnAdapter: IMixinAdapter;
   private readonly columnMixins: IMixin[];
@@ -94,7 +94,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
     const context = this.context;
 
     this.style = new StyleManager(this.root, context.htmlId, context.defaultRowHeight);
-    this.style.update(context.columns, context.column.defaultRowHeight);
+    this.style.update(context.defaultRowHeight, context.columns, context.column.defaultRowHeight);
 
     context.columns.forEach(() => {
       //init pool
@@ -231,20 +231,6 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
     }
   }
 
-  private forEachRow(callback: (row: HTMLElement, rowIndex: number) => void) {
-    const rows = Array.from(this.body.children);
-    const fragment = this.columnFragment;
-    this.body.innerHTML = '';
-    rows.forEach((row: HTMLElement, index) => {
-      if (!row.classList.contains('loading')) {
-        //skip loading ones
-        callback(row, index + this.visible.first);
-      }
-      fragment.appendChild(row);
-    });
-    this.body.appendChild(fragment);
-  }
-
   private selectCell(row: number, column: number, columns: T[], ...extras: any[]): HTMLElement {
     const pool = this.cellPool[column];
     const columnObj = columns[column];
@@ -338,7 +324,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
       context.hasFrozenColumns = context.columns.some((c) => c.frozen);
     }
 
-    this.style.update(context.columns, context.column.defaultRowHeight);
+    this.style.update(context.defaultRowHeight, context.columns, context.column.defaultRowHeight);
 
     //create all header columns
     {
