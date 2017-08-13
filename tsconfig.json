@@ -21,9 +21,9 @@
     "noImplicitThis": true,
     "noUnusedParameters": true,
     "strictNullChecks": true,
-    "skipLibCheck": true,
-    "compileOnSave": false
+    "skipLibCheck": true
   },
+  "compileOnSave": false,
   "include": [
     "src/**/*.ts",
     "src/**/*.tsx",
