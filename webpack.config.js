@@ -59,10 +59,10 @@ const webpackloaders = [
  */
 function generateWebpack(options) {
   const base = {
+    target: 'node',
     entry: {
       lineupengine: './index.js',
-      demo: './demo/index.ts',
-      cell: './demo/cell.ts'
+      demo: './demo/index.ts'
     },
     output: {
       path: resolve(__dirname, 'build'),

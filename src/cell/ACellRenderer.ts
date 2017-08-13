@@ -144,6 +144,8 @@ export abstract class ACellRenderer {
 
     root.dataset.node = this.tree.type;
     root.dataset.id = this.tree.id;
+    root.style.width = `${this.tree.width}px`;
+    root.style.height = `${this.tree.height}px`;
     this.render(this.tree, root, row.first, row.last, col.first, col.last);
   }
 
@@ -181,6 +183,7 @@ export abstract class ACellRenderer {
         item.dataset.col = String(col);
         parent.appendChild(item);
       }
+      parent.appendChild(doc.createElement('br'));
     }
     return parent;
   }
@@ -224,6 +227,7 @@ export abstract class ACellRenderer {
     if (children.length === 0) {
       parent.appendChild(showLeft && showTop ? create(TOP_LEFT) : placeholder(TOP_LEFT));
       parent.appendChild(showRight && showTop ? create(TOP_RIGHT): placeholder(TOP_RIGHT));
+      parent.appendChild(this.doc.createElement('br'));
       parent.appendChild(showLeft && showBottom ? create(BOTTOM_LEFT): placeholder(BOTTOM_LEFT));
       parent.appendChild(showRight && showBottom ? create(BOTTOM_RIGHT): placeholder(BOTTOM_RIGHT));
       return parent;
@@ -253,7 +257,7 @@ export abstract class ACellRenderer {
       }
     }
     {
-      const node = children[BOTTOM_LEFT];
+      const node = children[BOTTOM_LEFT + 1];
       const down = showLeft && showBottom;
       if (down !== (node.dataset.node !== 'placeholder')) {
         // no matchmatch
@@ -264,7 +268,7 @@ export abstract class ACellRenderer {
       }
     }
     {
-      const node = children[BOTTOM_RIGHT];
+      const node = children[BOTTOM_RIGHT + 1];
       const down = showRight && showBottom;
       if (down !== (node.dataset.node !== 'placeholder')) {
         // no matchmatch

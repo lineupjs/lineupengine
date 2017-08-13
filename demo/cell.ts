@@ -6,7 +6,7 @@ import {uniformContext} from '../src';
 export default class CellRenderer extends ACellRenderer {
   protected readonly _context: ICellContext;
 
-  constructor(root: HTMLElement, id: string, numberOfRows = 64, numberOfColumns = 64) {
+  constructor(root: HTMLElement, id: string, numberOfRows = 128, numberOfColumns = 128) {
     super(root);
     root.id = id;
 
