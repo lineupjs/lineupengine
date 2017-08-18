@@ -311,6 +311,11 @@ export abstract class ARowRenderer {
     this.visible.first = this.visible.forcedFirst = first;
     this.visible.last = this.visible.forcedLast = last;
 
+    if (first < 0) {
+      // empty
+      this.updateOffset(0);
+      return;
+    }
     this.addAtBottom(first, last);
     this.updateOffset(firstRowPos);
   }
@@ -318,6 +323,12 @@ export abstract class ARowRenderer {
   protected clearPool() {
     // clear pool
     this.pool.splice(0, this.pool.length);
+  }
+
+  protected revalidate() {
+    const scroller = this.bodyScroller;
+    this.onScrolledVertically(scroller.scrollTop, scroller.clientHeight, true);
+    this.updateOffset(this.visibleFirstRowPos);
   }
 
   /**
