@@ -2,6 +2,7 @@
 import 'file-loader?name=cell.html!extract-loader!html-loader!./cell.html';
 import {ACellRenderer, ICellContext} from '../src/cell/ACellRenderer';
 import {uniformContext} from '../src';
+import '../src/style.scss';
 
 export default class CellRenderer extends ACellRenderer {
   protected readonly _context: ICellContext;
