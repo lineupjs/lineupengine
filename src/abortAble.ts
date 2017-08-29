@@ -32,6 +32,6 @@ export default function abortAble<T>(loader: Promise<T>) {
   };
 }
 
-export function isAbortAble(abortAble: IAbortAblePromise<any> | void | undefined | null) {
+export function isAbortAble(abortAble: IAbortAblePromise<any> | void | undefined | null): abortAble is IAbortAblePromise<any> {
   return abortAble !== undefined && abortAble !== null && abortAble && typeof abortAble.then === 'function' && typeof abortAble.abort === 'function';
 }

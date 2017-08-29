@@ -156,7 +156,7 @@ export abstract class ARowRenderer {
     if (!isAbortAble(result)) {
       return item;
     }
-    const abort = <IAbortAblePromise<void>>result;
+    const abort = result;
     //lazy loading
 
     const real = item;
