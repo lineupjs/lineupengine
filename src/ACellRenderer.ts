@@ -326,6 +326,12 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
 
     this.style.update(context.defaultRowHeight, context.columns, context.column.defaultRowHeight);
 
+
+    // init pool
+    for(let i = this.cellPool.length; i < context.columns.length; ++i) {
+      this.cellPool.push([]);
+    }
+
     //create all header columns
     {
       const fragment = this.columnFragment;
