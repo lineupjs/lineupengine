@@ -300,12 +300,14 @@ export abstract class ARowRenderer {
   protected recreate() {
     const context = this.context;
 
-    this.removeAll();
+    const scroller = this.bodyScroller;
 
+    //update first to avoid resetting scrollTop
+    this.updateOffset(0);
+
+    this.removeAll();
     this.clearPool();
 
-    this.updateOffset(0);
-    const scroller = this.bodyScroller;
     const {first, last, firstRowPos} = range(scroller.scrollTop, scroller.clientHeight, context.defaultRowHeight, context.exceptions, context.numberOfRows);
 
     this.visible.first = this.visible.forcedFirst = first;

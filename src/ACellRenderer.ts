@@ -339,7 +339,9 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
 
 
     const scroller = this.bodyScroller;
-    const {first, last, firstRowPos} = range(scroller.scrollLeft, scroller.clientWidth, context.column.defaultRowHeight, context.column.exceptions, context.column.numberOfRows);
+    const oldLeft = scroller.scrollLeft;
+    console.log(oldLeft);
+    const {first, last, firstRowPos} = range(oldLeft, scroller.clientWidth, context.column.defaultRowHeight, context.column.exceptions, context.column.numberOfRows);
 
     this.visibleColumns.first = this.visibleColumns.forcedFirst = first;
     this.visibleColumns.last = this.visibleColumns.forcedLast = last;
@@ -349,6 +351,8 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
     }
 
     super.recreate();
+    // restore left
+    scroller.scrollLeft = oldLeft;
     this.updateColumnOffset(firstRowPos);
   }
 
