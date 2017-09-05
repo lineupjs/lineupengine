@@ -340,7 +340,6 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
 
     const scroller = this.bodyScroller;
     const oldLeft = scroller.scrollLeft;
-    console.log(oldLeft);
     const {first, last, firstRowPos} = range(oldLeft, scroller.clientWidth, context.column.defaultRowHeight, context.column.exceptions, context.column.numberOfRows);
 
     this.visibleColumns.first = this.visibleColumns.forcedFirst = first;
