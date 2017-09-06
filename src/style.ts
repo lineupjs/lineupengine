@@ -50,12 +50,12 @@ export class StyleManager {
   private readonly stylesheet: CSSStyleSheet;
   private readonly node: HTMLStyleElement;
 
-  private extraScrollUpdater: ((scrollLeft: number)=>void)|null = null;
+  private extraScrollUpdater: ((scrollLeft: number) => void) | null = null;
 
   constructor(root: HTMLElement, private readonly id: string, defaultRowHeight: number) {
     this.node = root.ownerDocument.createElement('style');
     root.appendChild(this.node);
-    if(isEdge) {
+    if (isEdge) {
       root.classList.add('ms-edge');
     }
     this.stylesheet = <CSSStyleSheet>this.node.sheet;
@@ -89,7 +89,7 @@ export class StyleManager {
     this.node.remove();
   }
 
-  static columnWidths(columns: {width: number}[], unit: string = 'px') {
+  static columnWidths(columns: { width: number }[], unit: string = 'px') {
     let lastWidth = 0;
     let count = 0;
 
@@ -154,7 +154,7 @@ export class StyleManager {
       this.stylesheet.deleteRule(2);
     }
     const frozen = columns.filter((c) => c.frozen);
-    if (frozen.length <=0 || isEdge) {
+    if (frozen.length <= 0 || isEdge) {
       return;
     }
     //create the correct left offset
@@ -169,7 +169,7 @@ export class StyleManager {
 
   private updateFrozenColumnsShift(columns: IColumn[], unit: string, scrollLeft: number) {
     if (!isEdge) {
-    return;
+      return;
     }
 
     const l = this.stylesheet.cssRules.length;

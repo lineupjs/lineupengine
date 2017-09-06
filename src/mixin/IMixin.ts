@@ -23,9 +23,11 @@ export interface IMixinAdapter {
   readonly scroller: HTMLElement;
 
   addAtBeginning(from: number, to: number, frozenShift: number): void;
+
   addAtBottom(from: number, to: number): void;
 
   removeFromBeginning(from: number, to: number, frozenShift: number): void;
+
   removeFromBottom(from: number, to: number): void;
 
   updateOffset(firstRowPos: number): void;
@@ -42,5 +44,5 @@ export interface IMixin {
 }
 
 export interface IMixinClass {
-    new(adapter: IMixinAdapter, options?: any): IMixin;
+  new(adapter: IMixinAdapter, options?: any): IMixin;
 }

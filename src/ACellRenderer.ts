@@ -3,8 +3,8 @@
  */
 import {ARowRenderer} from './ARowRenderer';
 import {IColumn, setColumn, StyleManager, TEMPLATE} from './style';
-import {IExceptionContext, range, updateFrozen, frozenDelta} from './logic';
-import {IMixinAdapter, IMixin, IMixinClass, EScrollResult} from './mixin';
+import {frozenDelta, IExceptionContext, range, updateFrozen} from './logic';
+import {EScrollResult, IMixin, IMixinAdapter, IMixinClass} from './mixin';
 
 const debug = false;
 
@@ -328,7 +328,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
 
 
     // init pool
-    for(let i = this.cellPool.length; i < context.columns.length; ++i) {
+    for (let i = this.cellPool.length; i < context.columns.length; ++i) {
       this.cellPool.push([]);
     }
 
@@ -431,7 +431,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
           //update the common ones
           existing.slice(0, common).forEach((child, i) => {
             const col = columns[currentFrozen[i]];
-            const cell = this.updateCell(child, rowIndex, col , ...extras);
+            const cell = this.updateCell(child, rowIndex, col, ...extras);
             if (cell && cell !== child) {
               setColumn(cell, col);
               node.replaceChild(cell, child);
@@ -452,7 +452,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
           //match update
           existing.forEach((child, i) => {
             const col = columns[i + visible.first];
-            const cell = this.updateCell(child, rowIndex, col , ...extras);
+            const cell = this.updateCell(child, rowIndex, col, ...extras);
             if (cell && cell !== child) {
               setColumn(cell, col);
               node.replaceChild(cell, child);

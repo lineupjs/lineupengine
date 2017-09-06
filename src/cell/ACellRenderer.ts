@@ -1,7 +1,11 @@
 import {IExceptionContext, range} from '../logic';
 import QuadTreeNode, {
-  QuadTreeLeafNode, QuadTreeInnerNode, TOP_LEFT, BOTTOM_LEFT,
-  TOP_RIGHT, BOTTOM_RIGHT
+  BOTTOM_LEFT,
+  BOTTOM_RIGHT,
+  QuadTreeInnerNode,
+  QuadTreeLeafNode,
+  TOP_LEFT,
+  TOP_RIGHT
 } from './internal/QuadTreeNode';
 import './style.scss';
 
@@ -226,10 +230,10 @@ export abstract class ACellRenderer {
 
     if (children.length === 0) {
       parent.appendChild(showLeft && showTop ? create(TOP_LEFT) : placeholder(TOP_LEFT));
-      parent.appendChild(showRight && showTop ? create(TOP_RIGHT): placeholder(TOP_RIGHT));
+      parent.appendChild(showRight && showTop ? create(TOP_RIGHT) : placeholder(TOP_RIGHT));
       parent.appendChild(this.doc.createElement('br'));
-      parent.appendChild(showLeft && showBottom ? create(BOTTOM_LEFT): placeholder(BOTTOM_LEFT));
-      parent.appendChild(showRight && showBottom ? create(BOTTOM_RIGHT): placeholder(BOTTOM_RIGHT));
+      parent.appendChild(showLeft && showBottom ? create(BOTTOM_LEFT) : placeholder(BOTTOM_LEFT));
+      parent.appendChild(showRight && showBottom ? create(BOTTOM_RIGHT) : placeholder(BOTTOM_RIGHT));
       return parent;
     }
 
