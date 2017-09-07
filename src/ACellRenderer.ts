@@ -318,6 +318,13 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
     }
   }
 
+  protected updateHeaders(...extras: any[]) {
+    const {columns} = this.context;
+    Array.from(this.header.children).forEach((node: HTMLElement, i) => {
+      this.updateHeader(node, columns[i], ...extras);
+    });
+  }
+
   protected recreate() {
     const context = this.context;
     if (context.hasFrozenColumns === undefined) {
