@@ -48,6 +48,7 @@ export function setColumn(node: HTMLElement, column: IColumn) {
 
 export class StyleManager {
   private readonly stylesheet: CSSStyleSheet;
+  private readonly rules = new Map<string, { rule: CSSRule, index: number }>();
   private readonly node: HTMLStyleElement;
 
   private extraScrollUpdater: ((scrollLeft: number) => void) | null = null;
@@ -60,13 +61,9 @@ export class StyleManager {
     }
     this.stylesheet = <CSSStyleSheet>this.node.sheet;
 
-    this.stylesheet.insertRule(`${id} > main > article > div {
+    this.addRule('__heightsRule', `${id} > main > article > div {
       height: ${defaultRowHeight}px;
-    }`, 0);
-    this.stylesheet.insertRule(`${id} > main > article > div, ${id} > header > article {
-      /*column rule*/
-    }`, 1);
-
+    }`);
     const headerScroller = <HTMLElement>root.querySelector('header');
     const bodyScroller = <HTMLElement>root.querySelector('main');
 
@@ -113,19 +110,14 @@ export class StyleManager {
   }
 
   update(defaultRowHeight: number, columns: IColumn[], defaultWidth: number, unit: string = 'px') {
-    this.stylesheet.deleteRule(0);
-    this.stylesheet.insertRule(`${this.id} > main > article > div {
+    this.updateRule('__heightsRule', `${this.id} > main > article > div {
       height: ${defaultRowHeight}px;
-    }`, 0);
-
-
-    this.stylesheet.deleteRule(1);
+    }`);
 
     if (columns.length === 0) {
       //restore dummy rule
-      this.stylesheet.insertRule(`${this.id} > main > article > div, ${this.id} > header > article {
-        /*column rule*/
-      }`, 1);
+      this.deleteRule('__widthRule');
+      return;
     }
 
     const widths = StyleManager.columnWidths(columns, unit);
@@ -140,7 +132,7 @@ export class StyleManager {
 
       this.extraScrollUpdater = this.updateFrozenColumnsShift.bind(this, columns, unit);
     }
-    this.stylesheet.insertRule(`${this.id} > main > article > div, ${this.id} > header > article { ${content} }`, 1);
+    this.updateRule('__widthRule', `${this.id} > main > article > div, ${this.id} > header > article { ${content} }`);
 
     this.updateFrozen(columns, unit);
   }
@@ -149,22 +141,27 @@ export class StyleManager {
     if (isEdge) {
       return;
     }
-    const l = this.stylesheet.cssRules.length;
-    for (let i = 2; i < l; ++i) {
-      this.stylesheet.deleteRule(2);
-    }
+    const rules = Array.from(this.rules.keys()).reduce((a, b) => a + (b.startsWith('__frozen') ? 1 : 0), 0);
     const frozen = columns.filter((c) => c.frozen);
     if (frozen.length <= 0 || isEdge) {
+      // reset
+      for (let i = 0; i < rules; ++i) {
+        this.deleteRule(`__frozen${i}`);
+      }
       return;
     }
     //create the correct left offset
     let offset = frozen[0].width;
-    frozen.slice(1).forEach((c) => {
-      this.stylesheet.insertRule(`${this.id} > main > article > div > .frozen[data-id="${c.id}"], ${this.id} > header > article .frozen[data-id="${c.id}"] {
-  left: ${offset}${unit};
-}`, 2);
+    frozen.slice(1).forEach((c, i) => {
+      const rule = `${this.id} > main > article > div > .frozen[data-id="${c.id}"], ${this.id} > header > article .frozen[data-id="${c.id}"] {
+        left: ${offset}${unit};
+      }`;
       offset += c.width;
+      this.updateRule(`__frozen${i}`, rule);
     });
+    for (let i = frozen.length - 1; i < rules; ++i) {
+      this.deleteRule(`__frozen${i}`);
+    }
   }
 
   private updateFrozenColumnsShift(columns: IColumn[], unit: string, scrollLeft: number) {
@@ -172,26 +169,69 @@ export class StyleManager {
       return;
     }
 
-    const l = this.stylesheet.cssRules.length;
-    for (let i = 2; i < l; ++i) {
-      this.stylesheet.deleteRule(2);
-    }
-
+    const rules = Array.from(this.rules.keys()).reduce((a, b) => a + (b.startsWith('__frozen') ? 1 : 0), 0);
     const hasFrozen = columns.some((c) => c.frozen);
     if (!hasFrozen) {
+      for (let i = 0; i < rules; ++i) {
+        this.deleteRule(`__frozen${i}`);
+      }
       return;
     }
     //create the correct left offset
     let offset = 0;
     let frozenWidth = 0;
+    let nextFrozen = 0;
     columns.forEach((c) => {
       if (c.frozen && offset < (scrollLeft + frozenWidth)) {
-        this.stylesheet.insertRule(`${this.id} > main > article > div > .frozen[data-id="${c.id}"], ${this.id} > header > article .frozen[data-id="${c.id}"] {
-  transform: translate(${scrollLeft - offset + frozenWidth}${unit}, 0);
-}`, 2);
+        const rule = `${this.id} > main > article > div > .frozen[data-id="${c.id}"], ${this.id} > header > article .frozen[data-id="${c.id}"] {
+          transform: translate(${scrollLeft - offset + frozenWidth}${unit}, 0);
+        }`;
+        this.updateRule(`__frozen${nextFrozen++}`, rule);
         frozenWidth += c.width;
       }
       offset += c.width;
     });
+
+    for (let i = nextFrozen; i < rules; ++i) {
+      this.deleteRule(`__frozen${i}`);
+    }
+  }
+
+  addRule(id: string, rule: string) {
+    // append
+    const l = this.stylesheet.cssRules.length;
+    this.stylesheet.insertRule(rule, l);
+    this.rules.set(id, {rule: this.stylesheet.cssRules[l], index: l});
+    return id;
+  }
+
+  private findIndex(guess: number, rule: CSSRule) {
+    const guessed = this.stylesheet.cssRules[guess];
+    if (guessed === rule) {
+      return guess;
+    }
+    return Array.from(this.stylesheet.cssRules).indexOf(rule);
+  }
+
+  updateRule(id: string, rule: string) {
+    const r = this.rules.get(id);
+    if (!r) {
+      return this.addRule(id, rule);
+    }
+    r.index = this.findIndex(r.index, r.rule);
+    this.stylesheet.removeRule(r.index);
+    this.stylesheet.insertRule(rule, r.index);
+    r.rule = this.stylesheet.cssRules[r.index];
+    return id;
+  }
+
+  deleteRule(id: string) {
+    const r = this.rules.get(id);
+    if (!r) {
+      return;
+    }
+    r.index = this.findIndex(r.index, r.rule);
+    this.stylesheet.removeRule(r.index);
+    this.rules.delete(id);
   }
 }
