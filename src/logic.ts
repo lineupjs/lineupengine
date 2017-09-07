@@ -50,9 +50,25 @@ export function uniformContext(numberOfRows: number, rowHeight: number): IExcept
   };
 }
 
-export function nonUniformContext(rowHeights: { forEach: (callback: (height: number, index: number) => any) => any }, defaultRowHeight: number): IExceptionContext {
+function mostFrequequentValue(values: { forEach: (callback: (height: number, index: number) => any) => any }): number {
+  const lookup = new Map<number, number>();
+  values.forEach((value) => {
+    lookup.set(value, (lookup.get(value) || 0) + 1);
+  });
+  if (lookup.size === 0) {
+    return 20; // default value since it doesn't matter
+  }
+  // sort desc take first key
+  return Array.from(lookup).sort((a, b) => b[1] - a[1])[0][0];
+}
+
+export function nonUniformContext(rowHeights: { forEach: (callback: (height: number, index: number) => any) => any }, defaultRowHeight: number = NaN): IExceptionContext {
   const exceptionsLookup = new Map<number, number>();
   const exceptions: IRowHeightException[] = [];
+
+  if (isNaN(defaultRowHeight)) {
+    defaultRowHeight = mostFrequequentValue(rowHeights);
+  }
 
   let prev = -1, acc = 0, totalHeight = 0, numberOfRows = 0;
   rowHeights.forEach((height, index) => {
