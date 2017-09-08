@@ -219,7 +219,7 @@ export class StyleManager {
       return this.addRule(id, rule);
     }
     r.index = this.findIndex(r.index, r.rule);
-    this.stylesheet.removeRule(r.index);
+    this.stylesheet.deleteRule(r.index);
     this.stylesheet.insertRule(rule, r.index);
     r.rule = this.stylesheet.cssRules[r.index];
     return id;
@@ -231,7 +231,7 @@ export class StyleManager {
       return;
     }
     r.index = this.findIndex(r.index, r.rule);
-    this.stylesheet.removeRule(r.index);
+    this.stylesheet.deleteRule(r.index);
     this.rules.delete(id);
   }
 }
