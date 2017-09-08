@@ -345,7 +345,9 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
       const document = fragment.ownerDocument;
       this.header.innerHTML = '';
       context.columns.forEach((col) => {
-        fragment.appendChild(this.createHeader(document, col));
+        const n = this.createHeader(document, col);
+        setColumn(n, col);
+        fragment.appendChild(n);
       });
       this.header.appendChild(fragment);
     }
