@@ -60,6 +60,9 @@
   }
 
   > main:not(.scrolling) > article > div {
+    /* fix: dirty overlapping of orange outline with neighboring rows */
+    margin: $engine_hover_outline_width 0;
+    
     &:hover {
       outline: $engine_hover_outline_color;
       z-index: 2;
