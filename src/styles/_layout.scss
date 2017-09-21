@@ -67,23 +67,23 @@
       position: relative;
       z-index: 2;
       box-shadow:
-        -2px 0 0 0 $lu_selected_color,
-        0 2px 0 0 $lu_selected_color,
+        -2px 0 0 0 $engine_hover_color,
+        0 2px 0 0 $engine_hover_color,
         /* next line just to fix the corner */
-        2px 2px 0 0 $lu_selected_color,
-        2px 0 0 0 $lu_selected_color inset,
-        0 2px 0 0 $lu_selected_color inset;
+        2px 2px 0 0 $engine_hover_color,
+        2px 0 0 0 $engine_hover_color inset,
+        0 2px 0 0 $engine_hover_color inset;
 
       > *.frozen {
         position: relative;
         z-index: 2;
         box-shadow:
-          2px 0 0 0 $lu_selected_color,
-          0 2px 0 0 $lu_selected_color,
+          2px 0 0 0 $engine_hover_color,
+          0 2px 0 0 $engine_hover_color,
           /* next line just to fix the corner */
-          2px 2px 0 0 $lu_selected_color,
-          2px 0 0 0 $lu_selected_color inset,
-          0 2px 0 0 $lu_selected_color inset;
+          2px 2px 0 0 $engine_hover_color,
+          2px 0 0 0 $engine_hover_color inset,
+          0 2px 0 0 $engine_hover_color inset;
       }
     }
   }
