@@ -1,4 +1,5 @@
 @import "./vars";
+@import "./mixins";
 
 #{$engine_selector} {
   position: relative;
@@ -16,15 +17,6 @@
   > main {
     flex: 1 1 auto;
     overflow-y: auto;
-
-    > article {
-      &:not(.odd) > div:nth-child(even),
-      &.odd > div:nth-child(odd),
-      &:not(.odd) > div:nth-child(even) > *.frozen,
-      &.odd > div:nth-child(odd) > *.frozen {
-        background-color: $engine_even_color;
-      }
-    }
   }
 
   > header,
@@ -61,16 +53,21 @@
   }
 
   > main:not(.scrolling) > article > div {
-    /* fix: dirty overlapping of orange outline with neighboring rows */
-    margin: $engine_hover_outline_width 0;
+    /* @include collapsing-row-border($engine_row_hover_width, #eee); */
+
+    padding-top: 2px;
 
     &:hover {
-      outline: $engine_hover_outline_color;
+      position: relative;
       z-index: 2;
 
+      @include collapsing-row-border($engine_row_outline_width, $engine_row_outline_color);
+
       > *.frozen {
-        outline: $engine_hover_outline_color;
+        position: relative;
         z-index: 2;
+
+        @include collapsing-row-border($engine_row_outline_width, $engine_row_outline_color);
       }
     }
   }

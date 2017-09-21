@@ -1,0 +1,11 @@
+
+@mixin collapsing-row-border($border-width, $border-color) {
+  /* use box-shadow to create collapsing border (@see https://stackoverflow.com/a/28807765) */
+
+  box-shadow:
+    $border-width 0 0 0 $border-color,
+    0 $border-width 0 0 $border-color,
+    $border-width $border-width 0 0 $border-color,
+    $border-width 0 0 0 $border-color inset,
+    0 $border-width 0 0 $border-color inset;
+}
