@@ -16,15 +16,6 @@
   > main {
     flex: 1 1 auto;
     overflow-y: auto;
-
-    > article {
-      &:not(.odd) > div:nth-child(even),
-      &.odd > div:nth-child(odd),
-      &:not(.odd) > div:nth-child(even) > *.frozen,
-      &.odd > div:nth-child(odd) > *.frozen {
-        background-color: $engine_even_color;
-      }
-    }
   }
 
   > header,
@@ -61,16 +52,38 @@
   }
 
   > main:not(.scrolling) > article > div {
-    /* fix: dirty overlapping of orange outline with neighboring rows */
-    margin: $engine_hover_outline_width 0;
+    /* use box-shadow to create collapsing border (@see https://stackoverflow.com/a/28807765) */
+
+    /* box-shadow:
+      2px 0 0 0 #eee,
+      0 2px 0 0 #eee,
+      2px 2px 0 0 #eee,
+      2px 0 0 0 #eee inset,
+      0 2px 0 0 #eee inset; */
+
+    padding-top: 2px;
 
     &:hover {
-      outline: $engine_hover_outline_color;
+      position: relative;
       z-index: 2;
+      box-shadow:
+        -2px 0 0 0 $lu_selected_color,
+        0 2px 0 0 $lu_selected_color,
+        /* next line just to fix the corner */
+        2px 2px 0 0 $lu_selected_color,
+        2px 0 0 0 $lu_selected_color inset,
+        0 2px 0 0 $lu_selected_color inset;
 
       > *.frozen {
-        outline: $engine_hover_outline_color;
+        position: relative;
         z-index: 2;
+        box-shadow:
+          2px 0 0 0 $lu_selected_color,
+          0 2px 0 0 $lu_selected_color,
+          /* next line just to fix the corner */
+          2px 2px 0 0 $lu_selected_color,
+          2px 0 0 0 $lu_selected_color inset,
+          0 2px 0 0 $lu_selected_color inset;
       }
     }
   }
