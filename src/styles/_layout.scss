@@ -1,4 +1,5 @@
 @import "./vars";
+@import "./mixins";
 
 #{$engine_selector} {
   position: relative;
@@ -52,38 +53,21 @@
   }
 
   > main:not(.scrolling) > article > div {
-    /* use box-shadow to create collapsing border (@see https://stackoverflow.com/a/28807765) */
-
-    /* box-shadow:
-      2px 0 0 0 #eee,
-      0 2px 0 0 #eee,
-      2px 2px 0 0 #eee,
-      2px 0 0 0 #eee inset,
-      0 2px 0 0 #eee inset; */
+    /* @include collapsing-row-border($engine_row_hover_width, #eee); */
 
     padding-top: 2px;
 
     &:hover {
       position: relative;
       z-index: 2;
-      box-shadow:
-        -2px 0 0 0 $engine_hover_color,
-        0 2px 0 0 $engine_hover_color,
-        /* next line just to fix the corner */
-        2px 2px 0 0 $engine_hover_color,
-        2px 0 0 0 $engine_hover_color inset,
-        0 2px 0 0 $engine_hover_color inset;
+
+      @include collapsing-row-border($engine_row_outline_width, $engine_row_outline_color);
 
       > *.frozen {
         position: relative;
         z-index: 2;
-        box-shadow:
-          2px 0 0 0 $engine_hover_color,
-          0 2px 0 0 $engine_hover_color,
-          /* next line just to fix the corner */
-          2px 2px 0 0 $engine_hover_color,
-          2px 0 0 0 $engine_hover_color inset,
-          0 2px 0 0 $engine_hover_color inset;
+
+        @include collapsing-row-border($engine_row_outline_width, $engine_row_outline_color);
       }
     }
   }
