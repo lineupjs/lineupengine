@@ -18,16 +18,6 @@ export function setTemplate(root: HTMLElement) {
   return root;
 }
 
-function repeatStandard(count: number, width: string) {
-  return `repeat(${count}, ${width})`;
-}
-
-function repeatEdge(count: number, width: string) {
-  return `(${width})[${count}]`;
-}
-
-const repeat = isEdge ? repeatEdge : repeatStandard;
-
 /**
  * sets the needed grid columns settings such that the given node is aligned with the given column
  * @param {HTMLElement} node the column node
@@ -84,6 +74,16 @@ export default class GridStyleManager extends StyleManager {
    * @return {string}
    */
   static columnWidths(columns: { width: number }[], unit: string = 'px') {
+    function repeatStandard(count: number, width: string) {
+      return `repeat(${count}, ${width})`;
+    }
+
+    function repeatEdge(count: number, width: string) {
+      return `(${width})[${count}]`;
+    }
+
+    const repeat = isEdge ? repeatEdge : repeatStandard;
+
     let lastWidth = 0;
     let count = 0;
 

@@ -1,7 +1,22 @@
+/**
+ * generic exception of a uniform space
+ */
 export interface IRowHeightException {
+  /**
+   * reference index
+   */
   readonly index: number;
+  /**
+   * height of the element
+   */
   readonly height: number;
+  /**
+   * starting y
+   */
   readonly y: number;
+  /**
+   * ending y
+   */
   readonly y2: number;
 }
 
@@ -15,6 +30,9 @@ class RowHeightException implements IRowHeightException {
   }
 }
 
+/**
+ * simliar to a map
+ */
 export interface IRowHeightExceptionLookup {
   keys(): IterableIterator<number>;
 
@@ -25,18 +43,41 @@ export interface IRowHeightExceptionLookup {
   readonly size: number;
 }
 
+/**
+ * exception context for optimized non uniform height exceptions
+ */
 export interface IExceptionContext {
+  /**
+   * height exceptions as a list
+   */
   readonly exceptions: IRowHeightException[];
+  /**
+   * lookup for the height of a given index, if not part of this map it has the default height
+   */
   readonly exceptionsLookup: IRowHeightExceptionLookup;
-  readonly totalHeight: number;
+  /**
+   * number of rows
+   */
   readonly numberOfRows: number;
+  /**
+   * default height of rows
+   */
   readonly defaultRowHeight: number;
+  /**
+   * total height
+   */
+  readonly totalHeight: number;
 }
 
+/**
+ * creates a uniform exception context, i.e no exceptions all rows are of the same height
+ * @param {number} numberOfRows
+ * @param {number} rowHeight
+ * @return {IExceptionContext}
+ */
 export function uniformContext(numberOfRows: number, rowHeight: number): IExceptionContext {
-  const arr: number[] = [];
   const exceptionsLookup = {
-    keys: () => arr.values(),
+    keys: () => [].values(),
     get: () => rowHeight,
     has: () => false,
     size: 0
@@ -50,7 +91,12 @@ export function uniformContext(numberOfRows: number, rowHeight: number): IExcept
   };
 }
 
-function mostFrequequentValue(values: { forEach: (callback: (height: number, index: number) => any) => any }): number {
+/**
+ * computes the most frequent value in a given array like
+ * @param {} values
+ * @return {number}
+ */
+function mostFrequentValue(values: { forEach: (callback: (height: number, index: number) => any) => any }): number {
   const lookup = new Map<number, number>();
   values.forEach((value) => {
     lookup.set(value, (lookup.get(value) || 0) + 1);
@@ -62,12 +108,18 @@ function mostFrequequentValue(values: { forEach: (callback: (height: number, ind
   return Array.from(lookup).sort((a, b) => b[1] - a[1])[0][0];
 }
 
+/**
+ * creates a non uniform context based on the given array like heights
+ * @param {{forEach: ((callback: (height: number, index: number) => any) => any)}} rowHeights
+ * @param {number} defaultRowHeight if not given the most frequent value will be used
+ * @return {IExceptionContext}
+ */
 export function nonUniformContext(rowHeights: { forEach: (callback: (height: number, index: number) => any) => any }, defaultRowHeight: number = NaN): IExceptionContext {
   const exceptionsLookup = new Map<number, number>();
   const exceptions: IRowHeightException[] = [];
 
   if (isNaN(defaultRowHeight)) {
-    defaultRowHeight = mostFrequequentValue(rowHeights);
+    defaultRowHeight = mostFrequentValue(rowHeights);
   }
 
   let prev = -1, acc = 0, totalHeight = 0, numberOfRows = 0;
@@ -88,6 +140,16 @@ export function nonUniformContext(rowHeights: { forEach: (callback: (height: num
   return {exceptionsLookup, exceptions, totalHeight, defaultRowHeight, numberOfRows};
 }
 
+/**
+ * creates a random context with the given contraints
+ * @param {number} numberOfRows
+ * @param {number} defaultRowHeight
+ * @param {number} minRowHeight
+ * @param {number} maxRowHeight
+ * @param {number} ratio around ratio percent will get a non uniform height
+ * @param {number} seed random seed
+ * @return {IExceptionContext}
+ */
 export function randomContext(numberOfRows: number, defaultRowHeight: number, minRowHeight = 2, maxRowHeight = defaultRowHeight * 10, ratio = 0.2, seed = Date.now()) {
   let actSeed = seed;
   const random = () => {
