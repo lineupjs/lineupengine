@@ -2,7 +2,7 @@
  * Created by Samuel Gratzl on 19.07.2017.
  */
 import {ARowRenderer} from './ARowRenderer';
-import {IColumn, setColumn, StyleManager, TEMPLATE} from './style';
+import {IColumn, setColumn, GridStyleManager, TEMPLATE} from './style';
 import {frozenDelta, IExceptionContext, range, updateFrozen} from './logic';
 import {EScrollResult, IMixin, IMixinAdapter, IMixinClass} from './mixin';
 
@@ -36,7 +36,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
   };
   protected visibleFirstColumnPos = 0;
 
-  protected style: StyleManager;
+  protected style: GridStyleManager;
 
   private readonly columnAdapter: IMixinAdapter;
   private readonly columnMixins: IMixin[];
@@ -93,7 +93,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
   protected init() {
     const context = this.context;
 
-    this.style = new StyleManager(this.root, context.htmlId, context.defaultRowHeight);
+    this.style = new GridStyleManager(this.root, context.htmlId);
     this.style.update(context.defaultRowHeight, context.columns, context.column.defaultRowHeight);
 
     context.columns.forEach(() => {

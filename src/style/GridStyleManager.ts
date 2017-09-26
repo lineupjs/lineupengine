@@ -1,17 +1,8 @@
 /**
  * Created by Samuel Gratzl on 13.07.2017.
  */
-
-// import manually import './style.scss';
-
-export const isEdge = typeof CSS !== 'undefined' && CSS.supports('(-ms-ime-align:auto)');
-
-export interface IColumn {
-  readonly index: number;
-  readonly id: string;
-  readonly width: number;
-  readonly frozen: boolean;
-}
+import StyleManager, {isEdge} from './StyleManager';
+import {IColumn} from './IColumn';
 
 export const TEMPLATE = `
   <header>
@@ -37,6 +28,11 @@ function repeatEdge(count: number, width: string) {
 
 const repeat = isEdge ? repeatEdge : repeatStandard;
 
+/**
+ * sets the needed grid columns settings such that the given node is aligned with the given column
+ * @param {HTMLElement} node the column node
+ * @param {{index: number; id: string}} column the column meta data
+ */
 export function setColumn(node: HTMLElement, column: { index: number, id: string }) {
   if (isEdge) {
     node.style.msGridColumn = column.index + 1;
@@ -51,20 +47,14 @@ interface ISelectors {
   body: string;
 }
 
-export class StyleManager {
-  private readonly stylesheet: CSSStyleSheet;
-  private readonly rules = new Map<string, { rule: CSSRule, index: number }>();
-  private readonly node: HTMLStyleElement;
-
+/**
+ * utility for custom generated CSS rules with a focus on dynamically generated grid layouts
+ */
+export default class GridStyleManager extends StyleManager {
   private readonly extraScrollUpdater: ((scrollLeft: number) => void)[] = [];
 
   constructor(root: HTMLElement, private readonly id: string) {
-    this.node = root.ownerDocument.createElement('style');
-    root.appendChild(this.node);
-    if (isEdge) {
-      root.classList.add('ms-edge');
-    }
-    this.stylesheet = <CSSStyleSheet>this.node.sheet;
+    super(root);
 
     this.addRule('__heightsRule0', `${id} > main > article > div {
       height: 20px;
@@ -72,6 +62,7 @@ export class StyleManager {
     const headerScroller = <HTMLElement>root.querySelector('header');
     const bodyScroller = <HTMLElement>root.querySelector('main');
 
+    // update frozen and sync header with body
     let isScrollBarConsidered = false;
     bodyScroller.addEventListener('scroll', () => {
       const left = bodyScroller.scrollLeft;
@@ -86,10 +77,12 @@ export class StyleManager {
     });
   }
 
-  destroy() {
-    this.node.remove();
-  }
-
+  /**
+   * computes a compatible grid layout pattern based on the given columns
+   * @param {{width: number}[]} columns
+   * @param {string} unit
+   * @return {string}
+   */
   static columnWidths(columns: { width: number }[], unit: string = 'px') {
     let lastWidth = 0;
     let count = 0;
@@ -113,24 +106,14 @@ export class StyleManager {
     return r;
   }
 
-  remove(tableId: string) {
-    const selectors = this.tableIds(tableId, true);
-    this.deleteRule(`__heightsRule${selectors.body}`);
-    this.deleteRule(`__widthRule${selectors.body}`);
-
-    const prefix = `__frozen${selectors.body}_`;
-    const rules = Array.from(this.rules.keys()).reduce((a, b) => a + (b.startsWith(prefix) ? 1 : 0), 0);
-    // reset
-    for (let i = 0; i < rules; ++i) {
-      this.deleteRule(`${prefix}${i}`);
-    }
-  }
-
-  tableIds(tableId: string, asSelector: boolean = false) {
-    const cleanId = this.id.startsWith('#') ? this.id.slice(1) : this.id;
-    return {header: `${asSelector ? '#': ''}${cleanId}_H${tableId}`, body: `${asSelector ? '#': ''}${cleanId}_B${tableId}`};
-  }
-
+  /**
+   * updates the column widths and default row height for a table
+   * @param {number} defaultRowHeight
+   * @param {IColumn[]} columns
+   * @param {number} defaultWidth
+   * @param {string} tableId optional tableId in case of multiple tables within the same engine
+   * @param {string} unit
+   */
   update(defaultRowHeight: number, columns: IColumn[], defaultWidth: number, tableId?: string, unit: string = 'px') {
     const selectors = tableId !== undefined ? this.tableIds(tableId, true) : { header: `${this.id} > header > article`, body: `${this.id} > main > article`};
 
@@ -144,7 +127,7 @@ export class StyleManager {
       return;
     }
 
-    const widths = StyleManager.columnWidths(columns, unit);
+    const widths = GridStyleManager.columnWidths(columns, unit);
 
     let content = '';
     if (!isEdge) {
@@ -161,12 +144,40 @@ export class StyleManager {
     this.updateFrozen(columns, selectors, unit);
   }
 
+  /**
+   * removes a given tableId if not needed anymore
+   * @param {string} tableId tableId to remove
+   */
+  remove(tableId: string) {
+    const selectors = this.tableIds(tableId, true);
+    this.deleteRule(`__heightsRule${selectors.body}`);
+    this.deleteRule(`__widthRule${selectors.body}`);
+
+    const prefix = `__frozen${selectors.body}_`;
+    const rules = this.ruleNames.reduce((a, b) => a + (b.startsWith(prefix) ? 1 : 0), 0);
+    // reset
+    for (let i = 0; i < rules; ++i) {
+      this.deleteRule(`${prefix}${i}`);
+    }
+  }
+
+  /**
+   * generates the HTML Ids used for the header and body article of a table
+   * @param {string} tableId base table id
+   * @param {boolean} asSelector flag whether to prepend with # for CSS selector
+   * @return {{header: string; body: string}} the table ids used for header and body
+   */
+  tableIds(tableId: string, asSelector: boolean = false) {
+    const cleanId = this.id.startsWith('#') ? this.id.slice(1) : this.id;
+    return {header: `${asSelector ? '#': ''}${cleanId}_H${tableId}`, body: `${asSelector ? '#': ''}${cleanId}_B${tableId}`};
+  }
+
   private updateFrozen(columns: IColumn[], selectors: ISelectors, unit: string) {
     if (isEdge) {
       return;
     }
     const prefix = `__frozen${selectors.body}_`;
-    const rules = Array.from(this.rules.keys()).reduce((a, b) => a + (b.startsWith(prefix) ? 1 : 0), 0);
+    const rules = this.ruleNames.reduce((a, b) => a + (b.startsWith(prefix) ? 1 : 0), 0);
     const frozen = columns.filter((c) => c.frozen);
     if (frozen.length <= 0 || isEdge) {
       // reset
@@ -195,7 +206,7 @@ export class StyleManager {
     }
 
     const prefix = `__frozen${selectors.body}_`;
-    const rules = Array.from(this.rules.keys()).reduce((a, b) => a + (b.startsWith(prefix) ? 1 : 0), 0);
+    const rules = this.ruleNames.reduce((a, b) => a + (b.startsWith(prefix) ? 1 : 0), 0);
     const hasFrozen = columns.some((c) => c.frozen);
     if (!hasFrozen) {
       for (let i = 0; i < rules; ++i) {
@@ -221,43 +232,5 @@ export class StyleManager {
     for (let i = nextFrozen; i < rules; ++i) {
       this.deleteRule(`${prefix}${i}`);
     }
-  }
-
-  addRule(id: string, rule: string) {
-    // append
-    const l = this.stylesheet.cssRules.length;
-    this.stylesheet.insertRule(rule, l);
-    this.rules.set(id, {rule: this.stylesheet.cssRules[l], index: l});
-    return id;
-  }
-
-  private findIndex(guess: number, rule: CSSRule) {
-    const guessed = this.stylesheet.cssRules[guess];
-    if (guessed === rule) {
-      return guess;
-    }
-    return Array.from(this.stylesheet.cssRules).indexOf(rule);
-  }
-
-  updateRule(id: string, rule: string) {
-    const r = this.rules.get(id);
-    if (!r) {
-      return this.addRule(id, rule);
-    }
-    r.index = this.findIndex(r.index, r.rule);
-    this.stylesheet.deleteRule(r.index);
-    this.stylesheet.insertRule(rule, r.index);
-    r.rule = this.stylesheet.cssRules[r.index];
-    return id;
-  }
-
-  deleteRule(id: string) {
-    const r = this.rules.get(id);
-    if (!r) {
-      return;
-    }
-    r.index = this.findIndex(r.index, r.rule);
-    this.stylesheet.deleteRule(r.index);
-    this.rules.delete(id);
   }
 }
