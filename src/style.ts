@@ -37,7 +37,7 @@ function repeatEdge(count: number, width: string) {
 
 const repeat = isEdge ? repeatEdge : repeatStandard;
 
-export function setColumn(node: HTMLElement, column: IColumn) {
+export function setColumn(node: HTMLElement, column: { index: number, id: string }) {
   if (isEdge) {
     node.style.msGridColumn = column.index + 1;
   } else {
@@ -46,14 +46,19 @@ export function setColumn(node: HTMLElement, column: IColumn) {
   node.dataset.id = column.id;
 }
 
+interface ISelectors {
+  header: string;
+  body: string;
+}
+
 export class StyleManager {
   private readonly stylesheet: CSSStyleSheet;
   private readonly rules = new Map<string, { rule: CSSRule, index: number }>();
   private readonly node: HTMLStyleElement;
 
-  private extraScrollUpdater: ((scrollLeft: number) => void) | null = null;
+  private readonly extraScrollUpdater: ((scrollLeft: number) => void)[] = [];
 
-  constructor(root: HTMLElement, private readonly id: string, defaultRowHeight: number) {
+  constructor(root: HTMLElement, private readonly id: string) {
     this.node = root.ownerDocument.createElement('style');
     root.appendChild(this.node);
     if (isEdge) {
@@ -61,8 +66,8 @@ export class StyleManager {
     }
     this.stylesheet = <CSSStyleSheet>this.node.sheet;
 
-    this.addRule('__heightsRule', `${id} > main > article > div {
-      height: ${defaultRowHeight}px;
+    this.addRule('__heightsRule0', `${id} > main > article > div {
+      height: 20px;
     }`);
     const headerScroller = <HTMLElement>root.querySelector('header');
     const bodyScroller = <HTMLElement>root.querySelector('main');
@@ -72,13 +77,12 @@ export class StyleManager {
       const left = bodyScroller.scrollLeft;
       if (!isScrollBarConsidered) {
         const scrollBarWidth = headerScroller.clientWidth - bodyScroller.clientWidth;
-        (<HTMLElement>headerScroller.firstElementChild).style.width = `${bodyScroller.scrollWidth + scrollBarWidth}px`;
+        // TODO doesn't work in multi ranking case
+        (<HTMLElement>headerScroller.lastElementChild).style.width = `${bodyScroller.scrollWidth + scrollBarWidth}px`;
         isScrollBarConsidered = true;
       }
       headerScroller.scrollLeft = left;
-      if (this.extraScrollUpdater) {
-        this.extraScrollUpdater(left);
-      }
+      this.extraScrollUpdater.forEach((u) => u(left));
     });
   }
 
@@ -109,14 +113,34 @@ export class StyleManager {
     return r;
   }
 
-  update(defaultRowHeight: number, columns: IColumn[], defaultWidth: number, unit: string = 'px') {
-    this.updateRule('__heightsRule', `${this.id} > main > article > div {
+  remove(tableId: string) {
+    const selectors = this.tableIds(tableId, true);
+    this.deleteRule(`__heightsRule${selectors.body}`);
+    this.deleteRule(`__widthRule${selectors.body}`);
+
+    const prefix = `__frozen${selectors.body}_`;
+    const rules = Array.from(this.rules.keys()).reduce((a, b) => a + (b.startsWith(prefix) ? 1 : 0), 0);
+    // reset
+    for (let i = 0; i < rules; ++i) {
+      this.deleteRule(`${prefix}${i}`);
+    }
+  }
+
+  tableIds(tableId: string, asSelector: boolean = false) {
+    const cleanId = this.id.startsWith('#') ? this.id.slice(1) : this.id;
+    return {header: `${asSelector ? '#': ''}${cleanId}_H${tableId}`, body: `${asSelector ? '#': ''}${cleanId}_B${tableId}`};
+  }
+
+  update(defaultRowHeight: number, columns: IColumn[], defaultWidth: number, tableId?: string, unit: string = 'px') {
+    const selectors = tableId !== undefined ? this.tableIds(tableId, true) : { header: `${this.id} > header > article`, body: `${this.id} > main > article`};
+
+    this.updateRule(`__heightsRule${selectors.body}`, `${selectors.body} > div {
       height: ${defaultRowHeight}px;
     }`);
 
     if (columns.length === 0) {
       //restore dummy rule
-      this.deleteRule('__widthRule');
+      this.deleteRule(`__widthRule${selectors.body}`);
       return;
     }
 
@@ -130,50 +154,52 @@ export class StyleManager {
     } else {
       content = `-ms-grid-columns: ${widths};`;
 
-      this.extraScrollUpdater = this.updateFrozenColumnsShift.bind(this, columns, unit);
+      this.extraScrollUpdater.push(this.updateFrozenColumnsShift.bind(this, columns, selectors, unit));
     }
-    this.updateRule('__widthRule', `${this.id} > main > article > div, ${this.id} > header > article { ${content} }`);
+    this.updateRule(`__widthRule${selectors.body}`, `${selectors.body} > div, ${selectors.header} { ${content} }`);
 
-    this.updateFrozen(columns, unit);
+    this.updateFrozen(columns, selectors, unit);
   }
 
-  private updateFrozen(columns: IColumn[], unit: string) {
+  private updateFrozen(columns: IColumn[], selectors: ISelectors, unit: string) {
     if (isEdge) {
       return;
     }
-    const rules = Array.from(this.rules.keys()).reduce((a, b) => a + (b.startsWith('__frozen') ? 1 : 0), 0);
+    const prefix = `__frozen${selectors.body}_`;
+    const rules = Array.from(this.rules.keys()).reduce((a, b) => a + (b.startsWith(prefix) ? 1 : 0), 0);
     const frozen = columns.filter((c) => c.frozen);
     if (frozen.length <= 0 || isEdge) {
       // reset
       for (let i = 0; i < rules; ++i) {
-        this.deleteRule(`__frozen${i}`);
+        this.deleteRule(`${prefix}${i}`);
       }
       return;
     }
     //create the correct left offset
     let offset = frozen[0].width;
     frozen.slice(1).forEach((c, i) => {
-      const rule = `${this.id} > main > article > div > .frozen[data-id="${c.id}"], ${this.id} > header > article .frozen[data-id="${c.id}"] {
+      const rule = `${selectors.body} > div > .frozen[data-id="${c.id}"], ${selectors.header} .frozen[data-id="${c.id}"] {
         left: ${offset}${unit};
       }`;
       offset += c.width;
-      this.updateRule(`__frozen${i}`, rule);
+      this.updateRule(`${prefix}${i}`, rule);
     });
     for (let i = frozen.length - 1; i < rules; ++i) {
-      this.deleteRule(`__frozen${i}`);
+      this.deleteRule(`${prefix}${i}`);
     }
   }
 
-  private updateFrozenColumnsShift(columns: IColumn[], unit: string, scrollLeft: number) {
+  private updateFrozenColumnsShift(columns: IColumn[], selectors: ISelectors, unit: string, scrollLeft: number) {
     if (!isEdge) {
       return;
     }
 
-    const rules = Array.from(this.rules.keys()).reduce((a, b) => a + (b.startsWith('__frozen') ? 1 : 0), 0);
+    const prefix = `__frozen${selectors.body}_`;
+    const rules = Array.from(this.rules.keys()).reduce((a, b) => a + (b.startsWith(prefix) ? 1 : 0), 0);
     const hasFrozen = columns.some((c) => c.frozen);
     if (!hasFrozen) {
       for (let i = 0; i < rules; ++i) {
-        this.deleteRule(`__frozen${i}`);
+        this.deleteRule(`${prefix}${i}`);
       }
       return;
     }
@@ -183,17 +209,17 @@ export class StyleManager {
     let nextFrozen = 0;
     columns.forEach((c) => {
       if (c.frozen && offset < (scrollLeft + frozenWidth)) {
-        const rule = `${this.id} > main > article > div > .frozen[data-id="${c.id}"], ${this.id} > header > article .frozen[data-id="${c.id}"] {
+        const rule = `${selectors.body} > div > .frozen[data-id="${c.id}"], ${selectors.header} .frozen[data-id="${c.id}"] {
           transform: translate(${scrollLeft - offset + frozenWidth}${unit}, 0);
         }`;
-        this.updateRule(`__frozen${nextFrozen++}`, rule);
+        this.updateRule(`${prefix}${nextFrozen++}`, rule);
         frozenWidth += c.width;
       }
       offset += c.width;
     });
 
     for (let i = nextFrozen; i < rules; ++i) {
-      this.deleteRule(`__frozen${i}`);
+      this.deleteRule(`${prefix}${i}`);
     }
   }
 
