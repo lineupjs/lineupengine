@@ -24,6 +24,7 @@ export abstract class ARowRenderer {
 
   private readonly adapter: IMixinAdapter;
   private readonly mixins: IMixin[];
+  private scrollListener: ()=>void;
 
   constructor(protected readonly body: HTMLElement, ...mixinClasses: IMixinClass[]) {
     this.adapter = this.createAdapter();
@@ -94,7 +95,7 @@ export abstract class ARowRenderer {
 
     //sync scrolling of header and body
     let oldTop = scroller.scrollTop;
-    scroller.addEventListener('scroll', () => {
+    this.scrollListener = () => {
       const top = scroller.scrollTop;
       if (oldTop === top) {
         return;
@@ -102,8 +103,14 @@ export abstract class ARowRenderer {
       const isGoingDown = top > oldTop;
       oldTop = top;
       this.onScrolledVertically(top, scroller.clientHeight, isGoingDown);
-    });
+    };
+    scroller.addEventListener('scroll', this.scrollListener);
     this.recreate();
+  }
+
+  destroy() {
+    this.bodyScroller.removeEventListener('scroll', this.scrollListener);
+    this.body.remove();
   }
 
   private static cleanUp(item: HTMLElement) {

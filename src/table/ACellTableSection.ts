@@ -1,25 +1,20 @@
 /**
- * Created by Samuel Gratzl on 19.07.2017.
+ * Created by Samuel Gratzl on 26.09.2017.
  */
-import {ARowRenderer} from './ARowRenderer';
-import {GridStyleManager, IColumn, setTemplate} from './style';
-import {IMixinClass} from './mixin';
-import ACellAdapter, {ICellAdapterRenderContext} from './table/internal/ACellAdapter';
-
+import ARowRenderer from '../ARowRenderer';
+import ACellAdapter, {ICellAdapterRenderContext} from './internal/ACellAdapter';
+import {EScrollResult, IMixinClass} from '../mixin/index';
+import {ITableSection} from './MultiTableRowRenderer';
+import GridStyleManager from '../style/GridStyleManager';
+import {IColumn} from '../style/index';
 
 export declare type ICellRenderContext<T extends IColumn> = ICellAdapterRenderContext<T>;
 
-export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
-
-  protected readonly style: GridStyleManager;
-
+export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer implements ITableSection {
   private readonly cell: ACellAdapter<T>;
 
-  constructor(protected readonly root: HTMLElement, htmlId: string, ...mixinClasses: IMixinClass[]) {
-    super(<HTMLElement>setTemplate(root).querySelector('main > article'), ...mixinClasses);
-    root.classList.add('lineup-engine');
-
-    this.style = new GridStyleManager(this.root, htmlId);
+  constructor(private readonly header: HTMLElement, body: HTMLElement, private readonly tableId: string, private readonly style: GridStyleManager, ...mixinClasses: IMixinClass[]) {
+    super(body, ...mixinClasses);
 
     const that = this;
 
@@ -51,42 +46,48 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
     this.cell = new LocalCell(this.header, this.style, undefined, ...mixinClasses);
   }
 
-  protected get header() {
-    return <HTMLElement>this.root.querySelector('header > article');
-  }
-
-  protected get headerScroller() {
-    return <HTMLElement>this.root.querySelector('header');
-  }
-
   protected addColumnMixin(mixinClass: IMixinClass, options?: any) {
     this.cell.addColumnMixin(mixinClass, options);
   }
 
-  protected init() {
+  get width() {
+    return this.context.column.totalHeight;
+  }
 
+  get hidden() {
+    return this.header.classList.contains('loading');
+  }
+
+  set hidden(value: boolean) {
+    this.header.classList.toggle('loading', value);
+    this.body.classList.toggle('loading', value);
+  }
+
+  hide() {
+    this.hidden = true;
+  }
+
+  show(scrollLeft: number, clientWidth: number, isGoingRight: boolean) {
+    this.hidden = false;
+    this.cell.onScrolledHorizontally(scrollLeft, clientWidth, isGoingRight);
+  }
+
+  init() {
     this.cell.init();
-
-    const scroller = <HTMLElement>this.body.parentElement;
-
-    //sync scrolling of header and body
-    let oldLeft = scroller.scrollLeft;
-    scroller.addEventListener('scroll', () => {
-      const left = scroller.scrollLeft;
-      if (oldLeft === left) {
-        return;
-      }
-      const isGoingRight = left > oldLeft;
-      oldLeft = left;
-      this.onScrolledHorizontally(left, scroller.clientWidth, isGoingRight);
-    });
-
     super.init();
   }
 
   destroy() {
     super.destroy();
-    this.root.remove();
+    this.header.remove();
+    this.style.remove(this.tableId);
+  }
+
+  protected onScrolledVertically(scrollTop: number, clientHeight: number, isGoingDown: boolean): EScrollResult {
+    if (this.hidden) {
+      return EScrollResult.NONE;
+    }
+    return super.onScrolledVertically(scrollTop, clientHeight, isGoingDown);
   }
 
   protected onScrolledHorizontally(scrollLeft: number, clientWidth: number, isGoingRight: boolean) {
@@ -134,5 +135,3 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
     this.cell.updateRow(node, rowIndex);
   }
 }
-
-export default ACellRenderer;

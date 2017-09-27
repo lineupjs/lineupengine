@@ -1,10 +1,10 @@
 /**
  * Created by Samuel Gratzl on 19.07.2017.
  */
-import {frozenDelta, IExceptionContext, range, updateFrozen} from '../logic';
-import {EScrollResult, IMixin, IMixinAdapter, IMixinClass} from '../mixin';
-import GridStyleManager, {setColumn} from '../style/GridStyleManager';
-import {IColumn} from '../style/IColumn';
+import {frozenDelta, IExceptionContext, range, updateFrozen} from '../../logic';
+import {EScrollResult, IMixin, IMixinAdapter, IMixinClass} from '../../mixin';
+import GridStyleManager, {setColumn} from '../../style/GridStyleManager';
+import {IColumn} from '../../style/IColumn';
 
 const debug = false;
 
