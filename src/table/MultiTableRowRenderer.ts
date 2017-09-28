@@ -31,7 +31,7 @@ export interface ISeparatorFactory<T extends ITableSection> {
 
 export default class MultiTableRowRenderer {
 
-  private readonly style: GridStyleManager;
+  readonly style: GridStyleManager;
   private tableId = 0;
 
   private readonly sections: ITableSection[] = [];
@@ -45,11 +45,11 @@ export default class MultiTableRowRenderer {
 
   private context: IExceptionContext = uniformContext(0, 500);
 
-  constructor(protected readonly root: HTMLElement, htmlId: string) {
-    root.innerHTML = `<header></header><main></main>`;
-    root.classList.add('lineup-engine');
+  constructor(public readonly node: HTMLElement, htmlId: string) {
+    node.innerHTML = `<header></header><main></main>`;
+    node.classList.add('lineup-engine');
 
-    this.style = new GridStyleManager(this.root, htmlId);
+    this.style = new GridStyleManager(this.node, htmlId);
 
     const main = this.main;
     let oldLeft = main.scrollLeft;
@@ -131,19 +131,19 @@ export default class MultiTableRowRenderer {
 
   destroy() {
     this.sections.forEach((d) => d.destroy());
-    this.root.remove();
+    this.node.remove();
   }
 
   private get doc() {
-    return this.root.ownerDocument;
+    return this.node.ownerDocument;
   }
 
   private get header() {
-    return <HTMLElement>this.root.querySelector('header');
+    return <HTMLElement>this.node.querySelector('header');
   }
 
   private get main() {
-    return <HTMLElement>this.root.querySelector('main');
+    return <HTMLElement>this.node.querySelector('main');
   }
 
   pushTable<T extends ITableSection>(factory: ITableFactory<T>, ...extras: any[]) {
