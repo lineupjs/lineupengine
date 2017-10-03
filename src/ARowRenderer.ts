@@ -17,8 +17,8 @@ export abstract class ARowRenderer {
   protected readonly visible = {
     first: 0,
     forcedFirst: 0,
-    last: 0,
-    forcedLast: 0
+    last: -1,
+    forcedLast: -1
   };
   protected visibleFirstRowPos = 0;
 

@@ -13,7 +13,7 @@ export declare type ICellRenderContext<T extends IColumn> = ICellAdapterRenderCo
 export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer implements ITableSection {
   private readonly cell: ACellAdapter<T>;
 
-  constructor(protected readonly header: HTMLElement, body: HTMLElement, private readonly tableId: string, protected readonly style: GridStyleManager, ...mixinClasses: IMixinClass[]) {
+  constructor(protected readonly header: HTMLElement, body: HTMLElement, protected readonly tableId: string, protected readonly style: GridStyleManager, ...mixinClasses: IMixinClass[]) {
     super(body, ...mixinClasses);
 
     const that = this;
@@ -43,7 +43,7 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
         return that.forEachRow(callback);
       }
     }
-    this.cell = new LocalCell(this.header, this.style, undefined, ...mixinClasses);
+    this.cell = new LocalCell(this.header, this.style, tableId, ...mixinClasses);
   }
 
   protected addColumnMixin(mixinClass: IMixinClass, options?: any) {

@@ -25,8 +25,8 @@ export abstract class ACellAdapter<T extends IColumn> {
     frozen: <number[]>[],
     first: 0,
     forcedFirst: 0,
-    last: 0,
-    forcedLast: 0
+    last: -1,
+    forcedLast: -1
   };
   protected visibleFirstColumnPos = 0;
 

@@ -203,6 +203,12 @@ export interface IVisibleRange {
  * @return {IVisibleRange} the computed visible range
  */
 export function range(scrollTop: number, clientHeight: number, rowHeight: number, heightExceptions: IRowHeightException[], numberOfRows: number): IVisibleRange {
+  if (numberOfRows === 0) {
+    return {first: 0, last: -1, firstRowPos: 0, endPos: 0};
+  }
+  if (numberOfRows === 1) {
+    return {first: 0, last: 0, firstRowPos: 0, endPos: heightExceptions.length === 0 ? rowHeight : heightExceptions[0].y2};
+  }
   const offset = scrollTop;
   const offset2 = offset + clientHeight;
 
