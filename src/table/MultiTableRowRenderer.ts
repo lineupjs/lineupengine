@@ -29,6 +29,9 @@ export interface ISeparatorFactory<T extends ITableSection> {
   (header: HTMLElement, body: HTMLElement, style: GridStyleManager, ...extras: any[]): T;
 }
 
+export interface IMultiTableRowRendererOptions {
+  columnPadding: number;
+}
 
 export default class MultiTableRowRenderer {
 
@@ -44,9 +47,14 @@ export default class MultiTableRowRenderer {
     forcedLast: 0
   };
 
+  private readonly options: Readonly<IMultiTableRowRendererOptions> = {
+    columnPadding: 0
+  };
+
   private context: IExceptionContext = uniformContext(0, 500);
 
-  constructor(public readonly node: HTMLElement, htmlId: string) {
+  constructor(public readonly node: HTMLElement, htmlId: string, options: Partial<IMultiTableRowRendererOptions> = {}) {
+    Object.assign(this.options, options);
     node.innerHTML = `<header></header><main></main>`;
     node.classList.add('lineup-engine', 'lineup-multi-engine');
 
@@ -66,7 +74,7 @@ export default class MultiTableRowRenderer {
   }
 
   private update() {
-    this.context = nonUniformContext(this.sections.map((d) => d.width));
+    this.context = nonUniformContext(this.sections.map((d) => d.width), NaN, this.options.columnPadding);
 
     this.updateGrid();
 
@@ -74,7 +82,7 @@ export default class MultiTableRowRenderer {
   }
 
   private updateGrid() {
-    const content = GridStyleManager.gridColumn(this.sections, this.context.defaultRowHeight);
+    const content = GridStyleManager.gridColumn(this.sections, this.context.defaultRowHeight - this.context.padding);
     this.style.updateRule(`multiTableRule`, `${this.style.id} > header, ${this.style.id} > main { ${content} }`);
   }
 

@@ -192,9 +192,9 @@ export abstract class ARowRenderer {
   private create(index: number) {
     const {item, result} = this.select(index);
 
-    const ex = this.context.exceptionsLookup;
+    const {exceptionsLookup: ex, padding} = this.context;
     if (ex.has(index)) {
-      item.style.height = `${ex.get(index)}px`;
+      item.style.height = `${ex.get(index)! - padding}px`;
     }
 
     return this.proxy(item, result);

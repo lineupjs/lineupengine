@@ -124,6 +124,11 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
     this.cell.updateHeaders();
   }
 
+  protected updateColumnWidths() {
+    const context = this.context;
+    this.style.update(context.defaultRowHeight - context.padding, context.columns, context.column.defaultRowHeight - context.column.padding, this.tableId);
+  }
+
   protected recreate() {
     const scroller = this.bodyScroller;
     const oldLeft = scroller.scrollLeft;

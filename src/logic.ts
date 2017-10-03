@@ -67,15 +67,22 @@ export interface IExceptionContext {
    * total height
    */
   readonly totalHeight: number;
+
+  /**
+   * padding between rows, however already included in all heights to have the precise numbers
+   */
+  readonly padding: number;
 }
 
 /**
  * creates a uniform exception context, i.e no exceptions all rows are of the same height
  * @param {number} numberOfRows
  * @param {number} rowHeight
+ * @param {number} rowPadding padding between rows
  * @return {IExceptionContext}
  */
-export function uniformContext(numberOfRows: number, rowHeight: number): IExceptionContext {
+export function uniformContext(numberOfRows: number, rowHeight: number, rowPadding: number = 0): IExceptionContext {
+  rowHeight += rowPadding;
   const exceptionsLookup = {
     keys: () => [].values(),
     get: () => rowHeight,
@@ -87,7 +94,8 @@ export function uniformContext(numberOfRows: number, rowHeight: number): IExcept
     exceptionsLookup,
     totalHeight: numberOfRows * rowHeight,
     numberOfRows,
-    defaultRowHeight: rowHeight
+    defaultRowHeight: rowHeight,
+    padding: rowPadding
   };
 }
 
@@ -117,9 +125,10 @@ function mostFrequentValue(values: { forEach: (callback: (height: number, index:
  * creates a non uniform context based on the given array like heights
  * @param {{forEach: ((callback: (height: number, index: number) => any) => any)}} rowHeights
  * @param {number} defaultRowHeight if not given the most frequent value will be used
+ * @param {number} rowPadding padding between rows
  * @return {IExceptionContext}
  */
-export function nonUniformContext(rowHeights: { forEach: (callback: (height: number, index: number) => any) => any }, defaultRowHeight: number = NaN): IExceptionContext {
+export function nonUniformContext(rowHeights: { forEach: (callback: (height: number, index: number) => any) => any }, defaultRowHeight: number = NaN, rowPadding: number = 0): IExceptionContext {
   const exceptionsLookup = new Map<number, number>();
   const exceptions: IRowHeightException[] = [];
 
@@ -127,8 +136,11 @@ export function nonUniformContext(rowHeights: { forEach: (callback: (height: num
     defaultRowHeight = mostFrequentValue(rowHeights);
   }
 
+  defaultRowHeight += rowPadding;
+
   let prev = -1, acc = 0, totalHeight = 0, numberOfRows = 0;
   rowHeights.forEach((height, index) => {
+    height += rowPadding;
     totalHeight += height;
     numberOfRows++;
     if (height === defaultRowHeight) {
@@ -142,7 +154,7 @@ export function nonUniformContext(rowHeights: { forEach: (callback: (height: num
     acc = y + height;
     exceptions.push(new RowHeightException(index, y, height));
   });
-  return {exceptionsLookup, exceptions, totalHeight, defaultRowHeight, numberOfRows};
+  return {exceptionsLookup, exceptions, totalHeight, defaultRowHeight, numberOfRows, padding: rowPadding};
 }
 
 /**
