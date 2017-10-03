@@ -50,6 +50,8 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
     this.cell.addColumnMixin(mixinClass, options);
   }
 
+  abstract get id(): string;
+
   get width() {
     return this.context.column.totalHeight;
   }
@@ -59,8 +61,17 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
   }
 
   set hidden(value: boolean) {
+    const old = this.hidden;
+    if (old === value) {
+      return;
+    }
     this.header.classList.toggle('loading', value);
     this.body.classList.toggle('loading', value);
+    this.onVisibilityChanged(value);
+  }
+
+  protected onVisibilityChanged(_visible: boolean) {
+    // hook
   }
 
   hide() {
@@ -73,6 +84,7 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
   }
 
   init() {
+    this.hide(); // hide by default
     this.cell.init();
     super.init();
   }

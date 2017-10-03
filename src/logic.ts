@@ -105,7 +105,12 @@ function mostFrequentValue(values: { forEach: (callback: (height: number, index:
     return 20; // default value since it doesn't matter
   }
   // sort desc take first key
-  return Array.from(lookup).sort((a, b) => b[1] - a[1])[0][0];
+  const sorted = Array.from(lookup).sort((a, b) => b[1] - a[1]);
+  const mostFrequent = sorted[0][0];
+  if (mostFrequent === 0) { // cornercase
+    return sorted.length > 1 ? sorted[1][0]: 20; // all empty
+  }
+  return mostFrequent;
 }
 
 /**

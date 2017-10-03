@@ -3,6 +3,7 @@ import {IExceptionContext, nonUniformContext, range, uniformContext} from '../lo
 import {EScrollResult} from '../mixin/index';
 
 export interface ITableSection {
+  readonly id: string;
   readonly width: number;
 
   init(): void;
@@ -47,7 +48,7 @@ export default class MultiTableRowRenderer {
 
   constructor(public readonly node: HTMLElement, htmlId: string) {
     node.innerHTML = `<header></header><main></main>`;
-    node.classList.add('lineup-engine');
+    node.classList.add('lineup-engine', 'lineup-multi-engine');
 
     this.style = new GridStyleManager(this.node, htmlId);
 
@@ -64,23 +65,17 @@ export default class MultiTableRowRenderer {
     });
   }
 
-  private show(first: number, last: number, offsets: number[], visibleFrom: number, visibleWidth: number, isGoingRight: boolean) {
-    for (let i = first; i <= last; ++i) {
-      const elem = this.sections[i];
-      elem.show(Math.max(0, visibleFrom - offsets[i]), Math.min(visibleWidth - offsets[i], elem.width), isGoingRight);
-    }
-  }
-
-  private hide(first: number, last: number) {
-    for (let i = first; i <= last; ++i) {
-      this.sections[i].hide();
-    }
-  }
-
   private update() {
     this.context = nonUniformContext(this.sections.map((d) => d.width));
 
+    this.updateGrid();
+
     this.onScrolledHorizontally(this.main.scrollLeft, this.main.clientWidth, false);
+  }
+
+  private updateGrid() {
+    const content = GridStyleManager.gridColumn(this.sections, this.context.defaultRowHeight);
+    this.style.updateRule(`multiTableRule`, `${this.style.id} > header, ${this.style.id} > main { ${content} }`);
   }
 
   private onScrolledHorizontally(scrollLeft: number, clientWidth: number, isGoingRight: boolean) {
@@ -95,38 +90,19 @@ export default class MultiTableRowRenderer {
       return EScrollResult.NONE;
     }
 
-    let acc = 0;
-    const offsets = this.sections.map((s) => {
-      const bak = acc;
-      acc += s.width;
-      return bak;
+    let offset = 0;
+    this.sections.forEach((s, i) => {
+      if (i >= first && i <= last) {
+        s.show(Math.max(0, scrollLeft - offset), Math.min(clientWidth - offset, s.width), isGoingRight);
+      } else {
+        s.hide();
+      }
+      offset += s.width;
     });
-
-    let r: EScrollResult = EScrollResult.PARTIAL;
-
-    if (first > visible.last || last < visible.first) {
-      //no overlap, clean and draw everything
-      this.hide(this.visible.first, this.visible.last);
-      this.show(first, last, offsets, scrollLeft, clientWidth, isGoingRight);
-      r = EScrollResult.ALL;
-    } else if (first < visible.first) {
-      //some first rows missing and some last rows to much
-      //console.log(`up added: ${visibleFirst - first + 1} removed: ${visibleLast - last + 1} ${first}:${last} ${offset}`);
-      this.hide(last + 1, visible.last);
-      this.show(first, visible.first - 1, offsets, scrollLeft, clientWidth, isGoingRight);
-      this.sections[last].show(scrollLeft - offsets[last], clientWidth - offsets[last], isGoingRight);
-    } else {
-      //console.log(`do added: ${last - visibleLast + 1} removed: ${first - visibleFirst + 1} ${first}:${last} ${offset}`);
-      //some last rows missing and some first rows to much
-      this.hide(visible.first, first - 1);
-      this.show(visible.last + 1, last, offsets, scrollLeft, clientWidth, isGoingRight);
-
-      this.sections[first].show(Math.max(0, scrollLeft - offsets[first]), Math.min(clientWidth - offsets[first], this.sections[first].width), isGoingRight);
-    }
 
     visible.first = first;
     visible.last = last;
-    return r;
+    return EScrollResult.PARTIAL;
   }
 
   destroy() {

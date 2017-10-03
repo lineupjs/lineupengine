@@ -43,7 +43,7 @@ interface ISelectors {
 export default class GridStyleManager extends StyleManager {
   private readonly extraScrollUpdater: ((scrollLeft: number) => void)[] = [];
 
-  constructor(root: HTMLElement, private readonly id: string) {
+  constructor(root: HTMLElement, public readonly id: string) {
     super(root);
 
     this.addRule('__heightsRule0', `${id} > main > article > div {
@@ -53,15 +53,8 @@ export default class GridStyleManager extends StyleManager {
     const bodyScroller = <HTMLElement>root.querySelector('main');
 
     // update frozen and sync header with body
-    let isScrollBarConsidered = false;
     bodyScroller.addEventListener('scroll', () => {
       const left = bodyScroller.scrollLeft;
-      if (!isScrollBarConsidered) {
-        const scrollBarWidth = headerScroller.clientWidth - bodyScroller.clientWidth;
-        // TODO doesn't work in multi ranking case
-        (<HTMLElement>headerScroller.lastElementChild).style.width = `${bodyScroller.scrollWidth + scrollBarWidth}px`;
-        isScrollBarConsidered = true;
-      }
       headerScroller.scrollLeft = left;
       this.extraScrollUpdater.forEach((u) => u(left));
     });
@@ -106,6 +99,17 @@ export default class GridStyleManager extends StyleManager {
     return r;
   }
 
+  static gridColumn(columns: {id: string, width: number}[], defaultWidth: number, unit: string = 'px') {
+    const widths = GridStyleManager.columnWidths(columns, unit);
+
+    if (isEdge) {
+      return `-ms-grid-columns: ${widths};`;
+    }
+    return `grid-template-columns: ${widths};
+      grid-template-areas: "${columns.map((c) => c.id).join(' ')}";
+      grid-auto-columns: ${defaultWidth}px;`;
+  }
+
   /**
    * updates the column widths and default row height for a table
    * @param {number} defaultRowHeight
@@ -127,16 +131,8 @@ export default class GridStyleManager extends StyleManager {
       return;
     }
 
-    const widths = GridStyleManager.columnWidths(columns, unit);
-
-    let content = '';
-    if (!isEdge) {
-      content = `grid-template-columns: ${widths};
-        grid-template-areas: "${columns.map((c) => c.id).join(' ')}";
-        grid-auto-columns: ${defaultWidth}px;`;
-    } else {
-      content = `-ms-grid-columns: ${widths};`;
-
+    const content = GridStyleManager.gridColumn(columns, defaultWidth, unit);
+    if (isEdge) {
       this.extraScrollUpdater.push(this.updateFrozenColumnsShift.bind(this, columns, selectors, unit));
     }
     this.updateRule(`__widthRule${selectors.body}`, `${selectors.body} > div, ${selectors.header} { ${content} }`);
