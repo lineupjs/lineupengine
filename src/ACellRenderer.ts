@@ -5,6 +5,7 @@ import {ARowRenderer} from './ARowRenderer';
 import {GridStyleManager, IColumn, setTemplate} from './style';
 import {IMixinClass} from './mixin';
 import ACellAdapter, {ICellAdapterRenderContext} from './table/internal/ACellAdapter';
+import {IAnimationContext} from './animation/index';
 
 
 export declare type ICellRenderContext<T extends IColumn> = ICellAdapterRenderContext<T>;
@@ -116,12 +117,12 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
     this.style.update(context.defaultRowHeight - context.padding, context.columns, context.column.defaultRowHeight - context.column.padding);
   }
 
-  protected recreate() {
+  protected recreate(ctx?: IAnimationContext) {
     const scroller = this.bodyScroller;
     const oldLeft = scroller.scrollLeft;
     this.cell.recreate(oldLeft, scroller.clientWidth);
 
-    super.recreate();
+    super.recreate(ctx);
     // restore left
     scroller.scrollLeft = oldLeft;
   }
