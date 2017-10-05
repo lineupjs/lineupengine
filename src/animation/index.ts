@@ -15,9 +15,17 @@ export interface IAnimationContext {
 
   removePosition?(previousRowIndex: number, currentFinder: KeyFinder): number;
 
-  animate?(row: HTMLElement, currentRowIndex: number, phase: 'beforeNew'|'beforeUpdate'|'after'): void;
+  animate?(row: HTMLElement, currentRowIndex: number, previousRowIndex: number, phase: 'before'|'after'): void;
 
-  removeAnimate?(row: HTMLElement, previousRowIndex: number, phase: 'before'|'after'|'cleanup'): void;
+  removeAnimate?(row: HTMLElement, currentRowIndex: number, previousRowIndex: number, phase: 'before'|'after'|'cleanup'): void;
 
   cleanUpAfter?: number;
+}
+
+
+export interface IAnimationInfo {
+  node: HTMLElement;
+  target: number;
+  currentIndex: number;
+  previousIndex: number;
 }

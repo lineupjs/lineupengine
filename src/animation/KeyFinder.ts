@@ -29,9 +29,10 @@ export default class KeyFinder {
    * @param {string} key
    * @return {number} -1 if not found
    */
-  posByKey(key: string): number {
+  posByKey(key: string) {
     if (this.key2index.has(key)) {
-      return this.pos(this.key2index.get(key)!);
+      const index = this.key2index.get(key)!;
+      return {index, pos: this.pos(index)};
     }
     return this.fillCacheTillKey(key);
   }
@@ -87,11 +88,11 @@ export default class KeyFinder {
       this.cache[i] = pos;
       this.key2index.set(key, i);
       if (key === target) {
-        return pos;
+        return {index: i, pos};
       }
       pos += this.heightOf(i);
     }
-    return -1;
+    return {index: -1, pos: -1};
   }
 
   positions(first: number, last: number, offset: number, callback?: (index: number, key: string, pos: number)=>void) {
