@@ -4,6 +4,8 @@
 import {IExceptionContext, range} from './logic';
 import {ABORTED, IAbortAblePromise, isAbortAble} from './abortAble';
 import {EScrollResult, IMixin, IMixinAdapter, IMixinClass} from './mixin';
+import KeyFinder from './animation/KeyFinder';
+import {IAnimationContext} from './animation/index';
 
 export declare type IRowRenderContext = IExceptionContext;
 
@@ -301,7 +303,14 @@ export abstract class ARowRenderer {
    * removes all rows and recreates the table
    * @returns {void} nothing
    */
-  protected recreate() {
+  protected recreate(ctx?: IAnimationContext) {
+    if (ctx) {
+      return this.recreateAnimated(ctx);
+    }
+    return this.recreatePure();
+  }
+
+  private recreatePure() {
     const context = this.context;
 
     const scroller = this.bodyScroller;
@@ -324,6 +333,117 @@ export abstract class ARowRenderer {
     }
     this.addAtBottom(first, last);
     this.updateOffset(firstRowPos);
+  }
+
+  private recreateAnimated(ctx: IAnimationContext) {
+    const lookup = new Map<string, {n: HTMLElement, pos: number, i: number}>();
+    const old = Object.assign({}, this.visible);
+    const prev = new KeyFinder(ctx.previous, ctx.previousKey);
+    const cur = new KeyFinder(this.context, ctx.currentKey);
+    const scroller = this.bodyScroller;
+    const next = range(scroller.scrollTop, scroller.clientHeight, cur.context.defaultRowHeight, cur.context.exceptions, cur.context.numberOfRows);
+
+    {
+      const rows = <HTMLElement[]>Array.from(this.body.children);
+      prev.positions(old.first, old.last, this.visibleFirstRowPos, (i, key, pos) => {
+        lookup.set(key, {n: rows[i], pos, i});
+      });
+      this.body.innerHTML = ``;
+    }
+
+    this.visible.first = this.visible.forcedFirst = next.first;
+    this.visible.last = this.visible.forcedLast = next.last;
+
+    const fragment = this.fragment;
+    const animatedRows: {node: HTMLElement, i: number}[] = [];
+    cur.positions(next.first, next.last, next.firstRowPos, (i, key, pos) => {
+      let node: HTMLElement;
+      let oldPos: number;
+      if (lookup.has(key)) {
+        // still visible
+        const item = lookup.get(key)!;
+        lookup.delete(key);
+        node = this.proxy(item.n, this.updateRow(item.n, i));
+        oldPos = item.pos;
+      } else {
+        // need a new row
+        oldPos = prev.posByKey(key);
+        if (oldPos < 0) {
+          // was not visible before
+          oldPos = ctx.appearPosition ? ctx.appearPosition(i) : cur.context.totalHeight;
+        }
+        node = this.create(i);
+      }
+      //locate at target but shift to the old position
+      node.style.transform = `translate(0, ${oldPos - pos}px)`;
+      if (ctx.animate) {
+        ctx.animate(node, i, 'before');
+      }
+      fragment.appendChild(node);
+      animatedRows.push({node, i});
+    });
+
+    const removeAfterwards: {node: HTMLElement, target: number, i: number}[] = [];
+    let addedPos = next.endPos;
+    // items that are going to be removed
+    lookup.forEach((item, key) => {
+      // calculate their next position
+      let nextPos = cur.posByKey(key);
+      const node = item.n;
+      if (nextPos < 0) {
+        nextPos = ctx.removePosition? ctx.removePosition(item.i) : cur.context.totalHeight;
+      }
+      // located at addedPos
+      // should end up at nextPos
+      // was previously at item.pos
+      node.style.transform = `translate(0, ${item.pos - addedPos}px)`;
+      node.classList.add('le-row-removed');
+      if (ctx.removeAnimate) {
+        ctx.removeAnimate(node, item.i, 'before');
+      }
+      fragment.appendChild(node);
+      removeAfterwards.push({node, target: (nextPos - addedPos), i: item.i});
+      addedPos += prev.heightOf(item.i);
+    });
+
+    // add to DOM
+    this.body.classList.add('le-row-animation');
+    this.body.appendChild(fragment);
+    this.updateOffset(next.firstRowPos);
+
+    const remove = () => {
+      this.body.classList.remove('le-row-animation');
+      removeAfterwards.forEach(({node, i}) => {
+        node.remove();
+        node.style.transform = null;
+        node.classList.remove('le-row-removed');
+        if (ctx.removeAnimate) {
+          ctx.removeAnimate(node, i, 'cleanup');
+        }
+        this.recycle(node);
+      });
+    };
+    const reset = () => {
+      // trigger animation
+      animatedRows.forEach(({node, i}) => {
+        node.style.transform = null;
+        if (ctx.animate) {
+          ctx.animate(node, i,'after');
+        }
+      });
+      removeAfterwards.forEach(({node, target, i}) => {
+        node.style.transform = `translate(0,${target}px)`;
+        if (ctx.removeAnimate) {
+          ctx.removeAnimate(node, i, 'after');
+        }
+      });
+      // reset for next time
+      setTimeout(remove, ctx.cleanUpAfter || 1100);
+    };
+
+    // next tick such that DOM will be updated
+    setTimeout(reset, 200);
+
   }
 
   protected clearPool() {

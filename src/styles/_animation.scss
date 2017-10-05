@@ -20,3 +20,11 @@
     background-image: $engine_loading_image;
   }
 }
+
+article.le-row-animation > * {
+  transition: all 1s ease-in-out;
+
+  &:not(.le-row-removed) {
+    z-index: 1; // such that surviving will be on top
+  }
+}

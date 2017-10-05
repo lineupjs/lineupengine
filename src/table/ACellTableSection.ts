@@ -7,6 +7,7 @@ import {EScrollResult, IMixinClass} from '../mixin/index';
 import {ITableSection} from './MultiTableRowRenderer';
 import GridStyleManager from '../style/GridStyleManager';
 import {IColumn} from '../style/index';
+import {IAnimationContext} from '../animation/index';
 
 export declare type ICellRenderContext<T extends IColumn> = ICellAdapterRenderContext<T>;
 
@@ -129,12 +130,12 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
     this.style.update(context.defaultRowHeight - context.padding, context.columns, context.column.defaultRowHeight - context.column.padding, this.tableId);
   }
 
-  protected recreate() {
+  protected recreate(ctx?: IAnimationContext) {
     const scroller = this.bodyScroller;
     const oldLeft = scroller.scrollLeft;
     this.cell.recreate(oldLeft, scroller.clientWidth);
 
-    super.recreate();
+    super.recreate(ctx);
     // restore left
     scroller.scrollLeft = oldLeft;
   }
