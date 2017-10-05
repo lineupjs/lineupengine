@@ -365,20 +365,23 @@ export abstract class ARowRenderer {
         lookup.delete(key);
         node = this.proxy(item.n, this.updateRow(item.n, i));
         oldPos = item.pos;
+        if (ctx.animate) {
+          ctx.animate(node, i, 'beforeUpdate');
+        }
       } else {
         // need a new row
         oldPos = prev.posByKey(key);
         if (oldPos < 0) {
           // was not visible before
-          oldPos = ctx.appearPosition ? ctx.appearPosition(i) : cur.context.totalHeight;
+          oldPos = ctx.appearPosition ? ctx.appearPosition(i, prev) : cur.context.totalHeight;
         }
         node = this.create(i);
+        if (ctx.animate) {
+          ctx.animate(node, i, 'beforeNew');
+        }
       }
       //locate at target but shift to the old position
       node.style.transform = `translate(0, ${oldPos - pos}px)`;
-      if (ctx.animate) {
-        ctx.animate(node, i, 'before');
-      }
       fragment.appendChild(node);
       animatedRows.push({node, i});
     });
@@ -391,7 +394,7 @@ export abstract class ARowRenderer {
       let nextPos = cur.posByKey(key);
       const node = item.n;
       if (nextPos < 0) {
-        nextPos = ctx.removePosition? ctx.removePosition(item.i) : cur.context.totalHeight;
+        nextPos = ctx.removePosition? ctx.removePosition(item.i, cur) : cur.context.totalHeight;
       }
       // located at addedPos
       // should end up at nextPos
