@@ -278,9 +278,9 @@ export abstract class ACellAdapter<T extends IColumn> {
     this.forEachRow((row, rowIndex) => verifyRow(row, rowIndex, columns));
   }
 
-  private addCellAtEnd(row: HTMLElement, rowIndex: number, from: number, to: number, columns: T[], ...extras: any[]) {
+  private addCellAtEnd(row: HTMLElement, rowIndex: number, from: number, to: number, columns: T[]) {
     for (let i = from; i <= to; ++i) {
-      const cell = this.selectCell(rowIndex, i, columns, ...extras);
+      const cell = this.selectCell(rowIndex, i, columns);
       row.appendChild(cell);
     }
     if (debug) {
@@ -343,23 +343,23 @@ export abstract class ACellAdapter<T extends IColumn> {
     // TODO
   }
 
-  createRow(node: HTMLElement, rowIndex: number, ...extras: any[]): void {
+  createRow(node: HTMLElement, rowIndex: number): void {
     const {columns, hasFrozenColumns} = this.context;
     const visible = this.visibleColumns;
 
     if (hasFrozenColumns) {
       for (const i of visible.frozen) {
-        const cell = this.selectCell(rowIndex, i, columns, ...extras);
+        const cell = this.selectCell(rowIndex, i, columns);
         node.appendChild(cell);
       }
     }
     for (let i = visible.first; i <= visible.last; ++i) {
-      const cell = this.selectCell(rowIndex, i, columns, ...extras);
+      const cell = this.selectCell(rowIndex, i, columns);
       node.appendChild(cell);
     }
   }
 
-  updateRow(node: HTMLElement, rowIndex: number, ...extras: any[]): void {
+  updateRow(node: HTMLElement, rowIndex: number): void {
     const {columns, hasFrozenColumns} = this.context;
     const visible = this.visibleColumns;
 
@@ -369,9 +369,9 @@ export abstract class ACellAdapter<T extends IColumn> {
     switch (existing.length) {
       case 0:
         if (hasFrozenColumns) {
-          this.insertFrozenCells(node, rowIndex, visible.frozen, 0, columns, ...extras);
+          this.insertFrozenCells(node, rowIndex, visible.frozen, 0, columns);
         }
-        this.addCellAtEnd(node, rowIndex, visible.first, visible.last, columns, ...extras);
+        this.addCellAtEnd(node, rowIndex, visible.first, visible.last, columns);
         break;
       case 1:
         const old = existing[0];
@@ -381,9 +381,9 @@ export abstract class ACellAdapter<T extends IColumn> {
         this.recycleCell(old, columnIndex);
 
         if (hasFrozenColumns) {
-          this.insertFrozenCells(node, rowIndex, visible.frozen, 0, columns, ...extras);
+          this.insertFrozenCells(node, rowIndex, visible.frozen, 0, columns);
         }
-        this.addCellAtEnd(node, rowIndex, visible.first, visible.last, columns, ...extras);
+        this.addCellAtEnd(node, rowIndex, visible.first, visible.last, columns);
         break;
       default: //>=2
         if (hasFrozenColumns) {
@@ -403,14 +403,14 @@ export abstract class ACellAdapter<T extends IColumn> {
           //update the common ones
           existing.slice(0, common).forEach((child, i) => {
             const col = columns[currentFrozen[i]];
-            const cell = this.updateCell(child, rowIndex, col, ...extras);
+            const cell = this.updateCell(child, rowIndex, col);
             if (cell && cell !== child) {
               setColumn(cell, col);
               node.replaceChild(cell, child);
             }
           });
           this.removeFrozenCells(node, removed, common);
-          this.insertFrozenCells(node, rowIndex, added, common, columns, ...extras);
+          this.insertFrozenCells(node, rowIndex, added, common, columns);
           //remove the ones already handled
           existing.splice(0, currentFrozen.length);
         }
@@ -424,7 +424,7 @@ export abstract class ACellAdapter<T extends IColumn> {
           //match update
           existing.forEach((child, i) => {
             const col = columns[i + visible.first];
-            const cell = this.updateCell(child, rowIndex, col, ...extras);
+            const cell = this.updateCell(child, rowIndex, col);
             if (cell && cell !== child) {
               setColumn(cell, col);
               node.replaceChild(cell, child);
@@ -433,15 +433,15 @@ export abstract class ACellAdapter<T extends IColumn> {
         } else if (visible.last > firstIndex || visible.first < lastIndex) {
           //no match at all
           this.removeAllCells(node, false, firstIndex);
-          this.addCellAtStart(node, rowIndex, visible.first, visible.last, frozenShift, columns, ...extras);
+          this.addCellAtStart(node, rowIndex, visible.first, visible.last, frozenShift, columns);
         } else if (visible.first < firstIndex) {
           //some first rows missing and some last rows to much
           this.removeCellFromEnd(node, visible.last + 1, firstIndex);
-          this.addCellAtStart(node, rowIndex, visible.first, firstIndex - 1, frozenShift, columns, ...extras);
+          this.addCellAtStart(node, rowIndex, visible.first, firstIndex - 1, frozenShift, columns);
         } else {
           //some last rows missing and some first rows to much
           this.removeCellFromStart(node, firstIndex, visible.first - 1, frozenShift);
-          this.addCellAtEnd(node, rowIndex, lastIndex + 1, visible.last, columns, ...extras);
+          this.addCellAtEnd(node, rowIndex, lastIndex + 1, visible.last, columns);
         }
     }
   }
