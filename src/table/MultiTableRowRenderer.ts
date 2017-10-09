@@ -93,11 +93,6 @@ export default class MultiTableRowRenderer {
     visible.forcedFirst = first;
     visible.forcedLast = last;
 
-    if ((first - visible.first) >= 0 && (last - visible.last) <= 0) {
-      //nothing to do
-      return EScrollResult.NONE;
-    }
-
     let offset = 0;
     this.sections.forEach((s, i) => {
       if (i >= first && i <= last) {
