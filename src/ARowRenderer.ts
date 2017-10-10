@@ -6,6 +6,7 @@ import {ABORTED, IAbortAblePromise, isAbortAble} from './abortAble';
 import {EScrollResult, IMixin, IMixinAdapter, IMixinClass} from './mixin';
 import KeyFinder from './animation/KeyFinder';
 import {IAnimationContext, IAnimationInfo} from './animation/index';
+import {clearTimeout} from 'timers';
 
 export declare type IRowRenderContext = IExceptionContext;
 
@@ -27,6 +28,8 @@ export abstract class ARowRenderer {
   private readonly adapter: IMixinAdapter;
   private readonly mixins: IMixin[];
   private scrollListener: ()=>void;
+
+  private abortAnimation: ()=>void = () => undefined;
 
   constructor(protected readonly body: HTMLElement, ...mixinClasses: IMixinClass[]) {
     this.adapter = this.createAdapter();
@@ -304,6 +307,7 @@ export abstract class ARowRenderer {
    * @returns {void} nothing
    */
   protected recreate(ctx?: IAnimationContext) {
+    this.abortAnimation();
     if (ctx) {
       return this.recreateAnimated(ctx);
     }
@@ -334,6 +338,7 @@ export abstract class ARowRenderer {
     this.addAtBottom(first, last);
     this.updateOffset(firstRowPos);
   }
+
 
   private recreateAnimated(ctx: IAnimationContext) {
     const lookup = new Map<string, {n: HTMLElement, pos: number, i: number}>();
@@ -416,8 +421,16 @@ export abstract class ARowRenderer {
     this.body.appendChild(fragment);
     this.updateOffset(next.firstRowPos);
 
+    let currentTimer: any = -1;
+
     const remove = () => {
       this.body.classList.remove('le-row-animation');
+      animatedRows.forEach(({node, currentIndex, previousIndex}) => {
+        node.style.transform = null;
+        if (ctx.animate) {
+          ctx.animate(node, currentIndex, previousIndex, 'cleanup');
+        }
+      });
       removeAfterwards.forEach(({node, currentIndex, previousIndex}) => {
         node.remove();
         node.style.transform = null;
@@ -427,7 +440,18 @@ export abstract class ARowRenderer {
         }
         this.recycle(node);
       });
+      currentTimer = -1;
     };
+
+    this.abortAnimation = () => {
+      if (currentTimer <= 0) {
+        return;
+      }
+      // abort by removing
+      clearTimeout(currentTimer);
+      remove();
+    };
+
     const reset = () => {
       // trigger animation
       animatedRows.forEach(({node, currentIndex, previousIndex}) => {
@@ -443,12 +467,11 @@ export abstract class ARowRenderer {
         }
       });
       // reset for next time
-      setTimeout(remove, ctx.cleanUpAfter || 1100);
+      currentTimer = setTimeout(remove, ctx.cleanUpAfter || 1100);
     };
 
     // next tick such that DOM will be updated
-    setTimeout(reset, 200);
-
+    currentTimer = setTimeout(reset, 200);
   }
 
   protected clearPool() {

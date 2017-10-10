@@ -15,7 +15,7 @@ export interface IAnimationContext {
 
   removePosition?(previousRowIndex: number, currentFinder: KeyFinder): number;
 
-  animate?(row: HTMLElement, currentRowIndex: number, previousRowIndex: number, phase: 'before'|'after'): void;
+  animate?(row: HTMLElement, currentRowIndex: number, previousRowIndex: number, phase: 'before'|'after'|'cleanup'): void;
 
   removeAnimate?(row: HTMLElement, currentRowIndex: number, previousRowIndex: number, phase: 'before'|'after'|'cleanup'): void;
 
