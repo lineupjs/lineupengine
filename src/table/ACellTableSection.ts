@@ -127,7 +127,8 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
 
   protected updateColumnWidths() {
     const context = this.context;
-    this.style.update(context.defaultRowHeight - context.padding, context.columns, context.column.defaultRowHeight - context.column.padding, this.tableId);
+    const func = (v: number|((v: number)=>number), arg: number) => typeof v === 'function' ? v(arg) : v;
+    this.style.update(context.defaultRowHeight - func(context.padding, -1), context.columns, context.column.defaultRowHeight - func(context.column.padding, -1), this.tableId);
   }
 
   protected recreate(ctx?: IAnimationContext) {

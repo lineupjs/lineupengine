@@ -71,7 +71,7 @@ export interface IExceptionContext {
   /**
    * padding between rows, however already included in all heights to have the precise numbers
    */
-  readonly padding: number;
+  readonly padding: (index: number)=>number;
 }
 
 /**
@@ -95,7 +95,7 @@ export function uniformContext(numberOfRows: number, rowHeight: number, rowPaddi
     totalHeight: numberOfRows * rowHeight,
     numberOfRows,
     defaultRowHeight: rowHeight,
-    padding: rowPadding
+    padding: () => rowPadding
   };
 }
 
@@ -128,19 +128,21 @@ function mostFrequentValue(values: { forEach: (callback: (height: number, index:
  * @param {number} rowPadding padding between rows
  * @return {IExceptionContext}
  */
-export function nonUniformContext(rowHeights: { forEach: (callback: (height: number, index: number) => any) => any }, defaultRowHeight: number = NaN, rowPadding: number = 0): IExceptionContext {
+export function nonUniformContext(rowHeights: { forEach: (callback: (height: number, index: number) => any) => any }, defaultRowHeight: number = NaN, rowPadding: number|((index: number)=>number) = 0): IExceptionContext {
   const exceptionsLookup = new Map<number, number>();
   const exceptions: IRowHeightException[] = [];
+
+  const padding = typeof rowPadding === 'function' ? rowPadding : () => <number>rowPadding;
 
   if (isNaN(defaultRowHeight)) {
     defaultRowHeight = mostFrequentValue(rowHeights);
   }
 
-  defaultRowHeight += rowPadding;
+  defaultRowHeight += padding(-1);
 
   let prev = -1, acc = 0, totalHeight = 0, numberOfRows = 0;
   rowHeights.forEach((height, index) => {
-    height += rowPadding;
+    height += padding(index);
     totalHeight += height;
     numberOfRows++;
     if (height === defaultRowHeight) {
@@ -154,7 +156,7 @@ export function nonUniformContext(rowHeights: { forEach: (callback: (height: num
     acc = y + height;
     exceptions.push(new RowHeightException(index, y, height));
   });
-  return {exceptionsLookup, exceptions, totalHeight, defaultRowHeight, numberOfRows, padding: rowPadding};
+  return {exceptionsLookup, exceptions, totalHeight, defaultRowHeight, numberOfRows, padding};
 }
 
 /**

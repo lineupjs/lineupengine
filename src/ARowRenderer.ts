@@ -199,7 +199,7 @@ export abstract class ARowRenderer {
 
     const {exceptionsLookup: ex, padding} = this.context;
     if (ex.has(index)) {
-      item.style.height = `${ex.get(index)! - padding}px`;
+      item.style.height = `${ex.get(index)! - padding(index)}px`;
     }
 
     return this.proxy(item, result);

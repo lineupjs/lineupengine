@@ -114,7 +114,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
 
   protected updateColumnWidths() {
     const context = this.context;
-    this.style.update(context.defaultRowHeight - context.padding, context.columns, context.column.defaultRowHeight - context.column.padding);
+    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, context.column.defaultRowHeight - context.column.padding(-1));
   }
 
   protected recreate(ctx?: IAnimationContext) {
