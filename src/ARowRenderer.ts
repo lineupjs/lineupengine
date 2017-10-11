@@ -6,7 +6,6 @@ import {ABORTED, IAbortAblePromise, isAbortAble} from './abortAble';
 import {EScrollResult, IMixin, IMixinAdapter, IMixinClass} from './mixin';
 import KeyFinder from './animation/KeyFinder';
 import {IAnimationContext, IAnimationInfo} from './animation/index';
-import {clearTimeout} from 'timers';
 
 export declare type IRowRenderContext = IExceptionContext;
 
