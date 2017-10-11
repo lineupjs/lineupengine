@@ -96,7 +96,7 @@ export default class MultiTableRowRenderer {
     let offset = 0;
     this.sections.forEach((s, i) => {
       if (i >= first && i <= last) {
-        s.show(Math.max(0, scrollLeft - offset), Math.min(clientWidth - offset, s.width), isGoingRight);
+        s.show(Math.max(0, scrollLeft - offset), Math.min(scrollLeft + clientWidth - offset, s.width), isGoingRight);
       } else {
         s.hide();
       }

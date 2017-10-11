@@ -112,8 +112,13 @@ function mostFrequentValue(values: { forEach: (callback: (height: number, index:
   if (lookup.size === 0) {
     return 20; // default value since it doesn't matter
   }
-  // sort desc take first key
-  const sorted = Array.from(lookup).sort((a, b) => b[1] - a[1]);
+  // sort desc take first key and asc by the second in case of tie, it is optimized to have exceptions for higher rows less for big rows
+  const sorted = Array.from(lookup).sort((a, b) => {
+    if (a[1] !== b[1]) {
+      return b[1] - a[1];
+    }
+    return a[0] - b[0];
+  });
   const mostFrequent = sorted[0][0];
   if (mostFrequent === 0) { // cornercase
     return sorted.length > 1 ? sorted[1][0]: 20; // all empty

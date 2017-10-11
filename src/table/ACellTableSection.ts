@@ -68,7 +68,7 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
     }
     this.header.classList.toggle('loading', value);
     this.body.classList.toggle('loading', value);
-    this.onVisibilityChanged(value);
+    this.onVisibilityChanged(!value);
   }
 
   protected onVisibilityChanged(_visible: boolean) {

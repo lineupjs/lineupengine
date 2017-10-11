@@ -298,7 +298,7 @@ export abstract class ARowRenderer {
     this.body.classList.toggle('odd', this.visible.first % 2 === 1);
 
     this.body.style.transform = `translate(0, ${firstRowPos.toFixed(0)}px)`;
-    this.body.style.height = `${(totalHeight - firstRowPos).toFixed(0)}px`;
+    this.body.style.height = `${Math.max(1,totalHeight - firstRowPos).toFixed(0)}px`;
   }
 
   /**
