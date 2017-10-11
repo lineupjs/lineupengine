@@ -1,7 +1,22 @@
+/**
+ * generic exception of a uniform space
+ */
 export interface IRowHeightException {
+  /**
+   * reference index
+   */
   readonly index: number;
+  /**
+   * height of the element
+   */
   readonly height: number;
+  /**
+   * starting y
+   */
   readonly y: number;
+  /**
+   * ending y
+   */
   readonly y2: number;
 }
 
@@ -15,6 +30,9 @@ class RowHeightException implements IRowHeightException {
   }
 }
 
+/**
+ * simliar to a map
+ */
 export interface IRowHeightExceptionLookup {
   keys(): IterableIterator<number>;
 
@@ -25,18 +43,48 @@ export interface IRowHeightExceptionLookup {
   readonly size: number;
 }
 
+/**
+ * exception context for optimized non uniform height exceptions
+ */
 export interface IExceptionContext {
+  /**
+   * height exceptions as a list
+   */
   readonly exceptions: IRowHeightException[];
+  /**
+   * lookup for the height of a given index, if not part of this map it has the default height
+   */
   readonly exceptionsLookup: IRowHeightExceptionLookup;
-  readonly totalHeight: number;
+  /**
+   * number of rows
+   */
   readonly numberOfRows: number;
+  /**
+   * default height of rows
+   */
   readonly defaultRowHeight: number;
+  /**
+   * total height
+   */
+  readonly totalHeight: number;
+
+  /**
+   * padding between rows, however already included in all heights to have the precise numbers
+   */
+  readonly padding: (index: number)=>number;
 }
 
-export function uniformContext(numberOfRows: number, rowHeight: number): IExceptionContext {
-  const arr: number[] = [];
+/**
+ * creates a uniform exception context, i.e no exceptions all rows are of the same height
+ * @param {number} numberOfRows
+ * @param {number} rowHeight
+ * @param {number} rowPadding padding between rows
+ * @return {IExceptionContext}
+ */
+export function uniformContext(numberOfRows: number, rowHeight: number, rowPadding: number = 0): IExceptionContext {
+  rowHeight += rowPadding;
   const exceptionsLookup = {
-    keys: () => arr.values(),
+    keys: () => [].values(),
     get: () => rowHeight,
     has: () => false,
     size: 0
@@ -46,11 +94,17 @@ export function uniformContext(numberOfRows: number, rowHeight: number): IExcept
     exceptionsLookup,
     totalHeight: numberOfRows * rowHeight,
     numberOfRows,
-    defaultRowHeight: rowHeight
+    defaultRowHeight: rowHeight,
+    padding: () => rowPadding
   };
 }
 
-function mostFrequequentValue(values: { forEach: (callback: (height: number, index: number) => any) => any }): number {
+/**
+ * computes the most frequent value in a given array like
+ * @param {} values
+ * @return {number}
+ */
+function mostFrequentValue(values: { forEach: (callback: (height: number, index: number) => any) => any }): number {
   const lookup = new Map<number, number>();
   values.forEach((value) => {
     lookup.set(value, (lookup.get(value) || 0) + 1);
@@ -59,19 +113,36 @@ function mostFrequequentValue(values: { forEach: (callback: (height: number, ind
     return 20; // default value since it doesn't matter
   }
   // sort desc take first key
-  return Array.from(lookup).sort((a, b) => b[1] - a[1])[0][0];
+  const sorted = Array.from(lookup).sort((a, b) => b[1] - a[1]);
+  const mostFrequent = sorted[0][0];
+  if (mostFrequent === 0) { // cornercase
+    return sorted.length > 1 ? sorted[1][0]: 20; // all empty
+  }
+  return mostFrequent;
 }
 
-export function nonUniformContext(rowHeights: { forEach: (callback: (height: number, index: number) => any) => any }, defaultRowHeight: number = NaN): IExceptionContext {
+/**
+ * creates a non uniform context based on the given array like heights
+ * @param {{forEach: ((callback: (height: number, index: number) => any) => any)}} rowHeights
+ * @param {number} defaultRowHeight if not given the most frequent value will be used
+ * @param {number} rowPadding padding between rows
+ * @return {IExceptionContext}
+ */
+export function nonUniformContext(rowHeights: { forEach: (callback: (height: number, index: number) => any) => any }, defaultRowHeight: number = NaN, rowPadding: number|((index: number)=>number) = 0): IExceptionContext {
   const exceptionsLookup = new Map<number, number>();
   const exceptions: IRowHeightException[] = [];
 
+  const padding = typeof rowPadding === 'function' ? rowPadding : () => <number>rowPadding;
+
   if (isNaN(defaultRowHeight)) {
-    defaultRowHeight = mostFrequequentValue(rowHeights);
+    defaultRowHeight = mostFrequentValue(rowHeights);
   }
+
+  defaultRowHeight += padding(-1);
 
   let prev = -1, acc = 0, totalHeight = 0, numberOfRows = 0;
   rowHeights.forEach((height, index) => {
+    height += padding(index);
     totalHeight += height;
     numberOfRows++;
     if (height === defaultRowHeight) {
@@ -85,9 +156,19 @@ export function nonUniformContext(rowHeights: { forEach: (callback: (height: num
     acc = y + height;
     exceptions.push(new RowHeightException(index, y, height));
   });
-  return {exceptionsLookup, exceptions, totalHeight, defaultRowHeight, numberOfRows};
+  return {exceptionsLookup, exceptions, totalHeight, defaultRowHeight, numberOfRows, padding};
 }
 
+/**
+ * creates a random context with the given contraints
+ * @param {number} numberOfRows
+ * @param {number} defaultRowHeight
+ * @param {number} minRowHeight
+ * @param {number} maxRowHeight
+ * @param {number} ratio around ratio percent will get a non uniform height
+ * @param {number} seed random seed
+ * @return {IExceptionContext}
+ */
 export function randomContext(numberOfRows: number, defaultRowHeight: number, minRowHeight = 2, maxRowHeight = defaultRowHeight * 10, ratio = 0.2, seed = Date.now()) {
   let actSeed = seed;
   const random = () => {
@@ -141,6 +222,12 @@ export interface IVisibleRange {
  * @return {IVisibleRange} the computed visible range
  */
 export function range(scrollTop: number, clientHeight: number, rowHeight: number, heightExceptions: IRowHeightException[], numberOfRows: number): IVisibleRange {
+  if (numberOfRows === 0) {
+    return {first: 0, last: -1, firstRowPos: 0, endPos: 0};
+  }
+  if (numberOfRows === 1) {
+    return {first: 0, last: 0, firstRowPos: 0, endPos: heightExceptions.length === 0 ? rowHeight : heightExceptions[0].y2};
+  }
   const offset = scrollTop;
   const offset2 = offset + clientHeight;
 

@@ -43,7 +43,7 @@ export default class TestRenderer extends ACellRenderer<Column<number>> {
   protected readonly _context: ICellRenderContext<Column<number>>;
 
   constructor(root: HTMLElement, id: string, numberOfRows = 1000, numberOfColumns = 20) {
-    super(root, PrefetchMixin);
+    super(root, `#${id}`, PrefetchMixin);
     root.id = id;
 
     const defaultRowHeight = 20;
@@ -55,7 +55,6 @@ export default class TestRenderer extends ACellRenderer<Column<number>> {
     this._context = Object.assign({
       columns,
       column: uniformContext(columns.length, 100),
-      htmlId: `#${id}`
     }, uniformContext(numberOfRows, defaultRowHeight));
 
   }

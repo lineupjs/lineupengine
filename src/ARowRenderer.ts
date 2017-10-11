@@ -4,6 +4,8 @@
 import {IExceptionContext, range} from './logic';
 import {ABORTED, IAbortAblePromise, isAbortAble} from './abortAble';
 import {EScrollResult, IMixin, IMixinAdapter, IMixinClass} from './mixin';
+import KeyFinder from './animation/KeyFinder';
+import {IAnimationContext, IAnimationInfo} from './animation/index';
 
 export declare type IRowRenderContext = IExceptionContext;
 
@@ -17,13 +19,16 @@ export abstract class ARowRenderer {
   protected readonly visible = {
     first: 0,
     forcedFirst: 0,
-    last: 0,
-    forcedLast: 0
+    last: -1,
+    forcedLast: -1
   };
   protected visibleFirstRowPos = 0;
 
   private readonly adapter: IMixinAdapter;
   private readonly mixins: IMixin[];
+  private scrollListener: ()=>void;
+
+  private abortAnimation: ()=>void = () => undefined;
 
   constructor(protected readonly body: HTMLElement, ...mixinClasses: IMixinClass[]) {
     this.adapter = this.createAdapter();
@@ -94,7 +99,7 @@ export abstract class ARowRenderer {
 
     //sync scrolling of header and body
     let oldTop = scroller.scrollTop;
-    scroller.addEventListener('scroll', () => {
+    this.scrollListener = () => {
       const top = scroller.scrollTop;
       if (oldTop === top) {
         return;
@@ -102,8 +107,14 @@ export abstract class ARowRenderer {
       const isGoingDown = top > oldTop;
       oldTop = top;
       this.onScrolledVertically(top, scroller.clientHeight, isGoingDown);
-    });
+    };
+    scroller.addEventListener('scroll', this.scrollListener);
     this.recreate();
+  }
+
+  destroy() {
+    this.bodyScroller.removeEventListener('scroll', this.scrollListener);
+    this.body.remove();
   }
 
   private static cleanUp(item: HTMLElement) {
@@ -185,9 +196,9 @@ export abstract class ARowRenderer {
   private create(index: number) {
     const {item, result} = this.select(index);
 
-    const ex = this.context.exceptionsLookup;
+    const {exceptionsLookup: ex, padding} = this.context;
     if (ex.has(index)) {
-      item.style.height = `${ex.get(index)}px`;
+      item.style.height = `${ex.get(index)! - padding(index)}px`;
     }
 
     return this.proxy(item, result);
@@ -282,12 +293,9 @@ export abstract class ARowRenderer {
   private updateOffset(firstRowPos: number) {
     const {totalHeight} = this.context;
     this.visibleFirstRowPos = firstRowPos;
-    if (this.visible.first % 2 === 1) {
-      //odd start patch for correct background
-      this.body.classList.add('odd');
-    } else {
-      this.body.classList.remove('odd');
-    }
+
+    //odd start patch for correct background
+    this.body.classList.toggle('odd', this.visible.first % 2 === 1);
 
     this.body.style.transform = `translate(0, ${firstRowPos.toFixed(0)}px)`;
     this.body.style.height = `${(totalHeight - firstRowPos).toFixed(0)}px`;
@@ -297,7 +305,15 @@ export abstract class ARowRenderer {
    * removes all rows and recreates the table
    * @returns {void} nothing
    */
-  protected recreate() {
+  protected recreate(ctx?: IAnimationContext) {
+    this.abortAnimation();
+    if (ctx) {
+      return this.recreateAnimated(ctx);
+    }
+    return this.recreatePure();
+  }
+
+  private recreatePure() {
     const context = this.context;
 
     const scroller = this.bodyScroller;
@@ -320,6 +336,141 @@ export abstract class ARowRenderer {
     }
     this.addAtBottom(first, last);
     this.updateOffset(firstRowPos);
+  }
+
+
+  private recreateAnimated(ctx: IAnimationContext) {
+    const lookup = new Map<string, {n: HTMLElement, pos: number, i: number}>();
+    const old = Object.assign({}, this.visible);
+    const prev = new KeyFinder(ctx.previous, ctx.previousKey);
+    const cur = new KeyFinder(this.context, ctx.currentKey);
+    const scroller = this.bodyScroller;
+    const next = range(scroller.scrollTop, scroller.clientHeight, cur.context.defaultRowHeight, cur.context.exceptions, cur.context.numberOfRows);
+
+    {
+      const rows = <HTMLElement[]>Array.from(this.body.children);
+      prev.positions(old.first, old.last, this.visibleFirstRowPos, (i, key, pos) => {
+        lookup.set(key, {n: rows[i], pos, i});
+      });
+      this.body.innerHTML = ``;
+    }
+
+    this.visible.first = this.visible.forcedFirst = next.first;
+    this.visible.last = this.visible.forcedLast = next.last;
+
+    const fragment = this.fragment;
+    const animatedRows: IAnimationInfo[] = [];
+    cur.positions(next.first, next.last, next.firstRowPos, (i, key, pos) => {
+      let node: HTMLElement;
+      let oldPos: number;
+      let oldIndex = -1;
+      if (lookup.has(key)) {
+        // still visible
+        const item = lookup.get(key)!;
+        lookup.delete(key);
+        node = this.proxy(item.n, this.updateRow(item.n, i));
+        oldPos = item.pos;
+        oldIndex = item.i;
+      } else {
+        // need a new row
+        const old = prev.posByKey(key);
+        oldPos = old.pos;
+        if (oldPos < 0) {
+          // was not visible before
+          oldPos = ctx.appearPosition ? ctx.appearPosition(i, prev) : cur.context.totalHeight;
+        }
+        oldIndex = old.index;
+        node = this.create(i);
+      }
+      //locate at target but shift to the old position
+      node.style.transform = `translate(0, ${oldPos - pos}px)`;
+      if (ctx.animate) {
+        ctx.animate(node, i, oldIndex, 'before');
+      }
+      fragment.appendChild(node);
+      animatedRows.push({node, currentIndex: i, previousIndex: oldIndex, target: -1});
+    });
+
+    const removeAfterwards: IAnimationInfo[] = [];
+    let addedPos = next.endPos;
+    // items that are going to be removed
+    lookup.forEach((item, key) => {
+      // calculate their next position
+      const r = cur.posByKey(key);
+      let nextPos =r.pos;
+      const node = item.n;
+      if (nextPos < 0) {
+        nextPos = ctx.removePosition? ctx.removePosition(item.i, cur) : cur.context.totalHeight;
+      }
+      // located at addedPos
+      // should end up at nextPos
+      // was previously at item.pos
+      node.style.transform = `translate(0, ${item.pos - addedPos}px)`;
+      node.classList.add('le-row-removed');
+      if (ctx.removeAnimate) {
+        ctx.removeAnimate(node, r.index, item.i, 'before');
+      }
+      fragment.appendChild(node);
+      removeAfterwards.push({node, target: (nextPos - addedPos), previousIndex: item.i, currentIndex: r.index});
+      addedPos += prev.heightOf(item.i);
+    });
+
+    // add to DOM
+    this.body.classList.add('le-row-animation');
+    this.body.appendChild(fragment);
+    this.updateOffset(next.firstRowPos);
+
+    let currentTimer: any = -1;
+
+    const remove = () => {
+      this.body.classList.remove('le-row-animation');
+      animatedRows.forEach(({node, currentIndex, previousIndex}) => {
+        node.style.transform = null;
+        if (ctx.animate) {
+          ctx.animate(node, currentIndex, previousIndex, 'cleanup');
+        }
+      });
+      removeAfterwards.forEach(({node, currentIndex, previousIndex}) => {
+        node.remove();
+        node.style.transform = null;
+        node.classList.remove('le-row-removed');
+        if (ctx.removeAnimate) {
+          ctx.removeAnimate(node, currentIndex, previousIndex, 'cleanup');
+        }
+        this.recycle(node);
+      });
+      currentTimer = -1;
+    };
+
+    this.abortAnimation = () => {
+      if (currentTimer <= 0) {
+        return;
+      }
+      // abort by removing
+      clearTimeout(currentTimer);
+      remove();
+    };
+
+    const reset = () => {
+      // trigger animation
+      animatedRows.forEach(({node, currentIndex, previousIndex}) => {
+        node.style.transform = null;
+        if (ctx.animate) {
+          ctx.animate(node, currentIndex, previousIndex, 'after');
+        }
+      });
+      removeAfterwards.forEach(({node, target, currentIndex, previousIndex}) => {
+        node.style.transform = `translate(0,${target}px)`;
+        if (ctx.removeAnimate) {
+          ctx.removeAnimate(node, currentIndex, previousIndex, 'after');
+        }
+      });
+      // reset for next time
+      currentTimer = setTimeout(remove, ctx.cleanUpAfter || 1100);
+    };
+
+    // next tick such that DOM will be updated
+    currentTimer = setTimeout(reset, 200);
   }
 
   protected clearPool() {
