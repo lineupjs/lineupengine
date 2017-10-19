@@ -7,7 +7,6 @@ import QuadTreeNode, {
   TOP_LEFT,
   TOP_RIGHT
 } from './internal/QuadTreeNode';
-import './style.scss';
 
 const template = `<header></header>
 <aside></aside>
