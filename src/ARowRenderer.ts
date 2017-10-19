@@ -440,6 +440,7 @@ export abstract class ARowRenderer {
         this.recycle(node);
       });
       currentTimer = -1;
+      this.abortAnimation = () => undefined;
     };
 
     this.abortAnimation = () => {
@@ -448,6 +449,7 @@ export abstract class ARowRenderer {
       }
       // abort by removing
       clearTimeout(currentTimer);
+      currentTimer = -1;
       remove();
     };
 
