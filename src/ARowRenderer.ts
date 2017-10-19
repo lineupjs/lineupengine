@@ -368,6 +368,11 @@ export abstract class ARowRenderer {
         // still visible
         const item = lookup.get(key)!;
         lookup.delete(key);
+        if (cur.context.exceptionsLookup.has(i)) {
+          item.n.style.height = `${cur.context.exceptionsLookup.get(i)! - cur.context.padding(i)}px`;
+        } else {
+          item.n.style.height = null;
+        }
         node = this.proxy(item.n, this.updateRow(item.n, i));
         oldPos = item.pos;
         oldIndex = item.i;
