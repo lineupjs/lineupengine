@@ -4,8 +4,13 @@
 import {IExceptionContext} from '../logic';
 import KeyFinder from './KeyFinder';
 
+export interface IPhase {
+  readonly name: string;
+  readonly delay: number;
+}
+
 export interface IAnimationContext {
-  previous: IExceptionContext;
+  readonly previous: IExceptionContext;
 
   previousKey(previousRowIndex: number): string;
 
@@ -15,17 +20,36 @@ export interface IAnimationContext {
 
   removePosition?(previousRowIndex: number, currentFinder: KeyFinder): number;
 
-  animate?(row: HTMLElement, currentRowIndex: number, previousRowIndex: number, phase: 'before'|'after'|'cleanup'): void;
+  animate?(row: HTMLElement, currentRowIndex: number, previousRowIndex: number, phase: IPhase): void;
 
-  removeAnimate?(row: HTMLElement, currentRowIndex: number, previousRowIndex: number, phase: 'before'|'after'|'cleanup'): void;
+  removeAnimate?(row: HTMLElement, currentRowIndex: number, previousRowIndex: number, phase: IPhase): void;
 
-  cleanUpAfter?: number;
+  phases?: IPhase[];
 }
 
+const BEFORE_PHASE: IPhase = {
+  name: 'before',
+  delay: 0
+};
+
+const phases = [
+  {name: 'before', delay: 0},
+  {name: 'after', delay: 200},
+  {name: 'cleanup', delay: 3100}
+];
 
 export interface IAnimationInfo {
+  mode: 'update'|'create'|'remove';
   node: HTMLElement;
-  target: number;
-  currentIndex: number;
-  previousIndex: number;
+
+  previous: {
+    index: number|-1;
+    y: number|null;
+    height: number|null;
+  },
+  current: {
+    index: number|-1;
+    y: number|null;
+    height: number|null;
+  }
 }
