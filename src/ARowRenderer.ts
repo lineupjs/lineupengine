@@ -489,7 +489,7 @@ export abstract class ARowRenderer {
       this.body.classList.remove('le-row-animation');
       // clean up
       animation.forEach(({node, mode}) => {
-        if (mode === 'remove') {
+        if (mode.startsWith('remove')) {
           node.remove();
           node.style.transform = null;
           this.recycle(node);
