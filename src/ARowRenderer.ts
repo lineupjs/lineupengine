@@ -26,9 +26,9 @@ export abstract class ARowRenderer {
 
   private readonly adapter: IMixinAdapter;
   private readonly mixins: IMixin[];
-  private scrollListener: ()=>void;
+  private scrollListener: () => void;
 
-  private abortAnimation: ()=>void = () => undefined;
+  private abortAnimation: () => void = () => undefined;
 
   constructor(protected readonly body: HTMLElement, ...mixinClasses: IMixinClass[]) {
     this.adapter = this.createAdapter();
@@ -298,7 +298,7 @@ export abstract class ARowRenderer {
     this.body.classList.toggle('odd', this.visible.first % 2 === 1);
 
     this.body.style.transform = `translate(0, ${firstRowPos.toFixed(0)}px)`;
-    this.body.style.height = `${Math.max(1,totalHeight - firstRowPos).toFixed(0)}px`;
+    this.body.style.height = `${Math.max(1, totalHeight - firstRowPos).toFixed(0)}px`;
   }
 
   /**
@@ -340,7 +340,7 @@ export abstract class ARowRenderer {
 
 
   private recreateAnimated(ctx: IAnimationContext) {
-    const lookup = new Map<string, {n: HTMLElement, pos: number, i: number}>();
+    const lookup = new Map<string, { n: HTMLElement, pos: number, i: number }>();
     const old = Object.assign({}, this.visible);
     const prev = new KeyFinder(ctx.previous, ctx.previousKey);
     const cur = new KeyFinder(this.context, ctx.currentKey);
@@ -411,7 +411,7 @@ export abstract class ARowRenderer {
           },
           nodeY: pos,
           current: {
-           index: i,
+            index: i,
             y: pos,
             height: cur.exceptionHeightOf(i)
           }
@@ -472,7 +472,7 @@ export abstract class ARowRenderer {
     let actPhase = 0;
 
     const executePhase = (phase: IPhase) => {
-      console.debug('dummy log for forcing dom update', animation[0]!.node.offsetTop);
+      console.info('dummy log for forcing dom update', animation[0]!.node.offsetTop);
       animation.forEach((anim) => phase.apply(anim, previousFinder, currentFinder));
     };
 
@@ -496,11 +496,12 @@ export abstract class ARowRenderer {
       });
       // clean up
       animation.forEach(({node, mode}) => {
-        if (mode.startsWith('remove')) {
-          node.remove();
-          node.style.transform = null;
-          this.recycle(node);
+        if (!mode.startsWith('remove')) {
+          return;
         }
+        node.remove();
+        node.style.transform = null;
+        this.recycle(node);
       });
       this.abortAnimation = () => undefined;
       currentTimer = -1;
@@ -520,7 +521,7 @@ export abstract class ARowRenderer {
     };
 
     // execute all phases having a delay of zero
-    while(phases[actPhase].delay === 0) {
+    while (phases[actPhase].delay === 0) {
       executePhase(phases[actPhase++]);
     }
     // after the initial ones

@@ -5,23 +5,23 @@ import {IExceptionContext} from '../logic';
 import KeyFinder from './KeyFinder';
 
 export interface IAnimationItem {
-  mode: 'update'|'create'|'create_add'|'remove'|'remove_delete';
+  mode: 'update' | 'create' | 'create_add' | 'remove' | 'remove_delete';
   node: HTMLElement;
   key: string;
 
   previous: {
-    index: number|-1;
+    index: number | -1;
     y: number;
-    height: number|null;
+    height: number | null;
   },
   /**
    * position of the added node
    */
   nodeY: number;
   current: {
-    index: number|-1;
+    index: number | -1;
     y: number;
-    height: number|null;
+    height: number | null;
   }
 }
 
