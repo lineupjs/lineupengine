@@ -5,7 +5,7 @@ import {IExceptionContext} from '../logic';
 import KeyFinder from './KeyFinder';
 
 export interface IAnimationItem {
-  mode: 'update'|'create'|'create_added'|'remove'|'remove_deleted';
+  mode: 'update'|'create'|'create_add'|'remove'|'remove_delete';
   node: HTMLElement;
   key: string;
 
@@ -47,7 +47,7 @@ export const defaultPhases = [
     apply(item: Readonly<IAnimationItem>) {
       item.node.dataset.animate = item.mode;
       item.node.style.transform = `translate(0, ${item.previous.y - item.nodeY}px)`;
-      item.node.style.opacity = item.mode === 'create_added' ? '0' : null;
+      item.node.style.opacity = item.mode === 'create_add' ? '0' : null;
     }
   },
   {
@@ -56,7 +56,7 @@ export const defaultPhases = [
       // null for added/update sinc alredy at th eright position
       item.node.style.transform = item.mode.startsWith('remove') ? `translate(0, ${item.current.y - item.nodeY}px)` : null;
       item.node.style.height = item.current.height !== null ? `${item.current.height}px` : null;
-      item.node.style.opacity = item.mode === 'remove_deleted' ? '0' : null;
+      item.node.style.opacity = item.mode === 'remove_delete' ? '0' : null;
     }
   },
   {

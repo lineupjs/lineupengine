@@ -1,4 +1,4 @@
-@import "./vars";
+@import './vars';
 
 .loading {
   background: $engine_loading_static_image center contain repeat no-repeat;
@@ -21,6 +21,42 @@
   }
 }
 
-article.le-row-animation > * {
-  transition: $engine_row_animation;
+
+$engine_row_animation: all 3s linear !default;
+$engine_row_delete_animation: all 3s linear !default;
+$engine_row_add_animation: all 3s linear !default;
+
+article.le-row-animation {
+  > * {
+    transition: all 2s linear;
+  }
+
+  /**
+  just deleted rows
+   */
+  &.le-delete-animation > * {
+    transition: all 2s linear 0.5s;
+
+    &[data-animation$=delete] {
+      transition: opacity 0.5s linear;
+    }
+  }
+
+  /**
+  just added rows
+   */
+  &.le-add-animation > * {
+    &[data-animation$=add] {
+      transition: opacity 0.5s linear 2s;
+    }
+  }
+
+  /**
+  added and removed
+   */
+  &.le-delete-animation.le-add-animation > * {
+    &[data-animation$=add] {
+      transition: opacity 0.5s linear 2.5s;
+    }
+  }
 }

@@ -1,8 +1,9 @@
 $engine_selector: '.lineup-engine' !default;
 $engine_multi_selector: '.lineup-multi-engine' !default;
-$engine_assets: "./assets" !default;
+$engine_assets: './assets' !default;
 $engine_loading_image: url('#{$engine_assets}/loading.svg') !default;
 $engine_loading_static_image: url('#{$engine_assets}/loading_s.svg') !default;
 $engine_row_outline_color: #ffa500 !default;
 $engine_row_outline_width: 2px !default;
-$engine_row_animation: all 3s linear !default;
+
+

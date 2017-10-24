@@ -350,7 +350,10 @@ export abstract class ARowRenderer {
       const rows = <HTMLElement[]>Array.from(this.body.children);
       //store the current rows in a lookup and clear
       prev.positions(old.first, old.last, this.visibleFirstRowPos, (i, key, pos) => {
-        lookup.set(key, {n: rows[i], pos, i});
+        const n = rows[i];
+        if (n) { // shouldn't happen that it is not there
+          lookup.set(key, {n, pos, i});
+        }
       });
       this.body.innerHTML = ``;
     }
@@ -391,14 +394,14 @@ export abstract class ARowRenderer {
       } else {
         // need a new row
         const old = prev.posByKey(key);
-        // maybe not visible  before
-        oldPos = old.pos >= 0 ? old.pos : Math.max(cur.context.totalHeight, prev.context.totalHeight);
+        // maybe not visible  before so keep in place
+        oldPos = old.pos >= 0 ? old.pos : pos;
         node = this.create(i);
 
         animation.push({
           node,
           key,
-          mode: old.index < 0 ? 'create_added' : 'create',
+          mode: old.index < 0 ? 'create_add' : 'create',
           previous: {
             index: old.index,
             y: oldPos,
@@ -423,8 +426,8 @@ export abstract class ARowRenderer {
       // calculate their next position
       const r = cur.posByKey(key);
 
-      // maybe not visible anymore
-      const nextPos = r.pos >= 0 ? r.pos : Math.max(cur.context.totalHeight, prev.context.totalHeight);
+      // maybe not visible anymore, keep in place
+      const nextPos = r.pos >= 0 ? r.pos : item.pos;
       const node = item.n;
       // located at addedPos
       // should end up at nextPos
@@ -435,7 +438,7 @@ export abstract class ARowRenderer {
       animation.push({
         node: item.n,
         key,
-        mode: r.index < 0 ? 'remove_deleted' : 'remove',
+        mode: r.index < 0 ? 'remove_delete' : 'remove',
         previous: {
           index: item.i,
           y: item.pos,
@@ -452,7 +455,6 @@ export abstract class ARowRenderer {
     });
 
     // add to DOM
-    this.body.classList.add('le-row-animation');
     this.body.appendChild(fragment);
     this.updateOffset(next.firstRowPos);
 
@@ -484,7 +486,12 @@ export abstract class ARowRenderer {
       }
 
       // last one
-      this.body.classList.remove('le-row-animation');
+      const body = this.body.classList;
+      Array.from(body).forEach((v) => {
+        if (v.startsWith('le-') && v.endsWith('-animation')) {
+          body.remove(v);
+        }
+      });
       // clean up
       animation.forEach(({node, mode}) => {
         if (mode.startsWith('remove')) {
@@ -512,6 +519,14 @@ export abstract class ARowRenderer {
     // execute all phases having a delay of zero
     while(phases[actPhase].delay === 0) {
       executePhase(phases[actPhase++]);
+    }
+    // after the initial ones
+    this.body.classList.add('le-row-animation');
+    if (animation.some((e) => e.mode === 'create_add')) {
+      this.body.classList.add('le-add-animation');
+    }
+    if (animation.some((e) => e.mode === 'remove_delete')) {
+      this.body.classList.add('le-remove-animation');
     }
 
     // next tick such that DOM will be updated
