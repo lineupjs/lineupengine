@@ -21,24 +21,19 @@
   }
 }
 
-
-$engine_row_animation: all 3s linear !default;
-$engine_row_delete_animation: all 3s linear !default;
-$engine_row_add_animation: all 3s linear !default;
-
 article.le-row-animation {
   > * {
-    transition: all 2s linear;
+    transition: $engine_row_update_animation;
   }
 
   /**
   just deleted rows
    */
   &.le-delete-animation > * {
-    transition: all 2s linear 0.5s;
+    transition: $engine_row_update_delete_animation;
 
     &[data-animation$=delete] {
-      transition: opacity 0.5s linear;
+      transition: $engine_row_delete_animation;
     }
   }
 
@@ -47,7 +42,7 @@ article.le-row-animation {
    */
   &.le-add-animation > * {
     &[data-animation$=add] {
-      transition: opacity 0.5s linear 2s;
+      transition: $engine_row_add_animation;
     }
   }
 
@@ -56,7 +51,7 @@ article.le-row-animation {
    */
   &.le-delete-animation.le-add-animation > * {
     &[data-animation$=add] {
-      transition: opacity 0.5s linear 2.5s;
+      transition: $engine_row_add_delete_animation;
     }
   }
 }

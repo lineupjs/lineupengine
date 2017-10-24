@@ -7,3 +7,8 @@ $engine_row_outline_color: #ffa500 !default;
 $engine_row_outline_width: 2px !default;
 
 
+$engine_row_update_animation: all 2s linear !default;
+$engine_row_update_delete_animation: all 2s linear 0.5s !default;
+$engine_row_delete_animation: opacity 0.5s linear !default;
+$engine_row_add_animation: opacity 0.5s linear 2s !default;
+$engine_row_add_delete_animation: opacity 0.5s linear 2.5s !default;
