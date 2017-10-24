@@ -75,6 +75,11 @@ export default class KeyFinder {
     return  lookup.has(index) ? lookup.get(index)! : this.context.defaultRowHeight;
   }
 
+  exceptionHeightOf(index: number) {
+    const lookup = this.context.exceptionsLookup;
+    return  lookup.has(index) ? lookup.get(index)! : null;
+  }
+
   private fillCacheTillKey(target: string) {
     let pos = 0;
     for(let i = 0; i < this.context.numberOfRows; ++i) {

@@ -5,11 +5,9 @@ import {IExceptionContext, range} from './logic';
 import {ABORTED, IAbortAblePromise, isAbortAble} from './abortAble';
 import {EScrollResult, IMixin, IMixinAdapter, IMixinClass} from './mixin';
 import KeyFinder from './animation/KeyFinder';
-import {IAnimationContext, IAnimationInfo, IPhase} from './animation/index';
+import {defaultPhases, IAnimationContext, IAnimationItem, IPhase} from './animation';
 
 export declare type IRowRenderContext = IExceptionContext;
-
-const DEFAULT_CLEANUP_ANIMATION = 3100;
 
 export abstract class ARowRenderer {
   private readonly pool: HTMLElement[] = [];
@@ -361,12 +359,11 @@ export abstract class ARowRenderer {
     this.visible.last = this.visible.forcedLast = next.last;
 
     const fragment = this.fragment;
-    const animation: IAnimationInfo[] = [];
+    const animation: IAnimationItem[] = [];
 
     cur.positions(next.first, next.last, next.firstRowPos, (i, key, pos) => {
       let node: HTMLElement;
       let oldPos: number;
-      let oldIndex = -1;
       if (lookup.has(key)) {
         // still visible
         const item = lookup.get(key)!;
@@ -374,45 +371,51 @@ export abstract class ARowRenderer {
 
         // update height
         oldPos = item.pos;
-        oldIndex = item.i;
-        const sourceHeight = prev.heightOf(oldIndex);
-        const targetHeight = cur.heightOf(i);
         node = this.proxy(item.n, this.updateRow(item.n, i));
+        animation.push({
+          node,
+          key,
+          mode: 'update',
+          previous: {
+            index: item.i,
+            y: item.pos,
+            height: prev.exceptionHeightOf(item.i)
+          },
+          nodeY: pos,
+          current: {
+            index: i,
+            y: pos,
+            height: cur.exceptionHeightOf(i)
+          }
+        });
       } else {
         // need a new row
         const old = prev.posByKey(key);
-        oldPos = old.pos;
-        oldIndex = old.index;
-        if (oldPos < 0) {
-          // was not visible before
-          oldPos = ctx.appearPosition ? ctx.appearPosition(i, prev) : cur.context.totalHeight;
-        }
+        // maybe not visible  before
+        oldPos = old.pos >= 0 ? old.pos : cur.context.totalHeight;
         node = this.create(i);
 
-        const sourceHeight = prev.heightOf(oldIndex);
-        const targetHeight = cur.heightOf(i);
+        animation.push({
+          node,
+          key,
+          mode: 'create',
+          previous: {
+            index: old.index,
+            y: oldPos,
+            height: old.index < 0 ? null : prev.exceptionHeightOf(old.index)
+          },
+          nodeY: pos,
+          current: {
+           index: i,
+            y: pos,
+            height: cur.exceptionHeightOf(i)
+          }
+        });
       }
 
       fragment.appendChild(node);
       node.style.transform = `translate(0, ${oldPos - pos}px)`;
-
-      if (ctx.animate) {
-        ctx.animate(node, i, oldIndex, 'before');
-      }
-      animatedRows.push({node, currentIndex: i, previousIndex: oldIndex, target: -1});
     });
-
-    // before
-    {
-      //locate at target but shift to the old position
-
-      node.style.height = targetHeight;
-    }
-    // target
-    {
-      node.style.transform = `translate(0, ${oldPos - pos}px)`;
-      node.style.height = targetHeight;
-    }
 
     let addedPos = next.endPos;
     // items that are going to be removed
@@ -423,17 +426,30 @@ export abstract class ARowRenderer {
       const node = item.n;
       if (nextPos < 0) {
         // not visible anymore
-        nextPos = ctx.removePosition? ctx.removePosition(item.i, cur) : cur.context.totalHeight;
+        nextPos = cur.context.totalHeight;
       }
       // located at addedPos
       // should end up at nextPos
       // was previously at item.pos
       node.style.transform = `translate(0, ${item.pos - addedPos}px)`;
-      if (ctx.removeAnimate) {
-        ctx.removeAnimate(node, r.index, item.i, 'before');
-      }
       fragment.appendChild(node);
-      removeAfterwards.push({node, targetPosition: (nextPos - addedPos), previousIndex: item.i, currentIndex: r.index});
+
+      animation.push({
+        node: item.n,
+        key,
+        mode: 'remove',
+        previous: {
+          index: item.i,
+          y: item.pos,
+          height: prev.exceptionHeightOf(item.i)
+        },
+        nodeY: addedPos,
+        current: {
+          index: r.index,
+          y: nextPos,
+          height: r.index < 0 ? null : cur.exceptionHeightOf(r.index)
+        }
+      });
       addedPos += prev.heightOf(item.i);
     });
 
@@ -442,14 +458,15 @@ export abstract class ARowRenderer {
     this.body.appendChild(fragment);
     this.updateOffset(next.firstRowPos);
 
+    this.animate(animation, ctx.phases || defaultPhases, prev, cur);
   }
 
-  private animate(animation: IAnimationInfo[], phases: IPhase[]) {
+  private animate(animation: IAnimationItem[], phases: IPhase[], previousFinder: KeyFinder, currentFinder: KeyFinder) {
     let currentTimer: any = -1;
     let actPhase = 0;
 
     const executePhase = (phase: IPhase) => {
-      // animation.forEach((anim) => )
+      animation.forEach((anim) => phase.apply(anim, previousFinder, currentFinder));
     };
 
     const run = () => {
@@ -489,6 +506,7 @@ export abstract class ARowRenderer {
       run();
     };
 
+    // execute all phases having a delay of zero
     while(phases[actPhase].delay === 0) {
       executePhase(phases[actPhase++]);
     }
