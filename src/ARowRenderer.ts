@@ -392,7 +392,7 @@ export abstract class ARowRenderer {
         // need a new row
         const old = prev.posByKey(key);
         // maybe not visible  before
-        oldPos = old.pos >= 0 ? old.pos : cur.context.totalHeight;
+        oldPos = old.pos >= 0 ? old.pos : Math.max(cur.context.totalHeight, prev.context.totalHeight);
         node = this.create(i);
 
         animation.push({
@@ -422,12 +422,10 @@ export abstract class ARowRenderer {
     lookup.forEach((item, key) => {
       // calculate their next position
       const r = cur.posByKey(key);
-      let nextPos = r.pos;
+
+      // maybe not visible anymore
+      const nextPos = r.pos >= 0 ? r.pos : Math.max(cur.context.totalHeight, prev.context.totalHeight);
       const node = item.n;
-      if (nextPos < 0) {
-        // not visible anymore
-        nextPos = cur.context.totalHeight;
-      }
       // located at addedPos
       // should end up at nextPos
       // was previously at item.pos
