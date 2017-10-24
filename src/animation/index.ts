@@ -13,7 +13,7 @@ export interface IAnimationItem {
     index: number | -1;
     y: number;
     height: number | null;
-  },
+  };
   /**
    * position of the added node
    */
@@ -22,7 +22,7 @@ export interface IAnimationItem {
     index: number | -1;
     y: number;
     height: number | null;
-  }
+  };
 }
 
 export interface IPhase {

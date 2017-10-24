@@ -472,7 +472,8 @@ export abstract class ARowRenderer {
     let actPhase = 0;
 
     const executePhase = (phase: IPhase) => {
-      console.info('dummy log for forcing dom update', animation[0]!.node.offsetTop);
+      //dummy log for forcing dom update
+      console.assert(animation[0]!.node.offsetTop >= 0, 'dummy log for forcing dom update');
       animation.forEach((anim) => phase.apply(anim, previousFinder, currentFinder));
     };
 
