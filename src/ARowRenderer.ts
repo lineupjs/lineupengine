@@ -398,7 +398,7 @@ export abstract class ARowRenderer {
         animation.push({
           node,
           key,
-          mode: 'create',
+          mode: old.index < 0 ? 'create_added' : 'create',
           previous: {
             index: old.index,
             y: oldPos,
@@ -437,7 +437,7 @@ export abstract class ARowRenderer {
       animation.push({
         node: item.n,
         key,
-        mode: 'remove',
+        mode: r.index < 0 ? 'remove_deleted' : 'remove',
         previous: {
           index: item.i,
           y: item.pos,
@@ -462,10 +462,15 @@ export abstract class ARowRenderer {
   }
 
   private animate(animation: IAnimationItem[], phases: IPhase[], previousFinder: KeyFinder, currentFinder: KeyFinder) {
+    if (animation.length <= 0) {
+      return;
+    }
+
     let currentTimer: any = -1;
     let actPhase = 0;
 
     const executePhase = (phase: IPhase) => {
+      console.debug('dummy log for forcing dom update', animation[0]!.node.offsetTop);
       animation.forEach((anim) => phase.apply(anim, previousFinder, currentFinder));
     };
 
