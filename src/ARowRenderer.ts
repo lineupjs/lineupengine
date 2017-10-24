@@ -353,6 +353,8 @@ export abstract class ARowRenderer {
         const n = rows[i];
         if (n) { // shouldn't happen that it is not there
           lookup.set(key, {n, pos, i});
+        } else {
+          console.error(i, key, pos, rows);
         }
       });
       this.body.innerHTML = ``;
@@ -508,6 +510,7 @@ export abstract class ARowRenderer {
       if (currentTimer <= 0) {
         return;
       }
+      console.log('abort animation');
       // abort by removing
       clearTimeout(currentTimer);
       currentTimer = -1;
@@ -526,7 +529,7 @@ export abstract class ARowRenderer {
       this.body.classList.add('le-add-animation');
     }
     if (animation.some((e) => e.mode === 'remove_delete')) {
-      this.body.classList.add('le-remove-animation');
+      this.body.classList.add('le-delete-animation');
     }
 
     // next tick such that DOM will be updated

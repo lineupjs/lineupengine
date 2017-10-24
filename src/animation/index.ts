@@ -45,9 +45,9 @@ export const defaultPhases = [
   {
     delay: 0, // before
     apply(item: Readonly<IAnimationItem>) {
-      item.node.dataset.animate = item.mode;
+      item.node.dataset.animation = item.mode;
       item.node.style.transform = `translate(0, ${item.previous.y - item.nodeY}px)`;
-      item.node.style.opacity = item.mode === 'create_add' ? '0' : null;
+      item.node.style.opacity = item.mode === 'create_add' ? '0' : (item.mode === 'remove_delete' ? '1' : null);
     }
   },
   {
@@ -56,15 +56,15 @@ export const defaultPhases = [
       // null for added/update sinc alredy at th eright position
       item.node.style.transform = item.mode.startsWith('remove') ? `translate(0, ${item.current.y - item.nodeY}px)` : null;
       item.node.style.height = item.current.height !== null ? `${item.current.height}px` : null;
-      item.node.style.opacity = item.mode === 'remove_delete' ? '0' : null;
+      item.node.style.opacity = item.mode === 'create_add' ? '1' : (item.mode === 'remove_delete' ? '0' : null);
     }
   },
   {
     delay: 3100, // cleanup
     apply(item: Readonly<IAnimationItem>) {
-      delete item.node.dataset.animate;
-      item.node.style.opacity = null;
-      item.node.style.transform = null;
+      delete item.node.dataset.animation;
+      delete item.node.style.opacity;
+      delete item.node.style.transform;
     }
   }
 ];

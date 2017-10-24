@@ -11,6 +11,7 @@ export default class KeyFinder {
   constructor(public readonly context: IExceptionContext, public readonly key: (rowIndex: number)=>string) {
     this.context.exceptions.forEach((e) => {
       this.cache[e.index] = e.y;
+      this.key2index.set(key(e.index), e.index);
     });
   }
 
