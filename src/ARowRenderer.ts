@@ -5,7 +5,7 @@ import {IExceptionContext, range} from './logic';
 import {ABORTED, IAbortAblePromise, isAbortAble} from './abortAble';
 import {EScrollResult, IMixin, IMixinAdapter, IMixinClass} from './mixin';
 import KeyFinder from './animation/KeyFinder';
-import {defaultPhases, IAnimationContext, IAnimationItem, IPhase} from './animation';
+import {defaultPhases, IAnimationContext, IAnimationItem, IPhase, EAnimationMode} from './animation';
 
 export declare type IRowRenderContext = IExceptionContext;
 
@@ -341,15 +341,15 @@ export abstract class ARowRenderer {
 
   private recreateAnimated(ctx: IAnimationContext) {
     const lookup = new Map<string, { n: HTMLElement, pos: number, i: number }>();
-    const old = Object.assign({}, this.visible);
     const prev = new KeyFinder(ctx.previous, ctx.previousKey);
     const cur = new KeyFinder(this.context, ctx.currentKey);
     const next = range(this.bodyScroller.scrollTop, this.bodyScroller.clientHeight, cur.context.defaultRowHeight, cur.context.exceptions, cur.context.numberOfRows);
 
     {
       const rows = <HTMLElement[]>Array.from(this.body.children);
+      const old = Object.assign({}, this.visible);
       //store the current rows in a lookup and clear
-      prev.positions(old.first, old.last, this.visibleFirstRowPos, (i, key, pos) => {
+      prev.positions(old.first, Math.min(old.last, old.first + rows.length), this.visibleFirstRowPos, (i, key, pos) => {
         const n = rows[i];
         if (n) { // shouldn't happen that it is not there
           lookup.set(key, {n, pos, i});
@@ -380,7 +380,7 @@ export abstract class ARowRenderer {
         animation.push({
           node,
           key,
-          mode: 'update',
+          mode: EAnimationMode.UPDATE,
           previous: {
             index: item.i,
             y: item.pos,
@@ -403,7 +403,7 @@ export abstract class ARowRenderer {
         animation.push({
           node,
           key,
-          mode: old.index < 0 ? 'create_add' : 'create',
+          mode: old.index < 0 ? EAnimationMode.SHOW : EAnimationMode.UPDATE_CREATE,
           previous: {
             index: old.index,
             y: oldPos,
@@ -440,7 +440,7 @@ export abstract class ARowRenderer {
       animation.push({
         node: item.n,
         key,
-        mode: r.index < 0 ? 'remove_delete' : 'remove',
+        mode: r.index < 0 ? EAnimationMode.HIDE : EAnimationMode.UPDATE_REMOVE,
         previous: {
           index: item.i,
           y: item.pos,
@@ -497,7 +497,7 @@ export abstract class ARowRenderer {
       });
       // clean up
       animation.forEach(({node, mode}) => {
-        if (!mode.startsWith('remove')) {
+        if (mode !== EAnimationMode.UPDATE_REMOVE && mode !== EAnimationMode.HIDE) {
           return;
         }
         node.remove();
@@ -525,14 +525,13 @@ export abstract class ARowRenderer {
     while (phases[actPhase].delay === 0) {
       executePhase(phases[actPhase++]);
     }
-    // after the initial ones
-    this.body.classList.add('le-row-animation');
-    if (animation.some((e) => e.mode === 'create_add')) {
-      this.body.classList.add('le-add-animation');
-    }
-    if (animation.some((e) => e.mode === 'remove_delete')) {
-      this.body.classList.add('le-delete-animation');
-    }
+    // after the initial one
+    const body = this.body;
+    body.classList.add('le-row-animation');
+    (new Set(animation.map((d) => d.mode))).forEach((mode) => {
+      // add class but map to UPDATE only
+      body.classList.add(`le-${EAnimationMode[mode].toLowerCase().split('_')[0]}-animation`);
+    });
 
     // next tick such that DOM will be updated
     currentTimer = setTimeout(run, phases[actPhase].delay);

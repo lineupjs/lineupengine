@@ -22,36 +22,51 @@
 }
 
 article.le-row-animation {
+  /**
+  defaults
+   */
   > * {
-    transition: $engine_row_update_animation;
-  }
+    transition: all $engine_animation_update_duration $engine_animation_ease;
 
-  /**
-  just deleted rows
-   */
-  &.le-delete-animation > * {
-    transition: $engine_row_update_delete_animation;
+    &[data-animation=show] {
+      transition: all $engine_animation_show_duration $engine_animation_ease;
+    }
 
-    &[data-animation$=delete] {
-      transition: $engine_row_delete_animation;
+    &[data-animation=hide] {
+      transition: all $engine_animation_hide_duration $engine_animation_ease;
     }
   }
 
   /**
-  just added rows
+  in case of hiding shift update and show
    */
-  &.le-add-animation > * {
-    &[data-animation$=add] {
-      transition: $engine_row_add_animation;
+  &.le-hide-animation > * {
+    transition: all $engine_animation_update_duration $engine_animation_ease $engine_animation_hide_duration + $engine_animation_pause;
+
+    &[data-animation=hide] { // since order
+      transition: all $engine_animation_hide_duration $engine_animation_ease;
+    }
+
+    &[data-animation=show] {
+      transition: all $engine_animation_show_duration $engine_animation_ease $engine_animation_hide_duration + $engine_animation_pause;
     }
   }
 
   /**
-  added and removed
+  in case of update shift show
    */
-  &.le-delete-animation.le-add-animation > * {
-    &[data-animation$=add] {
-      transition: $engine_row_add_delete_animation;
+  &.le-update-animation > * {
+    &[data-animation=show] {
+      transition: all $engine_animation_show_duration $engine_animation_ease $engine_animation_update_duration + $engine_animation_pause;
+    }
+  }
+
+  /**
+  in case of both update and hide shift show twice
+   */
+  &.le-update-animation.le-hide-animation > * {
+    &[data-animation=show] {
+      transition: all $engine_animation_show_duration $engine_animation_ease $engine_animation_hide_duration + $engine_animation_pause + $engine_animation_update_duration + $engine_animation_pause;
     }
   }
 }

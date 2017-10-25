@@ -4,8 +4,18 @@
 import {IExceptionContext} from '../logic';
 import KeyFinder from './KeyFinder';
 
+export {default as KeyFinder} from './KeyFinder';
+
+export enum EAnimationMode {
+  UPDATE,
+  UPDATE_CREATE,
+  UPDATE_REMOVE,
+  SHOW,
+  HIDE
+}
+
 export interface IAnimationItem {
-  mode: 'update' | 'create' | 'create_add' | 'remove' | 'remove_delete';
+  mode: EAnimationMode;
   node: HTMLElement;
   key: string;
 
@@ -44,27 +54,27 @@ export interface IAnimationContext {
 export const defaultPhases = [
   {
     delay: 0, // before
-    apply(item: Readonly<IAnimationItem>) {
-      item.node.dataset.animation = item.mode;
-      item.node.style.transform = `translate(0, ${item.previous.y - item.nodeY}px)`;
-      item.node.style.opacity = item.mode === 'create_add' ? '0' : (item.mode === 'remove_delete' ? '1' : null);
+    apply({mode, previous, nodeY, node}: Readonly<IAnimationItem>) {
+      node.dataset.animation = EAnimationMode[mode].toLowerCase();
+      node.style.transform = `translate(0, ${previous.y - nodeY}px)`;
+      node.style.opacity = mode === EAnimationMode.SHOW ? '0' : (mode === EAnimationMode.HIDE ? '1' : null);
     }
   },
   {
     delay: 100, // after some delay for the before phase have been applied visually
-    apply(item: Readonly<IAnimationItem>) {
-      // null for added/update sinc already at the right position
-      item.node.style.transform = item.mode.startsWith('remove') ? `translate(0, ${item.current.y - item.nodeY}px)` : null;
-      item.node.style.height = item.current.height !== null ? `${item.current.height}px` : null;
-      item.node.style.opacity = item.mode === 'create_add' ? '1' : (item.mode === 'remove_delete' ? '0' : null);
+    apply({mode, current, nodeY, node}: Readonly<IAnimationItem>) {
+      // null for added/update since already at the right position
+      node.style.transform = (mode === EAnimationMode.HIDE || mode === EAnimationMode.UPDATE_REMOVE) ? `translate(0, ${current.y - nodeY}px)` : null;
+      node.style.height = current.height !== null ? `${current.height}px` : null;
+      node.style.opacity = mode === EAnimationMode.SHOW  ? '1' : (mode === EAnimationMode.HIDE ? '0' : null);
     }
   },
   {
     delay: 3100, // cleanup
-    apply(item: Readonly<IAnimationItem>) {
-      delete item.node.dataset.animation;
-      delete item.node.style.opacity;
-      delete item.node.style.transform;
+    apply({node}: Readonly<IAnimationItem>) {
+      // delete node.dataset.animation;
+      delete node.style.opacity;
+      delete node.style.transform;
     }
   }
 ];
