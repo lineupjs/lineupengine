@@ -51,6 +51,12 @@ export interface IAnimationContext {
   phases?: IPhase[];
 }
 
+/**
+ * maximal duration of all animations + extra waiting before e.g. rows are really removed
+ * @type {number}
+ */
+const MAX_ANIMATION_TIME = 2100;
+
 export const defaultPhases = [
   {
     delay: 0, // before
@@ -78,7 +84,7 @@ export const defaultPhases = [
     }
   },
   {
-    delay: 3100, // cleanup
+    delay: MAX_ANIMATION_TIME, // cleanup
     apply({node}: Readonly<IAnimationItem>) {
       delete node.dataset.animation;
       node.style.opacity = null;
