@@ -53,7 +53,7 @@ export const defaultPhases = [
   {
     delay: 100, // after some delay for the before phase have been applied visually
     apply(item: Readonly<IAnimationItem>) {
-      // null for added/update sinc alredy at th eright position
+      // null for added/update sinc already at the right position
       item.node.style.transform = item.mode.startsWith('remove') ? `translate(0, ${item.current.y - item.nodeY}px)` : null;
       item.node.style.height = item.current.height !== null ? `${item.current.height}px` : null;
       item.node.style.opacity = item.mode === 'create_add' ? '1' : (item.mode === 'remove_delete' ? '0' : null);
