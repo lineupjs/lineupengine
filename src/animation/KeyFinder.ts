@@ -54,7 +54,7 @@ export default class KeyFinder {
     if (start < 0) {
       this.fillCache(0, index, 0);
     } else {
-      this.fillCache(start, index, this.cache[start]);
+      this.fillCache(start + 1, index, this.cache[start] + this.heightOf(start));
     }
     return this.cache[index]!;
   }
@@ -87,9 +87,13 @@ export default class KeyFinder {
     return lookup.has(index) ? lookup.get(index)! : this.context.defaultRowHeight;
   }
 
-  exceptionHeightOf(index: number) {
+  exceptionHeightOf(index: number, returnDefault: boolean = false) {
+    const padding = this.context.padding(index);
     const lookup = this.context.exceptionsLookup;
-    return lookup.has(index) ? (lookup.get(index)! - this.context.padding(index)) : null;
+    if (lookup.has(index)) {
+      return lookup.get(index)! - padding;
+    }
+    return returnDefault ? this.context.defaultRowHeight - padding : null;
   }
 
   private fillCacheTillKey(target: string) {

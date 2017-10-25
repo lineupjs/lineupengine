@@ -384,7 +384,7 @@ export abstract class ARowRenderer {
           previous: {
             index: item.i,
             y: item.pos,
-            height: prev.exceptionHeightOf(item.i)
+            height: prev.exceptionHeightOf(item.i, true)
           },
           nodeY: pos,
           current: {
@@ -407,7 +407,7 @@ export abstract class ARowRenderer {
           previous: {
             index: old.index,
             y: oldPos,
-            height: old.index < 0 ? null : prev.exceptionHeightOf(old.index)
+            height: prev.exceptionHeightOf(old.index, true)
           },
           nodeY: pos,
           current: {
@@ -444,7 +444,7 @@ export abstract class ARowRenderer {
         previous: {
           index: item.i,
           y: item.pos,
-          height: prev.exceptionHeightOf(item.i)
+          height: prev.exceptionHeightOf(item.i, true)
         },
         nodeY: addedPos,
         current: {
@@ -472,12 +472,12 @@ export abstract class ARowRenderer {
     let actPhase = 0;
 
     const executePhase = (phase: IPhase) => {
-      //dummy log for forcing dom update
-      console.assert(animation[0]!.node.offsetTop >= 0, 'dummy log for forcing dom update');
       animation.forEach((anim) => phase.apply(anim, previousFinder, currentFinder));
     };
 
     const run = () => {
+      //dummy log for forcing dom update
+      console.assert(animation[0]!.node.offsetTop >= 0, 'dummy log for forcing dom update');
       executePhase(phases[actPhase++]);
 
       // shifted by one since already added through ++

@@ -54,9 +54,15 @@ export interface IAnimationContext {
 export const defaultPhases = [
   {
     delay: 0, // before
-    apply({mode, previous, nodeY, node}: Readonly<IAnimationItem>) {
+    apply({mode, previous, nodeY, current, node}: Readonly<IAnimationItem>) {
       node.dataset.animation = EAnimationMode[mode].toLowerCase();
       node.style.transform = `translate(0, ${previous.y - nodeY}px)`;
+      if (mode === EAnimationMode.SHOW) {
+        // already target height
+        node.style.height = current.height !== null ? `${current.height}px` : null;
+      } else if (mode === EAnimationMode.HIDE) {
+        node.style.height = `${previous.height}px`;
+      }
       node.style.opacity = mode === EAnimationMode.SHOW ? '0' : (mode === EAnimationMode.HIDE ? '1' : null);
     }
   },
@@ -65,16 +71,18 @@ export const defaultPhases = [
     apply({mode, current, nodeY, node}: Readonly<IAnimationItem>) {
       // null for added/update since already at the right position
       node.style.transform = (mode === EAnimationMode.HIDE || mode === EAnimationMode.UPDATE_REMOVE) ? `translate(0, ${current.y - nodeY}px)` : null;
-      node.style.height = current.height !== null ? `${current.height}px` : null;
+      if (mode !== EAnimationMode.HIDE) { // keep height for removal
+        node.style.height = current.height !== null ? `${current.height}px` : null;
+      }
       node.style.opacity = mode === EAnimationMode.SHOW  ? '1' : (mode === EAnimationMode.HIDE ? '0' : null);
     }
   },
   {
     delay: 3100, // cleanup
     apply({node}: Readonly<IAnimationItem>) {
-      // delete node.dataset.animation;
-      delete node.style.opacity;
-      delete node.style.transform;
+      delete node.dataset.animation;
+      node.style.opacity = null;
+      node.style.transform = null;
     }
   }
 ];
