@@ -66,7 +66,7 @@ export const defaultPhases = [
       if (mode === EAnimationMode.SHOW) {
         // already target height
         node.style.height = current.height !== null ? `${current.height}px` : null;
-      } else if (mode === EAnimationMode.HIDE) {
+      } else { // always set previous height for default height changes
         node.style.height = `${previous.height}px`;
       }
       node.style.opacity = mode === EAnimationMode.SHOW ? '0' : (mode === EAnimationMode.HIDE ? '1' : null);
