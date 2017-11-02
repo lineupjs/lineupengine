@@ -353,9 +353,10 @@ export abstract class ARowRenderer {
         const n = rows[i];
         if (n) { // shouldn't happen that it is not there
           lookup.set(key, {n, pos, i});
-        } else {
-          console.error(i, key, pos, rows);
         }
+        // else {
+        //  console.error(i, key, pos, rows);
+        //}
       });
       this.body.innerHTML = ``;
     }
