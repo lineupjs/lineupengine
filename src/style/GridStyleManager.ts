@@ -115,7 +115,7 @@ export default class GridStyleManager extends StyleManager {
    * @param {string} tableId optional tableId in case of multiple tables within the same engine
    * @param {string} unit
    */
-  update(defaultRowHeight: number, columns: IColumn[], defaultWidth: number, tableId?: string,unit: string = 'px') {
+  update(defaultRowHeight: number, columns: IColumn[], defaultWidth: number, padding: (index: number)=>number, tableId?: string,unit: string = 'px') {
     const selectors = tableId !== undefined ? this.tableIds(tableId, true) : { header: `${this.id} > header > article`, body: `${this.id} > main > article`};
 
     this.updateRule(`__heightsRule${selectors.body}`, `${selectors.body} > div {
@@ -130,11 +130,11 @@ export default class GridStyleManager extends StyleManager {
 
     const content = GridStyleManager.gridColumn(columns, defaultWidth, unit);
     if (isEdge) {
-      this.extraScrollUpdater.push(this.updateFrozenColumnsShift.bind(this, columns, selectors, unit));
+      this.extraScrollUpdater.push(this.updateFrozenColumnsShift.bind(this, columns, selectors, padding, unit));
     }
     this.updateRule(`__widthRule${selectors.body}`, `${selectors.body} > div, ${selectors.header} { ${content} }`);
 
-    this.updateFrozen(columns, selectors, unit);
+    this.updateFrozen(columns, selectors, padding, unit);
   }
 
   /**
@@ -165,7 +165,7 @@ export default class GridStyleManager extends StyleManager {
     return {header: `${asSelector ? '#': ''}${cleanId}_H${tableId}`, body: `${asSelector ? '#': ''}${cleanId}_B${tableId}`};
   }
 
-  private updateFrozen(columns: IColumn[], selectors: ISelectors, unit: string) {
+  private updateFrozen(columns: IColumn[], selectors: ISelectors, _padding: (index: number)=>number, unit: string) {
     if (isEdge) {
       return;
     }
@@ -185,7 +185,7 @@ export default class GridStyleManager extends StyleManager {
       const rule = `${selectors.body} > div > .frozen[data-id="${c.id}"], ${selectors.header} .frozen[data-id="${c.id}"] {
         left: ${offset}${unit};
       }`;
-      offset += c.width;
+      offset += c.width; // ignore padding since it causes problems regarding white background + padding(i);
       this.updateRule(`${prefix}${i}`, rule);
     });
     for (let i = frozen.length - 1; i < rules; ++i) {
@@ -193,7 +193,7 @@ export default class GridStyleManager extends StyleManager {
     }
   }
 
-  private updateFrozenColumnsShift(columns: IColumn[], selectors: ISelectors, unit: string, scrollLeft: number) {
+  private updateFrozenColumnsShift(columns: IColumn[], selectors: ISelectors, _padding: (index: number)=>number, unit: string, scrollLeft: number) {
     if (!isEdge) {
       return;
     }
@@ -217,9 +217,9 @@ export default class GridStyleManager extends StyleManager {
           transform: translate(${scrollLeft - offset + frozenWidth}${unit}, 0);
         }`;
         this.updateRule(`${prefix}${nextFrozen++}`, rule);
-        frozenWidth += c.width;
+        frozenWidth += c.width; //ignore padding + padding(i);
       }
-      offset += c.width;
+      offset += c.width //ignore padding + padding(i);
     });
 
     for (let i = nextFrozen; i < rules; ++i) {

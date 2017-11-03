@@ -5,7 +5,7 @@ import {ARowRenderer} from './ARowRenderer';
 import {GridStyleManager, IColumn, setTemplate} from './style';
 import {IMixinClass} from './mixin';
 import ACellAdapter, {ICellAdapterRenderContext} from './table/internal/ACellAdapter';
-import {IAnimationContext} from './animation/index';
+import {IAnimationContext} from './animation';
 
 
 export declare type ICellRenderContext<T extends IColumn> = ICellAdapterRenderContext<T>;
@@ -114,7 +114,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
 
   protected updateColumnWidths() {
     const context = this.context;
-    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, context.column.defaultRowHeight - context.column.padding(-1));
+    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, context.column.defaultRowHeight - context.column.padding(-1), context.column.padding);
   }
 
   protected recreate(ctx?: IAnimationContext) {
