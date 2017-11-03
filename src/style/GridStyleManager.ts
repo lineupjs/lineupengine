@@ -219,7 +219,7 @@ export default class GridStyleManager extends StyleManager {
         this.updateRule(`${prefix}${nextFrozen++}`, rule);
         frozenWidth += c.width; //ignore padding + padding(i);
       }
-      offset += c.width //ignore padding + padding(i);
+      offset += c.width; //ignore padding + padding(i);
     });
 
     for (let i = nextFrozen; i < rules; ++i) {
