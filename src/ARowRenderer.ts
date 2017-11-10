@@ -399,7 +399,7 @@ export abstract class ARowRenderer {
         previous = {
           index: old.index,
           y: old.pos >= 0 ? old.pos : pos,
-          height: prev.exceptionHeightOf(old.index, true)
+          height: old.index < 0 ? cur.exceptionHeightOf(i, true) : prev.exceptionHeightOf(old.index, true)
         };
       }
       animation.push({
@@ -416,7 +416,7 @@ export abstract class ARowRenderer {
         }
       });
       node.style.transform = `translate(0, ${nodeY - pos}px)`;
-      nodeY += previous.height!;
+      nodeY += previous.height! + (previous.index < 0 ? cur.padding(i) : prev.padding(previous.index));
 
       fragment.appendChild(node);
     });
@@ -455,8 +455,8 @@ export abstract class ARowRenderer {
           height: r.index < 0 ? null : cur.exceptionHeightOf(r.index)
         }
       });
-      nodeYCurrentHeight += (r.index < 0 ? cur.context.defaultRowHeight : cur.exceptionHeightOf(r.index, true))!;
-      nodeY += prevHeight!;
+      nodeYCurrentHeight += r.index < 0 ? cur.context.defaultRowHeight : (cur.exceptionHeightOf(r.index, true)! + cur.padding(r.index));
+      nodeY += prevHeight! + prev.padding(item.i);
     });
 
     this.updateOffset(next.firstRowPos);

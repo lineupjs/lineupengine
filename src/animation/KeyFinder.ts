@@ -25,7 +25,6 @@ export default class KeyFinder {
     return -1;
   }
 
-
   /**
    *
    * @param {string} key
@@ -94,6 +93,10 @@ export default class KeyFinder {
       return lookup.get(index)! - padding;
     }
     return returnDefault ? this.context.defaultRowHeight - padding : null;
+  }
+
+  padding(index: number) {
+    return this.context.padding(index);
   }
 
   private fillCacheTillKey(target: string) {
