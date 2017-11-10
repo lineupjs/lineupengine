@@ -118,6 +118,5 @@ export default class KeyFinder {
 
   positions(first: number, last: number, offset: number, callback?: (index: number, key: string, pos: number) => void) {
     this.fillCache(first, last, offset, callback);
-    return this.cache.slice(first, last + 1);
   }
 }

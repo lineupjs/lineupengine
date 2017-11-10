@@ -24,10 +24,16 @@ export interface IAnimationItem {
     y: number;
     height: number | null;
   };
+
   /**
-   * position of the added node
+   * position of the added node considering the previous height
    */
   nodeY: number;
+  /**
+   * position of the added node considering the current height
+   */
+  nodeYCurrentHeight: number;
+
   current: {
     index: number | -1;
     y: number;

@@ -349,6 +349,7 @@ export abstract class ARowRenderer {
       const rows = <HTMLElement[]>Array.from(this.body.children);
       const old = Object.assign({}, this.visible);
       //store the current rows in a lookup and clear
+
       prev.positions(old.first, Math.min(old.last, old.first + rows.length), this.visibleFirstRowPos, (i, key, pos) => {
         const n = rows[i];
         if (n) { // shouldn't happen that it is not there
@@ -367,63 +368,60 @@ export abstract class ARowRenderer {
     const fragment = this.fragment;
     const animation: IAnimationItem[] = [];
 
+    let nodeY = next.firstRowPos;
     cur.positions(next.first, next.last, next.firstRowPos, (i, key, pos) => {
       let node: HTMLElement;
-      let oldPos: number;
+      let mode: EAnimationMode = EAnimationMode.UPDATE;
+      let previous: {
+        index: number | -1;
+        y: number;
+        height: number | null;
+      };
       if (lookup.has(key)) {
         // still visible
         const item = lookup.get(key)!;
         lookup.delete(key);
 
         // update height
-        oldPos = item.pos;
         node = this.proxy(item.n, this.updateRow(item.n, i));
-        animation.push({
-          node,
-          key,
-          mode: EAnimationMode.UPDATE,
-          previous: {
-            index: item.i,
-            y: item.pos,
-            height: prev.exceptionHeightOf(item.i, true)
-          },
-          nodeY: pos,
-          current: {
-            index: i,
-            y: pos,
-            height: cur.exceptionHeightOf(i)
-          }
-        });
+        previous = {
+          index: item.i,
+          y: item.pos,
+          height: prev.exceptionHeightOf(item.i, true)
+        };
       } else {
         // need a new row
         const old = prev.posByKey(key);
         // maybe not visible  before so keep in place
-        oldPos = old.pos >= 0 ? old.pos : pos;
         node = this.create(i);
 
-        animation.push({
-          node,
-          key,
-          mode: old.index < 0 ? EAnimationMode.SHOW : EAnimationMode.UPDATE_CREATE,
-          previous: {
-            index: old.index,
-            y: oldPos,
-            height: prev.exceptionHeightOf(old.index, true)
-          },
-          nodeY: pos,
-          current: {
-            index: i,
-            y: pos,
-            height: cur.exceptionHeightOf(i)
-          }
-        });
+        mode = old.index < 0 ? EAnimationMode.SHOW : EAnimationMode.UPDATE_CREATE;
+        previous = {
+          index: old.index,
+          y: old.pos >= 0 ? old.pos : pos,
+          height: prev.exceptionHeightOf(old.index, true)
+        };
       }
+      animation.push({
+        node,
+        key,
+        mode,
+        previous,
+        nodeY,
+        nodeYCurrentHeight: pos,
+        current: {
+          index: i,
+          y: pos,
+          height: cur.exceptionHeightOf(i)
+        }
+      });
+      node.style.transform = `translate(0, ${nodeY - pos}px)`;
+      nodeY += previous.height!;
 
       fragment.appendChild(node);
-      node.style.transform = `translate(0, ${oldPos - pos}px)`;
     });
 
-    let addedPos = next.endPos;
+    let nodeYCurrentHeight = next.endPos;
     // items that are going to be removed
     lookup.forEach((item, key) => {
       // calculate their next position
@@ -435,8 +433,10 @@ export abstract class ARowRenderer {
       // located at addedPos
       // should end up at nextPos
       // was previously at item.pos
-      node.style.transform = `translate(0, ${item.pos - addedPos}px)`;
+      node.style.transform = `translate(0, ${item.pos - nodeY}px)`;
       fragment.appendChild(node);
+
+      const prevHeight = prev.exceptionHeightOf(item.i, true);
 
       animation.push({
         node: item.n,
@@ -445,27 +445,28 @@ export abstract class ARowRenderer {
         previous: {
           index: item.i,
           y: item.pos,
-          height: prev.exceptionHeightOf(item.i, true)
+          height: prevHeight
         },
-        nodeY: addedPos,
+        nodeY,
+        nodeYCurrentHeight,
         current: {
           index: r.index,
           y: nextPos,
           height: r.index < 0 ? null : cur.exceptionHeightOf(r.index)
         }
       });
-      addedPos += prev.heightOf(item.i);
+      nodeYCurrentHeight += (r.index < 0 ? cur.context.defaultRowHeight : cur.exceptionHeightOf(r.index, true))!;
+      nodeY += prevHeight!;
     });
 
-    // add to DOM
-    this.body.appendChild(fragment);
     this.updateOffset(next.firstRowPos);
 
-    this.animate(animation, ctx.phases || defaultPhases, prev, cur);
+    this.animate(animation, ctx.phases || defaultPhases, prev, cur, fragment);
   }
 
-  private animate(animation: IAnimationItem[], phases: IPhase[], previousFinder: KeyFinder, currentFinder: KeyFinder) {
+  private animate(animation: IAnimationItem[], phases: IPhase[], previousFinder: KeyFinder, currentFinder: KeyFinder, fragment: DocumentFragment) {
     if (animation.length <= 0) {
+      this.body.appendChild(fragment);
       return;
     }
 
@@ -528,12 +529,13 @@ export abstract class ARowRenderer {
     }
     // after the initial one
     const body = this.body;
+    this.body.appendChild(fragment);
+
     body.classList.add('le-row-animation');
     (new Set(animation.map((d) => d.mode))).forEach((mode) => {
       // add class but map to UPDATE only
       body.classList.add(`le-${EAnimationMode[mode].toLowerCase().split('_')[0]}-animation`);
     });
-
     // next tick such that DOM will be updated
     currentTimer = setTimeout(run, phases[actPhase].delay);
   }
