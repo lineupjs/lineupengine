@@ -55,7 +55,7 @@ export interface IAnimationContext {
  * maximal duration of all animations + extra waiting before e.g. rows are really removed
  * @type {number}
  */
-const MAX_ANIMATION_TIME = 2100;
+const MAX_ANIMATION_TIME = 1100;
 
 export const defaultPhases = [
   {
@@ -73,7 +73,7 @@ export const defaultPhases = [
     }
   },
   {
-    delay: 100, // after some delay for the before phase have been applied visually
+    delay: 10, // after some delay for the before phase have been applied visually
     apply({mode, current, nodeY, node}: Readonly<IAnimationItem>) {
       // null for added/update since already at the right position
       node.style.transform = (mode === EAnimationMode.HIDE || mode === EAnimationMode.UPDATE_REMOVE) ? `translate(0, ${current.y - nodeY}px)` : null;
