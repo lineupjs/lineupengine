@@ -237,8 +237,8 @@ export abstract class ARowRenderer {
       this.body.innerHTML = '';
     }
     rows.forEach((row: HTMLElement, index) => {
-      if (!row.classList.contains('loading')) {
-        //skip loading ones
+      if (!row.classList.contains('loading') && row.dataset.animation !== 'update_remove' && row.dataset.animation !== 'hide') {
+        //skip loading ones and temporary ones
         callback(row, index + this.visible.first);
       }
       if (!inplace) {
@@ -514,7 +514,6 @@ export abstract class ARowRenderer {
       if (currentTimer <= 0) {
         return;
       }
-      console.log('abort animation');
       // abort by removing
       clearTimeout(currentTimer);
       currentTimer = -1;
