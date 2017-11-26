@@ -10,6 +10,7 @@ const webpack = require('webpack');
 const fs = require('fs');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
 const now = new Date();
 const prefix = (n) => n < 10 ? ('0' + n) : n.toString();
@@ -25,33 +26,48 @@ const banner = '/*! ' + (pkg.title || pkg.name) + ' - v' + pkg.version + ' - ' +
 
 //list of loaders and their mappings
 const webpackloaders = [
-  {test: /\.scss$/, loader: 'style-loader!css-loader!sass-loader'},
-  {test: /\.tsx?$/, loader: 'awesome-typescript-loader'},
-  {test: /\.json$/, loader: 'json-loader'},
+  {test: /\.scss$/, use: 'style-loader!css-loader!sass-loader'},
+  {test: /\.tsx?$/, use: [
+                { loader: 'cache-loader' },
+                {
+                    loader: 'thread-loader',
+                    options: {
+                        // there should be 1 cpu for the fork-ts-checker-webpack-plugin
+                        workers: require('os').cpus().length - 1,
+                    },
+                },
+                {
+                    loader: 'ts-loader',
+                    options: {
+                        happyPackMode: true // IMPORTANT! use happyPackMode mode to speed-up compilation and reduce errors reported to webpack
+                    }
+                }
+  ]},
+  {test: /\.json$/, use: 'json-loader'},
   {
     test: /\.(png|jpg)$/,
-    loader: 'url-loader',
-    query: {
+    use: 'url-loader',
+    options: {
       limit: 10000 //inline <= 10kb
     }
   },
   {
     test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-    loader: 'url-loader',
-    query: {
+    use: 'url-loader',
+    options: {
       limit: 10000, //inline <= 10kb
       mimetype: 'application/font-woff'
     }
   },
   {
     test: /\.svg(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-    loader: 'url-loader',
-    query: {
+    use: 'url-loader',
+    options: {
       limit: 10000, //inline <= 10kb
       mimetype: 'image/svg+xml'
     }
   },
-  {test: /\.(ttf|eot)(\?v=[0-9]\.[0-9]\.[0-9])?$/, loader: 'file-loader'}
+  {test: /\.(ttf|eot)(\?v=[0-9]\.[0-9]\.[0-9])?$/, use: 'file-loader'}
 ];
 
 /**
@@ -88,7 +104,8 @@ function generateWebpack(options) {
         __TEST__: options.isTest,
         __PRODUCTION__: options.isProduction,
         __APP_CONTEXT__: JSON.stringify('/')
-      })
+      }),
+      new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true })
       //rest depends on type
     ],
     externals: [],
@@ -149,7 +166,7 @@ function generateWebpack(options) {
       }));
   } else {
     //generate source maps
-    base.devtool = 'source-map';
+    base.devtool = 'cheap-module-eval-source-map';
   }
   return base;
 }
