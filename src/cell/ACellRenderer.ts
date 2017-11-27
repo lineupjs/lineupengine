@@ -23,14 +23,14 @@ const leafCount = 4; //don't split further than 4x4 grids
 export abstract class ACellRenderer {
   private readonly poolLeaves: HTMLElement[] = [];
   private readonly poolInner: HTMLElement[] = [];
-  private readonly fragment: DocumentFragment;
+  //private readonly fragment: DocumentFragment;
 
   private tree: QuadTreeNode;
 
   constructor(private readonly root: HTMLElement) {
     root.innerHTML = template;
     root.classList.add('lineup-cell-engine');
-    this.fragment = root.ownerDocument.createDocumentFragment();
+    // this.fragment = root.ownerDocument.createDocumentFragment();
   }
 
   protected abstract get context(): ICellContext;
