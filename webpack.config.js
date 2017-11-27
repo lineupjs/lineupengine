@@ -26,15 +26,15 @@ const banner = '/*! ' + (pkg.title || pkg.name) + ' - v' + pkg.version + ' - ' +
 
 //list of loaders and their mappings
 const webpackloaders = [
-  {test: /\.scss$/, use: 'style-loader!css-loader!sass-loader'},
+  {test: /\.scss$/, loader: 'style-loader!css-loader!sass-loader'},
   {test: /\.tsx?$/, use: [
                 { loader: 'cache-loader' },
                 {
                     loader: 'thread-loader',
                     options: {
                         // there should be 1 cpu for the fork-ts-checker-webpack-plugin
-                        workers: require('os').cpus().length - 1,
-                    },
+                        workers: require('os').cpus().length - 1
+                    }
                 },
                 {
                     loader: 'ts-loader',
@@ -43,17 +43,17 @@ const webpackloaders = [
                     }
                 }
   ]},
-  {test: /\.json$/, use: 'json-loader'},
+  {test: /\.json$/, loader: 'json-loader'},
   {
     test: /\.(png|jpg)$/,
-    use: 'url-loader',
+    loader: 'url-loader',
     options: {
       limit: 10000 //inline <= 10kb
     }
   },
   {
     test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-    use: 'url-loader',
+    loader: 'url-loader',
     options: {
       limit: 10000, //inline <= 10kb
       mimetype: 'application/font-woff'
@@ -61,13 +61,13 @@ const webpackloaders = [
   },
   {
     test: /\.svg(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-    use: 'url-loader',
+    loader: 'url-loader',
     options: {
       limit: 10000, //inline <= 10kb
       mimetype: 'image/svg+xml'
     }
   },
-  {test: /\.(ttf|eot)(\?v=[0-9]\.[0-9]\.[0-9])?$/, use: 'file-loader'}
+  {test: /\.(ttf|eot)(\?v=[0-9]\.[0-9]\.[0-9])?$/, loader: 'file-loader'}
 ];
 
 /**
