@@ -10,7 +10,6 @@ export const isEdge = typeof CSS !== 'undefined' && CSS.supports('(-ms-ime-align
  * utility for custom generated CSS rules
  */
 export default class StyleManager {
-  private readonly stylesheet: CSSStyleSheet;
   private readonly rules = new Map<string, { rule: CSSRule, index: number }>();
   private readonly node: HTMLStyleElement;
 
@@ -20,7 +19,19 @@ export default class StyleManager {
     if (isEdge) {
       root.classList.add('ms-edge');
     }
-    this.stylesheet = <CSSStyleSheet>this.node.sheet;
+  }
+
+  private get stylesheet() {
+    const r = <CSSStyleSheet>this.node.sheet;
+    if(this.rules.size > 0 && r.cssRules.length === 0) {
+      // recreate
+      this.rules.forEach((v) => {
+        v.index = r.cssRules.length;
+        r.insertRule(v.rule.cssText);
+        v.rule = r.cssRules.item(v.index);
+      });
+    }
+    return r;
   }
 
   destroy() {
