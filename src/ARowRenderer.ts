@@ -383,6 +383,8 @@ export abstract class ARowRenderer {
         lookup.delete(key);
 
         // update height
+
+        item.n.dataset.index = String(i);
         node = this.proxy(item.n, this.updateRow(item.n, i));
         previous = {
           index: item.i,
