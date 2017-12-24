@@ -10,7 +10,7 @@ export const isEdge = typeof CSS !== 'undefined' && CSS.supports('(-ms-ime-align
  * utility for custom generated CSS rules
  */
 export default class StyleManager {
-  private readonly rules = new Map<string, { rule: CSSRule, index: number }>();
+  private readonly rules = new Map<string, string>();
   private readonly node: HTMLStyleElement;
 
   constructor(root: HTMLElement) {
@@ -21,49 +21,24 @@ export default class StyleManager {
     }
   }
 
-  private get stylesheet() {
-    const r = <CSSStyleSheet>this.node.sheet;
-    if(this.rules.size > 0 && r.cssRules.length === 0) {
-      // recreate
-      this.rules.forEach((v) => {
-        v.index = r.cssRules.length;
-        r.insertRule(v.rule.cssText);
-        v.rule = r.cssRules.item(v.index);
-      });
-    }
-    return r;
-  }
-
   destroy() {
     this.node.remove();
   }
 
+  private recreate() {
+    this.node.innerHTML = Array.from(this.rules.values()).join('\n');
+  }
+
   addRule(id: string, rule: string) {
     // append
-    const l = this.stylesheet.cssRules.length;
-    this.stylesheet.insertRule(rule, l);
-    this.rules.set(id, {rule: this.stylesheet.cssRules[l], index: l});
+    this.rules.set(id, rule);
+    this.recreate();
     return id;
   }
 
-  private findIndex(guess: number, rule: CSSRule) {
-    const guessed = this.stylesheet.cssRules[guess];
-    if (guessed === rule) {
-      return guess;
-    }
-    return Array.from(this.stylesheet.cssRules).indexOf(rule);
-  }
-
   updateRule(id: string, rule: string) {
-    const r = this.rules.get(id);
-    if (!r) {
-      // add if not yet existing
-      return this.addRule(id, rule);
-    }
-    r.index = this.findIndex(r.index, r.rule);
-    this.stylesheet.deleteRule(r.index);
-    this.stylesheet.insertRule(rule, r.index);
-    r.rule = this.stylesheet.cssRules[r.index];
+    this.rules.set(id, rule);
+    this.recreate();
     return id;
   }
 
@@ -72,9 +47,8 @@ export default class StyleManager {
     if (!r) {
       return;
     }
-    r.index = this.findIndex(r.index, r.rule);
-    this.stylesheet.deleteRule(r.index);
     this.rules.delete(id);
+    this.recreate();
   }
 
   protected get ruleNames() {
