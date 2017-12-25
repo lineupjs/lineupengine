@@ -262,14 +262,15 @@ export function range(scrollTop: number, clientHeight: number, rowHeight: number
     //uniform
     return r;
   }
-  if (r.last <= heightExceptions[0].index) {
-    if (r.last === heightExceptions[0].index) {
-      return Object.assign(r, {endPos: heightExceptions[0].y2});
-    }
+  if (r.last < heightExceptions[0].index) {
     //console.log('before the first exception = uniform with no shift');
     //console.log(r.first, '@', r.firstRowPos, r.last, '#', r.end, offset, offset2, r.firstRowPos <= offset, offset2 <= r.end);
     return r;
   }
+  if (r.last === heightExceptions[0].index && heightExceptions[0].height > rowHeight) {
+    return Object.assign(r, {endPos: heightExceptions[0].y2});
+  }
+
   //the position where the exceptions ends
   const lastPos = heightExceptions[heightExceptions.length - 1];
   if (offset >= lastPos.y) {
