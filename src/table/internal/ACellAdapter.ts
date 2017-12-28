@@ -413,6 +413,10 @@ export abstract class ACellAdapter<T extends IColumn> {
           //remove the ones already handled
           existing.splice(0, currentFrozen.length);
         }
+        if (existing.length === 0) {
+          // all are frozen
+          break;
+        }
         const firstId = existing[0].dataset.id!;
         const lastId = existing[existing.length - 1].dataset.id!;
         const firstIndex = columns.findIndex((c) => c.id === firstId);
