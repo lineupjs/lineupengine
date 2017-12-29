@@ -63,7 +63,7 @@
     > main:not(.scrolling) > article > div {
       /* @include collapsing-row-border($engine_row_hover_width, #eee); */
 
-      padding-top: 2px;
+      //padding-top: 2px;
 
       &:hover {
         position: relative;
