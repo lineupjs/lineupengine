@@ -1,72 +1,77 @@
 @import './vars';
+@import './import_once';
 
-.loading {
-  background: $engine_loading_static_image center contain repeat no-repeat;
-  background-blend-mode: overlay;
+@include exports('lineupengine/animation') {
+  #{$engine_selector} {
+    .loading {
+      background: $engine_loading_static_image center contain repeat no-repeat;
+      background-blend-mode: overlay;
 
-  > * {
-    opacity: 0;
-  }
-}
-
-&.animated {
-  > header > article > *,
-  > main > article > div > * {
-    transition: opacity 0.5s;
-    opacity: 1;
-  }
-
-  .loading {
-    background-image: $engine_loading_image;
-  }
-}
-
-article.le-row-animation {
-  /**
-  defaults
-   */
-  > * {
-    transition: all $engine_animation_update_duration $engine_animation_ease;
-
-    &[data-animation=show] {
-      transition: all $engine_animation_show_duration $engine_animation_ease;
+      > * {
+        opacity: 0;
+      }
     }
 
-    &[data-animation=hide] {
-      transition: all $engine_animation_hide_duration $engine_animation_ease;
-    }
-  }
+    &.animated {
+      > header > article > *,
+      > main > article > div > * {
+        transition: opacity 0.5s;
+        opacity: 1;
+      }
 
-  /**
-  in case of hiding shift update and show
-   */
-  &.le-hide-animation > * {
-    transition: all $engine_animation_update_duration $engine_animation_ease $engine_animation_hide_duration + $engine_animation_pause;
-
-    &[data-animation=hide] { // since order
-      transition: all $engine_animation_hide_duration $engine_animation_ease;
+      .loading {
+        background-image: $engine_loading_image;
+      }
     }
 
-    &[data-animation=show] {
-      transition: all $engine_animation_show_duration $engine_animation_ease $engine_animation_hide_duration + $engine_animation_pause;
-    }
-  }
+    article.le-row-animation {
+      /**
+      defaults
+       */
+      > * {
+        transition: all $engine_animation_update_duration $engine_animation_ease;
 
-  /**
-  in case of update shift show
-   */
-  &.le-update-animation > * {
-    &[data-animation=show] {
-      transition: all $engine_animation_show_duration $engine_animation_ease $engine_animation_update_duration + $engine_animation_pause;
-    }
-  }
+        &[data-animation=show] {
+          transition: all $engine_animation_show_duration $engine_animation_ease;
+        }
 
-  /**
-  in case of both update and hide shift show twice
-   */
-  &.le-update-animation.le-hide-animation > * {
-    &[data-animation=show] {
-      transition: all $engine_animation_show_duration $engine_animation_ease $engine_animation_hide_duration + $engine_animation_pause + $engine_animation_update_duration + $engine_animation_pause;
+        &[data-animation=hide] {
+          transition: all $engine_animation_hide_duration $engine_animation_ease;
+        }
+      }
+
+      /**
+      in case of hiding shift update and show
+       */
+      &.le-hide-animation > * {
+        transition: all $engine_animation_update_duration $engine_animation_ease $engine_animation_hide_duration + $engine_animation_pause;
+
+        &[data-animation=hide] { // since order
+          transition: all $engine_animation_hide_duration $engine_animation_ease;
+        }
+
+        &[data-animation=show] {
+          transition: all $engine_animation_show_duration $engine_animation_ease $engine_animation_hide_duration + $engine_animation_pause;
+        }
+      }
+
+      /**
+      in case of update shift show
+       */
+      &.le-update-animation > * {
+        &[data-animation=show] {
+          transition: all $engine_animation_show_duration $engine_animation_ease $engine_animation_update_duration + $engine_animation_pause;
+        }
+      }
+
+      /**
+      in case of both update and hide shift show twice
+       */
+      &.le-update-animation.le-hide-animation > * {
+        &[data-animation=show] {
+          transition: all $engine_animation_show_duration $engine_animation_ease $engine_animation_hide_duration + $engine_animation_pause + $engine_animation_update_duration + $engine_animation_pause;
+        }
+      }
     }
   }
 }

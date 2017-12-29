@@ -1,89 +1,91 @@
-@import "./vars";
-@import "./mixins";
+@import './vars';
+@import './mixins';
+@import './import_once';
+@import './animation';
 
-#{$engine_selector} {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  align-content: stretch;
-  overflow-x: auto;
-
-  > header {
-    flex: 0 0 auto;
-    overflow-x: hidden;
-    margin-bottom: 3px;
-
-    > :last-child {
-      margin-right: 5px; // scroll bar?
-    }
-  }
-
-  > main {
-    flex: 1 1 auto;
-    overflow-y: auto;
-  }
-
-  > header,
-  > main {
+@include exports('lineupengine') {
+  #{$engine_selector} {
+    position: relative;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     align-items: stretch;
-    justify-content: stretch;
+    align-content: stretch;
+    overflow-x: auto;
 
-    > * {
+    > header {
       flex: 0 0 auto;
+      overflow-x: hidden;
+      margin-bottom: 3px;
+
+      > :last-child {
+        margin-right: 5px; // scroll bar?
+      }
     }
-  }
 
-  > header > article,
-  > main > article > div {
-    display: -ms-grid;
-    display: grid;
-    grid-auto-flow: column;
-    -ms-grid-column-align: stretch;
-    -ms-grid-row-align: stretch;
-    align-items: stretch;
-    justify-items: stretch;
+    > main {
+      flex: 1 1 auto;
+      overflow-y: auto;
+    }
 
-    > * {
-      overflow: hidden;
-      text-overflow: ellipsis;
+    > header,
+    > main {
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+      justify-content: stretch;
 
-      &.frozen {
-        background-color: white;
-        z-index: 1;
+      > * {
+        flex: 0 0 auto;
+      }
+    }
+
+    > header > article,
+    > main > article > div {
+      display: -ms-grid;
+      display: grid;
+      grid-auto-flow: column;
+      -ms-grid-column-align: stretch;
+      -ms-grid-row-align: stretch;
+      align-items: stretch;
+      justify-items: stretch;
+
+      > * {
+        overflow: hidden;
+        text-overflow: ellipsis;
+
+        &.frozen {
+          background-color: white;
+          z-index: 1;
+        }
+      }
+    }
+
+    > main:not(.scrolling) > article > div {
+      /* @include collapsing-row-border($engine_row_hover_width, #eee); */
+
+      padding-top: 2px;
+
+      &:hover {
+        position: relative;
+        z-index: 2;
+
+        @include collapsing-row-border($engine_row_outline_width, $engine_row_outline_color);
+      }
+    }
+
+    &:not(.ms-edge) > header > article,
+    &:not(.ms-edge) > main > article > div {
+      > .frozen { // frozen one
+        position: sticky;
+        left: 0;
       }
     }
   }
 
-  > main:not(.scrolling) > article > div {
-    /* @include collapsing-row-border($engine_row_hover_width, #eee); */
-
-    padding-top: 2px;
-
-    &:hover {
-      position: relative;
-      z-index: 2;
-
-      @include collapsing-row-border($engine_row_outline_width, $engine_row_outline_color);
+  #{$engine_multi_selector} {
+    > header,
+    > main {
+      display: grid;
     }
-  }
-
-  &:not(.ms-edge) > header > article,
-  &:not(.ms-edge) > main > article > div {
-    > .frozen { // frozen one
-      position: sticky;
-      left: 0;
-    }
-  }
-
-  @import './animation';
-}
-
-#{$engine_multi_selector} {
-  > header,
-  > main {
-    display: grid;
   }
 }
