@@ -4,8 +4,6 @@
 
 // import manually import './style.scss';
 
-export const isEdge = typeof CSS !== 'undefined' && CSS.supports('(-ms-ime-align:auto)');
-
 /**
  * utility for custom generated CSS rules
  */
@@ -16,9 +14,6 @@ export default class StyleManager {
   constructor(root: HTMLElement) {
     this.node = root.ownerDocument.createElement('style');
     root.appendChild(this.node);
-    if (isEdge) {
-      root.classList.add('ms-edge');
-    }
   }
 
   destroy() {

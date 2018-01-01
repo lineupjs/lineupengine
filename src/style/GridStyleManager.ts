@@ -1,7 +1,7 @@
 /**
  * Created by Samuel Gratzl on 13.07.2017.
  */
-import StyleManager, {isEdge} from './StyleManager';
+import StyleManager from './StyleManager';
 import {IColumn} from './IColumn';
 
 export const TEMPLATE = `
@@ -24,11 +24,7 @@ export function setTemplate(root: HTMLElement) {
  * @param {{index: number; id: string}} column the column meta data
  */
 export function setColumn(node: HTMLElement, column: { index: number, id: string }) {
-  if (isEdge) {
-    node.style.msGridColumn = column.index + 1;
-  } else {
-    (<any>node.style).gridColumnStart = column.id;
-  }
+  (<any>node.style).gridColumnStart = column.id;
   node.dataset.id = column.id;
 }
 
@@ -68,11 +64,7 @@ export default class GridStyleManager extends StyleManager {
       return `repeat(${count}, ${width})`;
     }
 
-    function repeatEdge(count: number, width: string) {
-      return `(${width})[${count}]`;
-    }
-
-    const repeat = isEdge ? repeatEdge : repeatStandard;
+    const repeat = repeatStandard;
 
     let lastWidth = 0;
     let count = 0;
@@ -99,9 +91,6 @@ export default class GridStyleManager extends StyleManager {
   static gridColumn(columns: {id: string, width: number}[], defaultWidth: number, unit: string = 'px') {
     const widths = GridStyleManager.columnWidths(columns, unit);
 
-    if (isEdge) {
-      return `-ms-grid-columns: ${widths};`;
-    }
     return `grid-template-columns: ${widths};
       grid-template-areas: "${columns.map((c) => c.id).join(' ')}";
       grid-auto-columns: ${defaultWidth}px;`;
@@ -129,9 +118,6 @@ export default class GridStyleManager extends StyleManager {
     }
 
     const content = GridStyleManager.gridColumn(columns, defaultWidth, unit);
-    if (isEdge) {
-      this.extraScrollUpdater.push(this.updateFrozenColumnsShift.bind(this, columns, selectors, padding, unit));
-    }
     this.updateRule(`__widthRule${selectors.body}`, `${selectors.body} > div, ${selectors.header} { ${content} }`);
 
     this.updateFrozen(columns, selectors, padding, unit);
@@ -166,13 +152,10 @@ export default class GridStyleManager extends StyleManager {
   }
 
   private updateFrozen(columns: IColumn[], selectors: ISelectors, _padding: (index: number)=>number, unit: string) {
-    if (isEdge) {
-      return;
-    }
     const prefix = `__frozen${selectors.body}_`;
     const rules = this.ruleNames.reduce((a, b) => a + (b.startsWith(prefix) ? 1 : 0), 0);
     const frozen = columns.filter((c) => c.frozen);
-    if (frozen.length <= 0 || isEdge) {
+    if (frozen.length <= 0) {
       // reset
       for (let i = 0; i < rules; ++i) {
         this.deleteRule(`${prefix}${i}`);
@@ -189,40 +172,6 @@ export default class GridStyleManager extends StyleManager {
       this.updateRule(`${prefix}${i}`, rule);
     });
     for (let i = frozen.length - 1; i < rules; ++i) {
-      this.deleteRule(`${prefix}${i}`);
-    }
-  }
-
-  private updateFrozenColumnsShift(columns: IColumn[], selectors: ISelectors, _padding: (index: number)=>number, unit: string, scrollLeft: number) {
-    if (!isEdge) {
-      return;
-    }
-
-    const prefix = `__frozen${selectors.body}_`;
-    const rules = this.ruleNames.reduce((a, b) => a + (b.startsWith(prefix) ? 1 : 0), 0);
-    const hasFrozen = columns.some((c) => c.frozen);
-    if (!hasFrozen) {
-      for (let i = 0; i < rules; ++i) {
-        this.deleteRule(`${prefix}${i}`);
-      }
-      return;
-    }
-    //create the correct left offset
-    let offset = 0;
-    let frozenWidth = 0;
-    let nextFrozen = 0;
-    columns.forEach((c) => {
-      if (c.frozen && offset < (scrollLeft + frozenWidth)) {
-        const rule = `${selectors.body} > div > .frozen[data-id="${c.id}"], ${selectors.header} .frozen[data-id="${c.id}"] {
-          transform: translate(${scrollLeft - offset + frozenWidth}${unit}, 0);
-        }`;
-        this.updateRule(`${prefix}${nextFrozen++}`, rule);
-        frozenWidth += c.width; //ignore padding + padding(i);
-      }
-      offset += c.width; //ignore padding + padding(i);
-    });
-
-    for (let i = nextFrozen; i < rules; ++i) {
       this.deleteRule(`${prefix}${i}`);
     }
   }

@@ -41,11 +41,8 @@
 
     > header > article,
     > main > article > div {
-      display: -ms-grid;
       display: grid;
       grid-auto-flow: column;
-      -ms-grid-column-align: stretch;
-      -ms-grid-row-align: stretch;
       align-items: stretch;
       justify-items: stretch;
 
@@ -71,8 +68,8 @@
       }
     }
 
-    &:not(.ms-edge) > header > article,
-    &:not(.ms-edge) > main > article > div {
+    > header > article,
+    > main > article > div {
       > .frozen { // frozen one
         position: sticky;
         left: 0;
