@@ -1,8 +1,8 @@
+import {IColumn} from './IColumn';
 /**
  * Created by Samuel Gratzl on 13.07.2017.
  */
 import StyleManager from './StyleManager';
-import {IColumn} from './IColumn';
 
 export const TEMPLATE = `
   <header>
@@ -88,7 +88,7 @@ export default class GridStyleManager extends StyleManager {
     return r;
   }
 
-  static gridColumn(columns: {id: string, width: number}[], defaultWidth: number, unit: string = 'px') {
+  static gridColumn(columns: { id: string, width: number }[], defaultWidth: number, unit: string = 'px') {
     const widths = GridStyleManager.columnWidths(columns, unit);
 
     return `grid-template-columns: ${widths};
@@ -104,8 +104,11 @@ export default class GridStyleManager extends StyleManager {
    * @param {string} tableId optional tableId in case of multiple tables within the same engine
    * @param {string} unit
    */
-  update(defaultRowHeight: number, columns: IColumn[], defaultWidth: number, padding: (index: number)=>number, tableId?: string,unit: string = 'px') {
-    const selectors = tableId !== undefined ? this.tableIds(tableId, true) : { header: `${this.id} > header > article`, body: `${this.id} > main > article`};
+  update(defaultRowHeight: number, columns: IColumn[], defaultWidth: number, padding: (index: number) => number, tableId?: string, unit: string = 'px') {
+    const selectors = tableId !== undefined ? this.tableIds(tableId, true) : {
+      header: `${this.id} > header > article`,
+      body: `${this.id} > main > article`
+    };
 
     this.updateRule(`__heightsRule${selectors.body}`, `${selectors.body} > div {
       height: ${defaultRowHeight}px;
@@ -148,10 +151,13 @@ export default class GridStyleManager extends StyleManager {
    */
   tableIds(tableId: string, asSelector: boolean = false) {
     const cleanId = this.id.startsWith('#') ? this.id.slice(1) : this.id;
-    return {header: `${asSelector ? '#': ''}${cleanId}_H${tableId}`, body: `${asSelector ? '#': ''}${cleanId}_B${tableId}`};
+    return {
+      header: `${asSelector ? '#' : ''}${cleanId}_H${tableId}`,
+      body: `${asSelector ? '#' : ''}${cleanId}_B${tableId}`
+    };
   }
 
-  private updateFrozen(columns: IColumn[], selectors: ISelectors, _padding: (index: number)=>number, unit: string) {
+  private updateFrozen(columns: IColumn[], selectors: ISelectors, _padding: (index: number) => number, unit: string) {
     const prefix = `__frozen${selectors.body}_`;
     const rules = this.ruleNames.reduce((a, b) => a + (b.startsWith(prefix) ? 1 : 0), 0);
     const frozen = columns.filter((c) => c.frozen);
