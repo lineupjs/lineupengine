@@ -1,7 +1,7 @@
 /**
  * Created by Samuel Gratzl on 19.07.2017.
  */
-import {ARowRenderer} from './ARowRenderer';
+import {ARowRenderer, IRowRendererOptions} from './ARowRenderer';
 import {GridStyleManager, IColumn, setTemplate} from './style';
 import {IMixinClass} from './mixin';
 import ACellAdapter, {ICellAdapterRenderContext} from './table/internal/ACellAdapter';
@@ -16,8 +16,8 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
 
   private readonly cell: ACellAdapter<T>;
 
-  constructor(protected readonly root: HTMLElement, htmlId: string, ...mixinClasses: IMixinClass[]) {
-    super(<HTMLElement>setTemplate(root).querySelector('main > article'), ...mixinClasses);
+  constructor(protected readonly root: HTMLElement, htmlId: string, options: Partial<IRowRendererOptions> = {}) {
+    super(<HTMLElement>setTemplate(root).querySelector('main > article'), options);
     root.classList.add('lineup-engine');
 
     this.style = new GridStyleManager(this.root, htmlId);
@@ -49,7 +49,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
         return that.forEachRow(callback);
       }
     }
-    this.cell = new LocalCell(this.header, this.style, undefined, ...mixinClasses);
+    this.cell = new LocalCell(this.header, this.style, undefined, ... (options.mixins || []));
   }
 
   protected get header() {

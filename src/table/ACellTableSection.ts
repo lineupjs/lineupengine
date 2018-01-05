@@ -1,7 +1,7 @@
 /**
  * Created by Samuel Gratzl on 26.09.2017.
  */
-import ARowRenderer from '../ARowRenderer';
+import ARowRenderer, {IRowRendererOptions} from '../ARowRenderer';
 import ACellAdapter, {ICellAdapterRenderContext} from './internal/ACellAdapter';
 import {EScrollResult, IMixinClass} from '../mixin/index';
 import {ITableSection} from './MultiTableRowRenderer';
@@ -14,8 +14,8 @@ export declare type ICellRenderContext<T extends IColumn> = ICellAdapterRenderCo
 export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer implements ITableSection {
   private readonly cell: ACellAdapter<T>;
 
-  constructor(protected readonly header: HTMLElement, body: HTMLElement, protected readonly tableId: string, protected readonly style: GridStyleManager, ...mixinClasses: IMixinClass[]) {
-    super(body, ...mixinClasses);
+  constructor(protected readonly header: HTMLElement, body: HTMLElement, protected readonly tableId: string, protected readonly style: GridStyleManager, options: Partial<IRowRendererOptions> = {}) {
+    super(body, options);
 
     const that = this;
 
@@ -44,7 +44,7 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
         return that.forEachRow(callback);
       }
     }
-    this.cell = new LocalCell(this.header, this.style, tableId, ...mixinClasses);
+    this.cell = new LocalCell(this.header, this.style, tableId, ...(options.mixins || []));
   }
 
   protected addColumnMixin(mixinClass: IMixinClass, options?: any) {

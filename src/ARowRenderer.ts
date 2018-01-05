@@ -1,13 +1,27 @@
+import {ABORTED, IAbortAblePromise, isAbortAble} from './abortAble';
+import {defaultPhases, EAnimationMode, IAnimationContext, IAnimationItem, IPhase, noAnimationChange} from './animation';
+import KeyFinder from './animation/KeyFinder';
 /**
  * Created by Samuel Gratzl on 13.07.2017.
  */
 import {IExceptionContext, range} from './logic';
-import {ABORTED, IAbortAblePromise, isAbortAble} from './abortAble';
 import {EScrollResult, IMixin, IMixinAdapter, IMixinClass} from './mixin';
-import KeyFinder from './animation/KeyFinder';
-import {defaultPhases, IAnimationContext, IAnimationItem, IPhase, EAnimationMode, noAnimationChange} from './animation';
 
 export declare type IRowRenderContext = IExceptionContext;
+
+export interface IRowRendererOptions {
+  /**
+   * async update on scrolling
+   */
+  async: number|'animation'|'sync'|'immediate';
+
+  /**
+   * minimal number of pixel the scrollbars has to move
+   */
+  minScrollDelta: number;
+
+  mixins: IMixinClass[];
+}
 
 export abstract class ARowRenderer {
   private readonly pool: HTMLElement[] = [];
@@ -26,13 +40,20 @@ export abstract class ARowRenderer {
 
   private readonly adapter: IMixinAdapter;
   private readonly mixins: IMixin[];
-  private scrollListener: () => void;
+  private scrollListener: (evt: MouseEvent) => void;
 
   private abortAnimation: () => void = () => undefined;
 
-  constructor(protected readonly body: HTMLElement, ...mixinClasses: IMixinClass[]) {
+  private readonly options: Readonly<IRowRendererOptions> = {
+    async: 'immediate',
+    minScrollDelta: 3,
+    mixins: []
+  };
+
+  constructor(protected readonly body: HTMLElement, options: Partial<IRowRendererOptions> = {}) {
     this.adapter = this.createAdapter();
-    this.mixins = mixinClasses.map((mixinClass) => new mixinClass(this.adapter));
+    Object.assign(this.options, options);
+    this.mixins = this.options.mixins.map((mixinClass) => new mixinClass(this.adapter));
 
     this.fragment = body.ownerDocument.createDocumentFragment();
   }
@@ -99,15 +120,48 @@ export abstract class ARowRenderer {
 
     //sync scrolling of header and body
     let oldTop = scroller.scrollTop;
-    this.scrollListener = () => {
+    let timeOut = -1;
+
+    const handler = () => {
+      timeOut = -1;
       const top = scroller.scrollTop;
-      if (oldTop === top) {
+      if (Math.abs(oldTop - top) < this.options.minScrollDelta) {
         return;
       }
       const isGoingDown = top > oldTop;
+      console.log(top - oldTop);
       oldTop = top;
       this.onScrolledVertically(top, scroller.clientHeight, isGoingDown);
     };
+
+    const hasImmediate = typeof (window.setImmediate) === 'function';
+
+    if (this.options.async === 'immediate' && hasImmediate) {
+      this.scrollListener = () => {
+        if (timeOut > -1) {
+          return; // already scheduled
+        }
+        timeOut = setImmediate(handler);
+      };
+    } else if (this.options.async === 'animation' || this.options.async === 'immediate') { // no Immediate available
+      this.scrollListener = () => {
+        if (timeOut > -1) {
+          return; // already scheduled
+        }
+        timeOut = requestAnimationFrame(handler);
+      };
+    } else if (typeof this.options.async === 'number') {
+      this.scrollListener = () => {
+        if (timeOut > -1) {
+          console.log('skip');
+          return; // already scheduled
+        }
+        timeOut = self.setTimeout(handler, this.options.async);
+      };
+    } else {
+      this.scrollListener = handler;
+    }
+
     scroller.addEventListener('scroll', this.scrollListener);
     this.recreate();
   }
