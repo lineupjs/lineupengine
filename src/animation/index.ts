@@ -41,6 +41,15 @@ export interface IAnimationItem {
   };
 }
 
+const NO_CHANGE_DELTA = 1;
+
+export function noAnimationChange({previous, mode, nodeY, current}: IAnimationItem, previousHeight: number, currentHeight: number) {
+  // sounds like the same
+  const prev = previous.height == null ? previousHeight : previous.height;
+  const curr = current.height == null ? currentHeight : current.height;
+  return mode === EAnimationMode.UPDATE && (Math.abs(previous.y - nodeY) <= NO_CHANGE_DELTA) && (Math.abs(prev - curr) <= NO_CHANGE_DELTA);
+}
+
 export interface IPhase {
   readonly delay: number;
 

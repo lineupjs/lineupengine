@@ -5,7 +5,7 @@ import {IExceptionContext, range} from './logic';
 import {ABORTED, IAbortAblePromise, isAbortAble} from './abortAble';
 import {EScrollResult, IMixin, IMixinAdapter, IMixinClass} from './mixin';
 import KeyFinder from './animation/KeyFinder';
-import {defaultPhases, IAnimationContext, IAnimationItem, IPhase, EAnimationMode} from './animation';
+import {defaultPhases, IAnimationContext, IAnimationItem, IPhase, EAnimationMode, noAnimationChange} from './animation';
 
 export declare type IRowRenderContext = IExceptionContext;
 
@@ -475,8 +475,8 @@ export abstract class ARowRenderer {
     let currentTimer: any = -1;
     let actPhase = 0;
 
-    const executePhase = (phase: IPhase) => {
-      animation.forEach((anim) => phase.apply(anim, previousFinder, currentFinder));
+    const executePhase = (phase: IPhase, items = animation) => {
+      items.forEach((anim) => phase.apply(anim, previousFinder, currentFinder));
     };
 
     const run = () => {
@@ -512,6 +512,38 @@ export abstract class ARowRenderer {
       currentTimer = -1;
     };
 
+    // execute all phases having a delay of zero
+    while (phases[actPhase].delay === 0) {
+      executePhase(phases[actPhase++]);
+    }
+    // after the initial one
+    const body = this.body;
+    this.body.appendChild(fragment);
+
+    const dummyAnimation: IAnimationItem[] = [];
+    animation = animation.filter((d) => {
+      if (noAnimationChange(d, previousFinder.context.defaultRowHeight, currentFinder.context.defaultRowHeight)) {
+        dummyAnimation.push(d);
+        return false;
+      }
+      return true;
+    });
+
+    if (dummyAnimation.length > 0) {
+      // execute all phases for them
+      phases.slice(actPhase).forEach((phase) => executePhase(phase, dummyAnimation));
+    }
+
+    if (animation.length === 0) {
+      return;
+    }
+
+    body.classList.add('le-row-animation');
+    (new Set(animation.map((d) => d.mode))).forEach((mode) => {
+      // add class but map to UPDATE only
+      body.classList.add(`le-${EAnimationMode[mode].toLowerCase().split('_')[0]}-animation`);
+    });
+
     this.abortAnimation = () => {
       if (currentTimer <= 0) {
         return;
@@ -524,19 +556,6 @@ export abstract class ARowRenderer {
       run();
     };
 
-    // execute all phases having a delay of zero
-    while (phases[actPhase].delay === 0) {
-      executePhase(phases[actPhase++]);
-    }
-    // after the initial one
-    const body = this.body;
-    this.body.appendChild(fragment);
-
-    body.classList.add('le-row-animation');
-    (new Set(animation.map((d) => d.mode))).forEach((mode) => {
-      // add class but map to UPDATE only
-      body.classList.add(`le-${EAnimationMode[mode].toLowerCase().split('_')[0]}-animation`);
-    });
     // next tick such that DOM will be updated
     currentTimer = setTimeout(run, phases[actPhase].delay);
   }
