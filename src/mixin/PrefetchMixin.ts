@@ -80,12 +80,20 @@ export default class PrefetchMixin implements IMixin {
       clearTimeout(this.prefetchTimeout);
     }
 
-    if ((isGoingDown && this.adapter.visible.last >= (this.adapter.visible.forcedLast + this.options.prefetchRows)) ||
-      (!isGoingDown && this.adapter.visible.first <= (this.adapter.visible.forcedFirst - this.options.prefetchRows))) {
+    const prefetchDownPossible = this.adapter.visible.last < (this.adapter.visible.forcedLast + this.options.prefetchRows);
+    const prefetchUpPossible = this.adapter.visible.first > (this.adapter.visible.forcedFirst - this.options.prefetchRows);
+
+    const isLast = this.adapter.visible.last === this.adapter.context.numberOfRows;
+    const isFirst = this.adapter.visible.first === 0;
+
+    if ((isGoingDown && !prefetchDownPossible && !isLast) || (!isGoingDown && !prefetchUpPossible && !isFirst)) {
       return;
     }
 
-    this.prefetchTimeout = setTimeout(isGoingDown ? this.prefetchDown.bind(this) : this.prefetchUp.bind(this), this.options.delay);
+    // go down if we are already at the top, too
+    const op = (isGoingDown || isFirst) ? this.prefetchDown.bind(this) : this.prefetchUp.bind(this);
+
+    this.prefetchTimeout = setTimeout(op, this.options.delay);
   }
 
   private cleanUpTop(first: number) {
