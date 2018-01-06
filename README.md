@@ -1,4 +1,4 @@
-LineUpEngine  [![License: MIT][mit-image]][mit-url] [![NPM version][npm-image]][npm-url]  [![CircleCI][ci-url]][ci-image] 
+LineUpEngine  [![License: MIT][mit-image]][mit-url] [![NPM version][npm-image]][npm-url]  [![CircleCI][ci-image]][ci-url] 
 ============
 
 
