@@ -10,7 +10,6 @@ const webpack = require('webpack');
 const fs = require('fs');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
-const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
 const now = new Date();
 const prefix = (n) => n < 10 ? ('0' + n) : n.toString();
@@ -27,23 +26,7 @@ const banner = '/*! ' + (pkg.title || pkg.name) + ' - v' + pkg.version + ' - ' +
 //list of loaders and their mappings
 const webpackloaders = [
   {test: /\.scss$/, loader: 'style-loader!css-loader!sass-loader'},
-  {test: /\.tsx?$/, use: [
-                { loader: 'cache-loader' },
-                {
-                    loader: 'thread-loader',
-                    options: {
-                        // there should be 1 cpu for the fork-ts-checker-webpack-plugin
-                        workers: require('os').cpus().length - 1
-                    }
-                },
-                {
-                    loader: 'ts-loader',
-                    options: {
-                        happyPackMode: true // IMPORTANT! use happyPackMode mode to speed-up compilation and reduce errors reported to webpack
-                    }
-                }
-  ]},
-  {test: /\.json$/, loader: 'json-loader'},
+  {test: /\.tsx?$/, loader: 'awesome-typescript-loader'},
   {
     test: /\.(png|jpg)$/,
     loader: 'url-loader',
@@ -86,12 +69,13 @@ function generateWebpack(options) {
       chunkFilename: '[chunkhash].js',
       publicPath: '', //no public path = relative
       library: 'lineupengine',
-      libraryTarget:'umd',
+      libraryTarget: 'umd',
       umdNamedDefine: false //anonymous require module
     },
     resolve: {
       // Add `.ts` and `.tsx` as a resolvable extension.
-      extensions: ['.webpack.js', '.web.js', '.ts', '.tsx', '.js']
+      extensions: ['.webpack.js', '.web.js', '.ts', '.tsx', '.js'],
+      symlinks: false
     },
     plugins: [
       //define magic constants that are replaced
@@ -104,20 +88,12 @@ function generateWebpack(options) {
         __TEST__: options.isTest,
         __PRODUCTION__: options.isProduction,
         __APP_CONTEXT__: JSON.stringify('/')
-      }),
-      new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true })
+      })
       //rest depends on type
     ],
-    externals: [],
+    externals: {},
     module: {
       loaders: webpackloaders.slice()
-    },
-    devServer: {
-      contentBase: resolve(__dirname, 'build'),
-      watchOptions: {
-        aggregateTimeout: 500,
-        ignored: /node_modules/
-      }
     },
     watchOptions: {
       aggregateTimeout: 500,
@@ -126,14 +102,14 @@ function generateWebpack(options) {
   };
 
   if (options.isProduction) {
-	  base.plugins.unshift(new webpack.BannerPlugin({
+      base.plugins.unshift(new webpack.BannerPlugin({
         banner: banner,
         raw: true
       }));
-	  base.plugins.push(new webpack.optimize.MinChunkSizePlugin({
-			minChunkSize: 10000 //at least 10.000 characters
-		  }),
-		  new webpack.optimize.AggressiveMergingPlugin());
+      base.plugins.push(new webpack.optimize.MinChunkSizePlugin({
+        minChunkSize: 10000 //at least 10.000 characters
+      }),
+      new webpack.optimize.AggressiveMergingPlugin());
   }
 
   if (!options.isTest) {
@@ -177,17 +153,13 @@ function generateWebpackConfig(env) {
   const isDev = !isProduction && !isTest;
 
   const base = {
-    isProduction: isProduction,
-    isDev: isDev,
-    isTest: isTest
+    isProduction,
+    isDev,
+    isTest
   };
 
-  if (isTest) {
-    return generateWebpack(base);
-  }
-
   //single generation
-  if (isDev) {
+  if (isDev || isTest) {
     return generateWebpack(base);
   } else { //isProduction
     return [
