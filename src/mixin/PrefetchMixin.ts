@@ -1,6 +1,3 @@
-/**
- * Created by Samuel Gratzl on 13.07.2017.
- */
 import {range} from '../logic';
 import {EScrollResult, IMixin, IMixinAdapter} from './IMixin';
 

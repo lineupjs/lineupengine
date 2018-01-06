@@ -1,9 +1,6 @@
 import {ABORTED, IAbortAblePromise, isAbortAble} from './abortAble';
 import {defaultPhases, EAnimationMode, IAnimationContext, IAnimationItem, IPhase, noAnimationChange} from './animation';
 import KeyFinder from './animation/KeyFinder';
-/**
- * Created by Samuel Gratzl on 13.07.2017.
- */
 import {IExceptionContext, range} from './logic';
 import {EScrollResult, IMixin, IMixinAdapter, IMixinClass} from './mixin';
 
@@ -13,7 +10,7 @@ export interface IRowRendererOptions {
   /**
    * async update on scrolling
    */
-  async: number|'animation'|'sync'|'immediate';
+  async: number | 'animation' | 'sync' | 'immediate';
 
   /**
    * minimal number of pixel the scrollbars has to move
@@ -141,7 +138,7 @@ export abstract class ARowRenderer {
 
     const hasImmediate = typeof (window.setImmediate) === 'function';
 
-    let delayer: (callback: ()=>void)=>number;
+    let delayer: (callback: () => void) => number;
 
     if (this.options.async === 'immediate' && hasImmediate) {
       delayer = setImmediate;

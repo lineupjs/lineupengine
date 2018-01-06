@@ -1,10 +1,6 @@
 import {IExceptionContext, range} from '../logic';
 import QuadTreeNode, {
-  BOTTOM_LEFT,
-  BOTTOM_RIGHT,
-  QuadTreeInnerNode,
-  QuadTreeLeafNode,
-  TOP_LEFT,
+  BOTTOM_LEFT, BOTTOM_RIGHT, QuadTreeInnerNode, QuadTreeLeafNode, TOP_LEFT,
   TOP_RIGHT
 } from './internal/QuadTreeNode';
 

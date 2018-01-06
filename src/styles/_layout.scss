@@ -51,6 +51,8 @@
         text-overflow: ellipsis;
 
         &.frozen {
+          position: sticky;
+          left: 0;
           background-color: white;
           z-index: 1;
         }
@@ -66,14 +68,6 @@
         z-index: 2;
 
         @include collapsing-row-border($engine_row_outline_width, $engine_row_outline_color);
-      }
-    }
-
-    > header > article,
-    > main > article > div {
-      > .frozen { // frozen one
-        position: sticky;
-        left: 0;
       }
     }
   }

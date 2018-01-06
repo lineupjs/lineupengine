@@ -1,7 +1,3 @@
-/**
- * Created by Samuel Gratzl on 13.07.2017.
- */
-
 // import manually import './style.scss';
 
 /**

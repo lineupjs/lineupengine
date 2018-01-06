@@ -1,6 +1,6 @@
-import {GridStyleManager} from '../style/index';
 import {IExceptionContext, nonUniformContext, range, uniformContext} from '../logic';
-import {EScrollResult} from '../mixin/index';
+import {EScrollResult} from '../mixin';
+import {GridStyleManager} from '../style/index';
 
 export interface ITableSection {
   readonly id: string;

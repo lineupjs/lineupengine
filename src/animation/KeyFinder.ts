@@ -1,8 +1,4 @@
-/**
- * Created by Samuel Gratzl on 05.10.2017.
- */
 import {IExceptionContext} from '../logic';
-
 
 export default class KeyFinder {
   private readonly cache: number[] = [];

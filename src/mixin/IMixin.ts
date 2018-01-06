@@ -1,6 +1,3 @@
-/**
- * Created by Samuel Gratzl on 19.07.2017.
- */
 import {IExceptionContext} from '../logic';
 
 export enum EScrollResult {

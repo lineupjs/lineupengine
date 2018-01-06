@@ -1,13 +1,10 @@
-/**
- * Created by Samuel Gratzl on 26.09.2017.
- */
+import {IAnimationContext} from '../animation';
 import ARowRenderer, {IRowRendererOptions} from '../ARowRenderer';
-import ACellAdapter, {ICellAdapterRenderContext} from './internal/ACellAdapter';
-import {EScrollResult, IMixinClass} from '../mixin/index';
-import {ITableSection} from './MultiTableRowRenderer';
+import {EScrollResult, IMixinClass} from '../mixin';
 import GridStyleManager from '../style/GridStyleManager';
-import {IColumn} from '../style/index';
-import {IAnimationContext} from '../animation/index';
+import {IColumn} from '../style';
+import ACellAdapter, {ICellAdapterRenderContext} from './internal/ACellAdapter';
+import {ITableSection} from './MultiTableRowRenderer';
 
 export declare type ICellRenderContext<T extends IColumn> = ICellAdapterRenderContext<T>;
 
@@ -44,6 +41,7 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
         return that.forEachRow(callback);
       }
     }
+
     this.cell = new LocalCell(this.header, this.style, tableId, ...(options.mixins || []));
   }
 

@@ -1,6 +1,3 @@
-/**
- * Created by Samuel Gratzl on 04.10.2017.
- */
 import {IExceptionContext} from '../logic';
 import KeyFinder from './KeyFinder';
 
@@ -95,7 +92,7 @@ export const defaultPhases = [
       if (mode !== EAnimationMode.HIDE) { // keep height for removal
         node.style.height = current.height !== null ? `${current.height}px` : null;
       }
-      node.style.opacity = mode === EAnimationMode.SHOW  ? '1' : (mode === EAnimationMode.HIDE ? '0' : null);
+      node.style.opacity = mode === EAnimationMode.SHOW ? '1' : (mode === EAnimationMode.HIDE ? '0' : null);
     }
   },
   {

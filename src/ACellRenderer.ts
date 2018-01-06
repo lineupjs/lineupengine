@@ -1,11 +1,8 @@
-/**
- * Created by Samuel Gratzl on 19.07.2017.
- */
-import {ARowRenderer, IRowRendererOptions} from './ARowRenderer';
-import {GridStyleManager, IColumn, setTemplate} from './style';
-import {IMixinClass} from './mixin';
-import ACellAdapter, {ICellAdapterRenderContext} from './table/internal/ACellAdapter';
 import {IAnimationContext} from './animation';
+import {ARowRenderer, IRowRendererOptions} from './ARowRenderer';
+import {IMixinClass} from './mixin';
+import {GridStyleManager, IColumn, setTemplate} from './style';
+import ACellAdapter, {ICellAdapterRenderContext} from './table/internal/ACellAdapter';
 
 
 export declare type ICellRenderContext<T extends IColumn> = ICellAdapterRenderContext<T>;
@@ -49,6 +46,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
         return that.forEachRow(callback);
       }
     }
+
     this.cell = new LocalCell(this.header, this.style, undefined, ... (options.mixins || []));
   }
 

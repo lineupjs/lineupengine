@@ -1,7 +1,4 @@
 import {IColumn} from './IColumn';
-/**
- * Created by Samuel Gratzl on 13.07.2017.
- */
 import StyleManager from './StyleManager';
 
 export const TEMPLATE = `

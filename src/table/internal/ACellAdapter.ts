@@ -1,10 +1,7 @@
-/**
- * Created by Samuel Gratzl on 19.07.2017.
- */
 import {frozenDelta, IExceptionContext, range, updateFrozen} from '../../logic';
 import {EScrollResult, IMixin, IMixinAdapter, IMixinClass} from '../../mixin';
 import GridStyleManager, {setColumn} from '../../style/GridStyleManager';
-import {IColumn} from '../../style/IColumn';
+import {IColumn} from '../../style';
 
 const debug = false;
 
@@ -105,7 +102,7 @@ export abstract class ACellAdapter<T extends IColumn> {
 
   protected abstract updateCell(node: HTMLElement, index: number, column: T): HTMLElement | void;
 
-  protected abstract forEachRow(callback: (row: HTMLElement, rowIndex: number)=>void): void;
+  protected abstract forEachRow(callback: (row: HTMLElement, rowIndex: number) => void): void;
 
   private removeColumnFromStart(from: number, to: number, frozenShift: number = this.visibleColumns.frozen.length) {
     this.forEachRow((row: HTMLElement) => {
@@ -300,7 +297,7 @@ export abstract class ACellAdapter<T extends IColumn> {
       context.hasFrozenColumns = context.columns.some((c) => c.frozen);
     }
 
-    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, context.column.defaultRowHeight - context.column.padding(-1),context.column.padding, this.tableId);
+    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, context.column.defaultRowHeight - context.column.padding(-1), context.column.padding, this.tableId);
 
 
     this.clearPool();
