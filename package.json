@@ -17,9 +17,11 @@
     "url": "https://github.com/sgratzl/lineupengine.git"
   },
   "main": "build/lineupengine.js",
+  "typings": "build/typings/src",
   "files": [
     "src",
-    "build"
+    "build/lineupengine.js",
+    "build/typings/src"
   ],
   "engines": {
     "npm": ">= 3",

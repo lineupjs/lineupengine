@@ -4,6 +4,7 @@ import {ACellRenderer, ICellContext} from '../src/cell/ACellRenderer';
 import {uniformContext} from '../src';
 import '../src/style.scss';
 
+/** @internal */
 export default class CellRenderer extends ACellRenderer {
   protected readonly _context: ICellContext;
 

@@ -1,6 +1,6 @@
 import {IAnimationContext} from './animation';
 import {ARowRenderer, IRowRendererOptions} from './ARowRenderer';
-import {IMixinClass} from './mixin';
+import {EScrollResult, IMixinClass} from './mixin';
 import {GridStyleManager, IColumn, setTemplate} from './style';
 import ACellAdapter, {ICellAdapterRenderContext} from './table/internal/ACellAdapter';
 
@@ -88,7 +88,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
     this.root.remove();
   }
 
-  protected onScrolledHorizontally(scrollLeft: number, clientWidth: number, isGoingRight: boolean) {
+  protected onScrolledHorizontally(scrollLeft: number, clientWidth: number, isGoingRight: boolean): EScrollResult {
     return this.cell.onScrolledHorizontally(scrollLeft, clientWidth, isGoingRight);
   }
 

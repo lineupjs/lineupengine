@@ -24,6 +24,7 @@
     "noImplicitThis": true,
     "noUnusedParameters": true,
     "strictNullChecks": true,
+    "stripInternal": true,
     "skipLibCheck": true
   },
   "compileOnSave": false,

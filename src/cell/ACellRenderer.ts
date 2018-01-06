@@ -21,6 +21,7 @@ export abstract class ACellRenderer {
   private readonly poolInner: HTMLElement[] = [];
   //private readonly fragment: DocumentFragment;
 
+  /** @internal */
   private tree: QuadTreeNode;
 
   constructor(private readonly root: HTMLElement) {

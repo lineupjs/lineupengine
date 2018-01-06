@@ -1,10 +1,8 @@
-/**
- * Created by Samuel Gratzl on 13.07.2017.
- */
 import 'file-loader?name=demo.html!extract-loader!html-loader!./index.html';
 import {ICellRenderContext, ACellRenderer, uniformContext, IColumn, PrefetchMixin} from '../src';
 import '../src/style.scss';
 
+/** @internal */
 class Column<T> implements IColumn {
   constructor(public readonly index: number, public readonly name: string, public readonly frozen: boolean = false, public readonly width = 100) {
 
@@ -39,6 +37,7 @@ class Column<T> implements IColumn {
   }
 }
 
+/** @internal */
 export default class TestRenderer extends ACellRenderer<Column<number>> {
   protected readonly _context: ICellRenderContext<Column<number>>;
 

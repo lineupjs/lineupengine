@@ -1,3 +1,4 @@
+/** @internal */
 abstract class AQuadTreeNode {
   parent: QuadTreeInnerNode | null = null;
 
@@ -54,6 +55,7 @@ abstract class AQuadTreeNode {
 }
 
 
+/** @internal */
 export class QuadTreeLeafNode extends AQuadTreeNode {
   readonly type = 'leaf';
 }
@@ -63,6 +65,7 @@ export const TOP_RIGHT = 1;
 export const BOTTOM_LEFT = 2;
 export const BOTTOM_RIGHT = 3;
 
+/** @internal */
 export class QuadTreeInnerNode extends AQuadTreeNode {
   readonly type = 'inner';
   /**
@@ -80,5 +83,6 @@ export class QuadTreeInnerNode extends AQuadTreeNode {
   }
 }
 
+/** @internal */
 type QuadTreeNode = QuadTreeInnerNode | QuadTreeLeafNode;
 export default QuadTreeNode;
