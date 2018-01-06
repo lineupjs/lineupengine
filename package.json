@@ -8,7 +8,7 @@
     "email": "samuel_gratzl@gmx.at",
     "url": ""
   },
-  "license": "BSD-3-Clause",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/sgratzl/lineupengine/issues"
   },
@@ -19,7 +19,6 @@
   "main": "build/lineupengine.js",
   "files": [
     "src",
-    "index.js",
     "build"
   ],
   "engines": {
@@ -29,7 +28,7 @@
   "scripts": {
     "compile": "tsc",
     "lint": "tslint --project tsconfig.json -c tslint.json && stylelint src/**/*.scss",
-    "docs": "typedoc --options typedoc.json src",
+    "docs": "typedoc --out ./build/docs src",
     "prebuild": "node -e \"process.exit(process.env.PHOVEA_SKIP_TESTS === undefined?1:0)\" || npm run test",
     "pretest": "npm run compile",
     "test": "node -e \"require('fs').existsSync('./tests')?0:1\" || karma start",
@@ -37,8 +36,6 @@
     "test:watch": "karma start --autoWatch=true --singleRun=false",
     "build:dev": "webpack",
     "build": "webpack --env=prod",
-    "start": "webpack-dev-server --inline",
-    "start:hot": "webpack-dev-server --inline --hot",
     "watch": "webpack --watch",
     "release:major": "npm version major && npm publish && git push --follow-tags",
     "release:minor": "npm version minor && npm publish && git push --follow-tags",
@@ -55,6 +52,7 @@
     "file-loader": "^1.1.6",
     "jasmine": "^2.8.0",
     "jasmine-promises": "^0.4.1",
+    "json-loader": "^0.5.7",
     "karma": "^2.0.0",
     "karma-chrome-launcher": "^2.2.0",
     "karma-jasmine": "^1.1.1",
