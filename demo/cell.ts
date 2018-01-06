@@ -1,7 +1,6 @@
-
 import 'file-loader?name=cell.html!extract-loader!html-loader!./cell.html';
-import {ACellRenderer, ICellContext} from '../src/cell/ACellRenderer';
 import {uniformContext} from '../src';
+import {ACellRenderer, ICellContext} from '../src/cell/ACellRenderer';
 import '../src/style.scss';
 
 /** @internal */
@@ -32,6 +31,7 @@ export default class CellRenderer extends ACellRenderer {
     node.textContent = `${row}/${col}`;
     return node;
   }
+
   protected updateCell(node: HTMLElement, row: number, col: number): HTMLElement | void {
     node.textContent = `${row}/${col}`;
   }
@@ -41,6 +41,7 @@ export default class CellRenderer extends ACellRenderer {
     node.textContent = `#${row}`;
     return node;
   }
+
   protected updateRowHeader(node: HTMLElement, row: number): HTMLElement | void {
     node.textContent = `#${row}`;
   }
@@ -50,6 +51,7 @@ export default class CellRenderer extends ACellRenderer {
     node.textContent = `#${col}`;
     return node;
   }
+
   protected updateColumnHeader(node: HTMLElement, col: number): HTMLElement | void {
     node.textContent = `#${col}`;
   }

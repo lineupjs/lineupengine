@@ -1,5 +1,5 @@
 import 'file-loader?name=demo.html!extract-loader!html-loader!./index.html';
-import {ICellRenderContext, ACellRenderer, uniformContext, IColumn, PrefetchMixin} from '../src';
+import {ACellRenderer, ICellRenderContext, IColumn, PrefetchMixin, uniformContext} from '../src';
 import '../src/style.scss';
 
 /** @internal */
@@ -42,7 +42,7 @@ export default class TestRenderer extends ACellRenderer<Column<number>> {
   protected readonly _context: ICellRenderContext<Column<number>>;
 
   constructor(root: HTMLElement, id: string, numberOfRows = 1000, numberOfColumns = 20) {
-    super(root, `#${id}`, { mixins: [PrefetchMixin] });
+    super(root, `#${id}`, {mixins: [PrefetchMixin]});
     root.id = id;
 
     const defaultRowHeight = 20;
@@ -85,7 +85,7 @@ export default class TestRenderer extends ACellRenderer<Column<number>> {
 
   protected updateRow(node: HTMLElement, index: number) {
     //return abortAble(resolveIn(2000)).then(() => {
-      super.updateRow(node, index);
+    super.updateRow(node, index);
     //});
   }
 }
