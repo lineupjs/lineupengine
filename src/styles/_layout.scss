@@ -42,6 +42,8 @@
     > header > article,
     > main > article > div {
       display: grid;
+      grid-auto-columns: 0;
+      grid-template-rows: auto;
       grid-auto-flow: column;
       align-items: stretch;
       justify-items: stretch;

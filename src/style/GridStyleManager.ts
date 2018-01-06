@@ -82,24 +82,22 @@ export default class GridStyleManager extends StyleManager {
     return r;
   }
 
-  static gridColumn(columns: { id: string, width: number }[], defaultWidth: number, unit: string = 'px') {
+  static gridColumn(columns: { id: string, width: number }[], unit: string = 'px') {
     const widths = GridStyleManager.columnWidths(columns, unit);
 
     return `grid-template-columns: ${widths};
-      grid-template-areas: "${columns.map((c) => c.id).join(' ')}";
-      grid-auto-columns: ${defaultWidth}px;`;
+      grid-template-areas: "${columns.map((c) => c.id).join(' ')}";`;
   }
 
   /**
    * updates the column widths and default row height for a table
    * @param {number} defaultRowHeight
    * @param {IColumn[]} columns
-   * @param {number} defaultWidth
    * @param {(index: number) => number} padding padding between columns
    * @param {string} tableId optional tableId in case of multiple tables within the same engine
    * @param {string} unit
    */
-  update(defaultRowHeight: number, columns: IColumn[], defaultWidth: number, padding: (index: number) => number, tableId?: string, unit: string = 'px') {
+  update(defaultRowHeight: number, columns: IColumn[], padding: (index: number) => number, tableId?: string, unit: string = 'px') {
     const selectors = tableId !== undefined ? this.tableIds(tableId, true) : {
       header: `${this.id} > header > article`,
       body: `${this.id} > main > article`
@@ -115,7 +113,7 @@ export default class GridStyleManager extends StyleManager {
       return;
     }
 
-    const content = GridStyleManager.gridColumn(columns, defaultWidth, unit);
+    const content = GridStyleManager.gridColumn(columns, unit);
     this.updateRule(`__widthRule${selectors.body}`, `${selectors.body} > div, ${selectors.header} { ${content} }`);
 
     this.updateFrozen(columns, selectors, padding, unit);

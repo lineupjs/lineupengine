@@ -92,7 +92,7 @@ export default class MultiTableRowRenderer {
   }
 
   private updateGrid() {
-    const content = GridStyleManager.gridColumn(this.sections, this.context.defaultRowHeight - this.context.padding(-1));
+    const content = GridStyleManager.gridColumn(this.sections);
     this.style.updateRule(`multiTableRule`, `${this.style.id} > header, ${this.style.id} > main { ${content} }`);
   }
 
