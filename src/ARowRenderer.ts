@@ -45,7 +45,7 @@ export abstract class ARowRenderer {
   private abortAnimation: () => void = () => undefined;
 
   private readonly options: Readonly<IRowRendererOptions> = {
-    async: 'immediate',
+    async: Boolean((<any>window).chrome) ? 'animation' : 'immediate', // animation frame on chrome
     minScrollDelta: 3,
     mixins: []
   };
@@ -129,7 +129,6 @@ export abstract class ARowRenderer {
         return;
       }
       const isGoingDown = top > oldTop;
-      console.log(top - oldTop);
       oldTop = top;
       this.onScrolledVertically(top, scroller.clientHeight, isGoingDown);
     };
@@ -153,7 +152,6 @@ export abstract class ARowRenderer {
     } else if (typeof this.options.async === 'number') {
       this.scrollListener = () => {
         if (timeOut > -1) {
-          console.log('skip');
           return; // already scheduled
         }
         timeOut = self.setTimeout(handler, this.options.async);
