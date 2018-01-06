@@ -8,6 +8,9 @@ import {ITableSection} from './MultiTableRowRenderer';
 
 export declare type ICellRenderContext<T extends IColumn> = ICellAdapterRenderContext<T>;
 
+/**
+ * base class for a cell renderer as table section
+ */
 export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer implements ITableSection {
   private readonly cell: ACellAdapter<T>;
 
@@ -69,6 +72,10 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
     this.onVisibilityChanged(!value);
   }
 
+  /**
+   * hook when the visibility changes
+   * @param {boolean} _visible current visibility
+   */
   protected onVisibilityChanged(_visible: boolean) {
     // hook
   }
@@ -111,18 +118,51 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
    */
   protected abstract get context(): ICellRenderContext<T>;
 
+  /**
+   * create a new header node for the given column
+   * @param {Document} document document to create nodes of
+   * @param {T} column the column to create the header for
+   * @returns {HTMLElement} the node representing the header
+   */
   protected abstract createHeader(document: Document, column: T): HTMLElement;
 
+  /**
+   * updates the given header node with the given column
+   * @param {HTMLElement} node node to update
+   * @param {T} column the column to represents
+   * @returns {HTMLElement | void} an optional new replacement node for the header
+   */
   protected abstract updateHeader(node: HTMLElement, column: T): HTMLElement | void;
 
+  /**
+   * create a new cell node fo the given row index and column
+   * @param {Document} document document the create nodes of
+   * @param {number} index the current row index
+   * @param {T} column the current column
+   * @returns {HTMLElement} the node representing the cell
+   */
   protected abstract createCell(document: Document, index: number, column: T): HTMLElement;
 
+  /**
+   * updates the given cell node with the given row index and column
+   * @param {HTMLElement} node node to update
+   * @param {number} index row index to use
+   * @param {T} column column to use
+   * @returns {HTMLElement | void} an optional new replacement node for the header
+   */
   protected abstract updateCell(node: HTMLElement, index: number, column: T): HTMLElement | void;
 
+
+  /**
+   * triggers updating the header
+   */
   protected updateHeaders() {
     this.cell.updateHeaders();
   }
 
+  /**
+   * trigger an update all all column widths
+   */
   protected updateColumnWidths() {
     const context = this.context;
     this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, context.column.defaultRowHeight - context.column.padding(-1), context.column.padding, this.tableId);

@@ -1,6 +1,14 @@
 LineUpEngine  [![License: MIT][mit-image]][mit-url] [![NPM version][npm-image]][npm-url]  [![CircleCI][ci-image]][ci-url] 
 ============
 
+a fast engine for rendering large tables consisting of rows, rows+columns, multiple rows+columns instances. 
+
+Supported Browsers
+------------------
+
+ * latest Chrome (best performance)
+ * Firefox Quantum
+ * Edge 16
 
 Development Environment
 -----------------------

@@ -2,6 +2,9 @@ import {IExceptionContext, nonUniformContext, range, uniformContext} from '../lo
 import {EScrollResult} from '../mixin';
 import {GridStyleManager} from '../style/index';
 
+/**
+ * basic interface of a table section
+ */
 export interface ITableSection {
   readonly id: string;
   readonly width: number;
@@ -30,9 +33,16 @@ export interface ISeparatorFactory<T extends ITableSection> {
 }
 
 export interface IMultiTableRowRendererOptions {
+  /**
+   * column padding to use between columns
+   * @default 0
+   */
   columnPadding: number;
 }
 
+/**
+ * manager of multiple columns separated by separators each an own row renderer
+ */
 export default class MultiTableRowRenderer {
 
   readonly style: GridStyleManager;
@@ -125,6 +135,12 @@ export default class MultiTableRowRenderer {
     return <HTMLElement>this.node.querySelector('main');
   }
 
+  /**
+   * push another table to this instance
+   * @param {ITableFactory<T extends ITableSection>} factory factory for the table
+   * @param extras additional arguments to provide for the factory
+   * @returns {T} the table instance
+   */
   pushTable<T extends ITableSection>(factory: ITableFactory<T>, ...extras: any[]) {
     const header = this.doc.createElement('article');
     const body = this.doc.createElement('article');
@@ -142,6 +158,12 @@ export default class MultiTableRowRenderer {
     return table;
   }
 
+  /**
+   * push another separator to the manager
+   * @param {ISeparatorFactory<T extends ITableSection>} factory the factory to create the separator
+   * @param extras optional additional arguments
+   * @returns {T} the new created separator
+   */
   pushSeparator<T extends ITableSection>(factory: ISeparatorFactory<T>, ...extras: any[]) {
     const header = this.doc.createElement('section');
     const body = this.doc.createElement('section');
@@ -155,6 +177,11 @@ export default class MultiTableRowRenderer {
     return separator;
   }
 
+  /**
+   * removes a given table section
+   * @param {ITableSection} section section to remove
+   * @returns {boolean} successful flag
+   */
   remove(section: ITableSection) {
     const index = this.sections.indexOf(section);
     if (index < 0) {
@@ -166,6 +193,9 @@ export default class MultiTableRowRenderer {
     return true;
   }
 
+  /**
+   * triggers and update because of a change in width of one or more table sections
+   */
   widthChanged() {
     this.update();
   }

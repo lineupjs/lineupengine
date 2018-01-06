@@ -128,7 +128,7 @@ function mostFrequentValue(values: { forEach: (callback: (height: number, index:
 
 /**
  * creates a non uniform context based on the given array like heights
- * @param {{forEach: ((callback: (height: number, index: number) => any) => any)}} rowHeights
+ * @param rowHeights arrayish to get the heights
  * @param {number} defaultRowHeight if not given the most frequent value will be used
  * @param {number} rowPadding padding between rows
  * @return {IExceptionContext}
@@ -165,7 +165,7 @@ export function nonUniformContext(rowHeights: { forEach: (callback: (height: num
 }
 
 /**
- * creates a random context with the given contraints
+ * creates a random context with the given constraints
  * @param {number} numberOfRows
  * @param {number} defaultRowHeight
  * @param {number} minRowHeight

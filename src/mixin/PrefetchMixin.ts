@@ -19,6 +19,9 @@ export interface IPrefetchRendererOptions {
   readonly delay: number;
 }
 
+/**
+ * mixin that prefetches rows depending on the scrolling direction for faster rendering
+ */
 export default class PrefetchMixin implements IMixin {
   private prefetchTimeout: number = -1;
 

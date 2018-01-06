@@ -9,6 +9,11 @@ export declare type IRowRenderContext = IExceptionContext;
 export interface IRowRendererOptions {
   /**
    * async update on scrolling
+   * animation -> use requestAnimationFrame
+   * immediate -> use setImmediate if available
+   * sync -> execute within scroll listener
+   * {number} -> execute within this delay using setTimeout
+   * @default is chrome ? animation else immediate
    */
   async: number | 'animation' | 'sync' | 'immediate';
 
@@ -17,11 +22,20 @@ export interface IRowRendererOptions {
    */
   minScrollDelta: number;
 
+  /**
+   * class of mixins to use for optimized rendering
+   */
   mixins: IMixinClass[];
 
+  /**
+   * add the scrolling hint class while scrolling to give a user feedback
+   */
   scrollingHint: boolean;
 }
 
+/**
+ * base class for creating a scalable table renderer based on rows
+ */
 export abstract class ARowRenderer {
   private readonly pool: HTMLElement[] = [];
   private readonly loadingPool: HTMLElement[] = [];
@@ -29,12 +43,19 @@ export abstract class ARowRenderer {
 
   private readonly fragment: DocumentFragment;
 
+  /**
+   * currently visible slice
+   */
   protected readonly visible = {
     first: 0,
     forcedFirst: 0,
     last: -1,
     forcedLast: -1
   };
+  /**
+   * position of the first visible row in pixel
+   * @type {number}
+   */
   protected visibleFirstRowPos = 0;
 
   private readonly adapter: IMixinAdapter;
@@ -43,7 +64,7 @@ export abstract class ARowRenderer {
 
   private abortAnimation: () => void = () => undefined;
 
-  private readonly options: Readonly<IRowRendererOptions> = {
+  protected readonly options: Readonly<IRowRendererOptions> = {
     async: Boolean((<any>window).chrome) ? 'animation' : 'immediate', // animation frame on chrome
     minScrollDelta: 3,
     mixins: [],
@@ -58,6 +79,11 @@ export abstract class ARowRenderer {
     this.fragment = body.ownerDocument.createDocumentFragment();
   }
 
+  /**
+   * register another mixin to this renderer
+   * @param {IMixinClass} mixinClass the mixin class to instantitiate
+   * @param options optional constructor options
+   */
   protected addMixin(mixinClass: IMixinClass, options?: any) {
     this.mixins.push(new mixinClass(this.adapter, options));
   }
@@ -85,6 +111,10 @@ export abstract class ARowRenderer {
     return r;
   }
 
+  /**
+   * get the scrolling container i.e. parent of the body element
+   * @returns {HTMLElement}
+   */
   protected get bodyScroller() {
     return <HTMLElement>this.body.parentElement;
   }
@@ -120,10 +150,8 @@ export abstract class ARowRenderer {
 
     //sync scrolling of header and body
     let oldTop = scroller.scrollTop;
-    let timeOut = -1;
 
     const handler = () => {
-      timeOut = -1;
       const top = scroller.scrollTop;
       if (Math.abs(oldTop - top) < this.options.minScrollDelta) {
         return;
@@ -136,6 +164,18 @@ export abstract class ARowRenderer {
       }
     };
 
+
+    this.scrollListener = this.createDelayedHandler(handler, () => {
+      if (this.options.scrollingHint) {
+        scroller.classList.add('le-scrolling');
+      }
+    });
+
+    scroller.addEventListener('scroll', this.scrollListener);
+    this.recreate();
+  }
+
+  protected createDelayedHandler(delayedHandler: () => void, immediateCallback?: () => void) {
     const hasImmediate = typeof (window.setImmediate) === 'function';
 
     let delayer: (callback: () => void) => number;
@@ -152,21 +192,27 @@ export abstract class ARowRenderer {
         return -1;
       };
     }
+    let timeOut = -1;
 
-    this.scrollListener = () => {
-      if (this.options.scrollingHint) {
-        scroller.classList.add('le-scrolling');
+    const wrapper = () => {
+      timeOut = -1;
+      delayedHandler();
+    };
+
+    return () => {
+      if (immediateCallback) {
+        immediateCallback();
       }
       if (timeOut > -1) {
         return; // already scheduled
       }
-      timeOut = delayer(handler);
+      timeOut = delayer(wrapper);
     };
-
-    scroller.addEventListener('scroll', this.scrollListener);
-    this.recreate();
   }
 
+  /**
+   * destroys this renderer and unregisters all event listeners
+   */
   destroy() {
     this.bodyScroller.removeEventListener('scroll', this.scrollListener);
     this.body.remove();
@@ -268,6 +314,9 @@ export abstract class ARowRenderer {
   }
 
 
+  /**
+   * triggers and visual update of all visible rows
+   */
   protected update() {
     const first = this.visible.first;
     const fragment = this.fragment;
@@ -285,6 +334,11 @@ export abstract class ARowRenderer {
     this.body.appendChild(fragment);
   }
 
+  /**
+   * utility to execute a function for each visible row
+   * @param {(row: HTMLElement, rowIndex: number) => void} callback callback to execute
+   * @param {boolean} inplace whether the DOM changes should be performed inplace instead of in a fragment
+   */
   protected forEachRow(callback: (row: HTMLElement, rowIndex: number) => void, inplace: boolean = false) {
     const rows = Array.from(this.body.children);
     const fragment = this.fragment;
@@ -358,6 +412,7 @@ export abstract class ARowRenderer {
 
   /**
    * removes all rows and recreates the table
+   * @param {IAnimationContext} ctx optional animation context to create a transition between the previous and the current tables
    * @returns {void} nothing
    */
   protected recreate(ctx?: IAnimationContext) {
@@ -615,11 +670,17 @@ export abstract class ARowRenderer {
     currentTimer = setTimeout(run, phases[actPhase].delay);
   }
 
+  /**
+   * clears the row pool used for faster creation
+   */
   protected clearPool() {
     // clear pool
     this.pool.splice(0, this.pool.length);
   }
 
+  /**
+   * triggers a revalidation of the current scrolling offest
+   */
   protected revalidate() {
     const scroller = this.bodyScroller;
     this.onScrolledVertically(scroller.scrollTop, scroller.clientHeight, true);

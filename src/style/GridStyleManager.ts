@@ -34,7 +34,6 @@ interface ISelectors {
  * utility for custom generated CSS rules with a focus on dynamically generated grid layouts
  */
 export default class GridStyleManager extends StyleManager {
-  private readonly extraScrollUpdater: ((scrollLeft: number) => void)[] = [];
 
   constructor(root: HTMLElement, public readonly id: string) {
     super(root);
@@ -44,9 +43,7 @@ export default class GridStyleManager extends StyleManager {
 
     // update frozen and sync header with body
     bodyScroller.addEventListener('scroll', () => {
-      const left = bodyScroller.scrollLeft;
-      headerScroller.scrollLeft = left;
-      this.extraScrollUpdater.forEach((u) => u(left));
+      headerScroller.scrollLeft = bodyScroller.scrollLeft;
     });
   }
 
@@ -98,6 +95,7 @@ export default class GridStyleManager extends StyleManager {
    * @param {number} defaultRowHeight
    * @param {IColumn[]} columns
    * @param {number} defaultWidth
+   * @param {(index: number) => number} padding padding between columns
    * @param {string} tableId optional tableId in case of multiple tables within the same engine
    * @param {string} unit
    */
