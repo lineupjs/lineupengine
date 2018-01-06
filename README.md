@@ -1,5 +1,5 @@
-lineupengine [![NPM version][npm-image]][npm-url]
-=====================
+LineUpEngine  [![License: MIT][mit-image]][mit-url] [![NPM version][npm-image]][npm-url]  [![CircleCI][ci-url]][ci-image] 
+============
 
 
 Development Environment
@@ -47,3 +47,7 @@ edge:    3.033.917px height
 
 [npm-image]: https://badge.fury.io/js/lineupengine.svg
 [npm-url]: https://npmjs.org/package/lineupengine
+[mit-image]: https://img.shields.io/badge/License-MIT-yellow.svg
+[mit-url]: https://opensource.org/licenses/MIT
+[ci-image]: https://circleci.com/gh/sgratzl/lineupengine.svg?style=svg
+[ci-url]: https://circleci.com/gh/sgratzl/lineupengine
