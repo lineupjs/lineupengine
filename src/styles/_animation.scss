@@ -24,6 +24,12 @@
       }
     }
 
+    > main {
+      background-image: $engine_loading_static_image, $engine_loading_static_image;
+      background-repeat: repeat-x;
+      background-position: top 5px left, bottom 20px left;
+    }
+
     article.le-row-animation {
       /**
       defaults
