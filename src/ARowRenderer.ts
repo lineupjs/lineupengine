@@ -21,6 +21,8 @@ export interface IRowRendererOptions {
   minScrollDelta: number;
 
   mixins: IMixinClass[];
+
+  scrollingHint: boolean;
 }
 
 export abstract class ARowRenderer {
@@ -47,7 +49,8 @@ export abstract class ARowRenderer {
   private readonly options: Readonly<IRowRendererOptions> = {
     async: Boolean((<any>window).chrome) ? 'animation' : 'immediate', // animation frame on chrome
     minScrollDelta: 3,
-    mixins: []
+    mixins: [],
+    scrollingHint: false
   };
 
   constructor(protected readonly body: HTMLElement, options: Partial<IRowRendererOptions> = {}) {
@@ -131,34 +134,37 @@ export abstract class ARowRenderer {
       const isGoingDown = top > oldTop;
       oldTop = top;
       this.onScrolledVertically(top, scroller.clientHeight, isGoingDown);
+      if (this.options.scrollingHint) {
+        scroller.classList.remove('le-scrolling');
+      }
     };
 
     const hasImmediate = typeof (window.setImmediate) === 'function';
 
+    let delayer: (callback: ()=>void)=>number;
+
     if (this.options.async === 'immediate' && hasImmediate) {
-      this.scrollListener = () => {
-        if (timeOut > -1) {
-          return; // already scheduled
-        }
-        timeOut = setImmediate(handler);
-      };
+      delayer = setImmediate;
     } else if (this.options.async === 'animation' || this.options.async === 'immediate') { // no Immediate available
-      this.scrollListener = () => {
-        if (timeOut > -1) {
-          return; // already scheduled
-        }
-        timeOut = requestAnimationFrame(handler);
-      };
+      delayer = requestAnimationFrame;
     } else if (typeof this.options.async === 'number') {
-      this.scrollListener = () => {
-        if (timeOut > -1) {
-          return; // already scheduled
-        }
-        timeOut = self.setTimeout(handler, this.options.async);
-      };
+      delayer = (c) => self.setTimeout(c, this.options.async);
     } else {
-      this.scrollListener = handler;
+      delayer = (c) => {
+        c();
+        return -1;
+      };
     }
+
+    this.scrollListener = () => {
+      if (this.options.scrollingHint) {
+        scroller.classList.add('le-scrolling');
+      }
+      if (timeOut > -1) {
+        return; // already scheduled
+      }
+      timeOut = delayer(handler);
+    };
 
     scroller.addEventListener('scroll', this.scrollListener);
     this.recreate();

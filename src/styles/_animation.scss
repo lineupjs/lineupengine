@@ -24,15 +24,11 @@
       }
     }
 
-    > main {
+    > main.le-scrolling {
       background-image: $engine_loading_static_image, $engine_loading_static_image;
       background-repeat: repeat-x;
       background-position: top 10px left, bottom 30px left;
       position: relative;
-
-      > article {
-        min-height: 100%;
-      }
     }
 
     article.le-row-animation {
