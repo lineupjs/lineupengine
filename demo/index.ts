@@ -1,4 +1,4 @@
-import 'file-loader?name=demo.html!extract-loader!html-loader!./index.html';
+import 'file-loader?name=demo.html!./index.html';
 import {ACellRenderer, ICellRenderContext, IColumn, PrefetchMixin, uniformContext} from '../src';
 import '../src/style.scss';
 

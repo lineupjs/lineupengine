@@ -1,4 +1,4 @@
-import 'file-loader?name=cell.html!extract-loader!html-loader!./cell.html';
+import 'file-loader?name=cell.html!./cell.html';
 import {uniformContext} from '../src';
 import {ACellRenderer, ICellContext} from '../src/cell/ACellRenderer';
 import '../src/style.scss';

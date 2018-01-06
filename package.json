@@ -23,10 +23,6 @@
     "build/lineupengine.js",
     "build/typings/src"
   ],
-  "engines": {
-    "npm": ">= 3",
-    "node": ">= 6"
-  },
   "scripts": {
     "compile": "tsc",
     "lint": "tslint --project tsconfig.json -c tslint.json && stylelint src/**/*.scss",
