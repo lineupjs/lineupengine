@@ -29,12 +29,15 @@ jobs:
           command: npm run dist
       - store_artifacts:
           path: dist
-      - run: #update build doc
+      - run: #update build doc and readme
           name: update api
           command: |
+            cp README.md _README.md
             git checkout gh-pages
             TARGET="${CIRCLE_BRANCH}${CIRCLE_TAG}"
             rm -rf "${TARGET}/"
+            rm README.md
+            mv _README.md README.md
             mv build "$TARGET"
             git config user.email "samuel_gratzl@gmx.at"
             git config user.name "Samuel Gratzl"
