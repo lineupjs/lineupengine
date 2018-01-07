@@ -36,6 +36,8 @@ jobs:
             TARGET="${CIRCLE_BRANCH}${CIRCLE_TAG}"
             rm -rf "${TARGET}/"
             mv build "$TARGET"
+            git config user.email "samuel_gratzl@gmx.at"
+            git config user.name "Samuel Gratzl"
             git add -A
             git commit -m "auto updating ${CIRCLE_BRANCH}${CIRCLE_TAG} \n trigger: ${CIRCLE_BUILD_URL}"
             git push origin
