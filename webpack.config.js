@@ -56,7 +56,8 @@ function generateWebpack(options) {
     target: 'node',
     entry: {
       lineupengine: './src/index.ts',
-      demo: './demo/index.ts'
+      demo: './demo/index.ts',
+      cell: './demo/cell.ts'
     },
     output: {
       path: resolve(__dirname, 'build'),
