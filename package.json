@@ -1,7 +1,7 @@
 {
   "name": "lineupengine",
-  "description": " ",
-  "homepage": "https://phovea.caleydo.org",
+  "description": "a fast engine for rendering large tables consisting of rows, rows+columns, multiple rows+columns instances.",
+  "homepage": "https://sgratzl.github.io/lineupengine/",
   "version": "1.0.0-SNAPSHOT",
   "author": {
     "name": "Samuel Gratzl",
@@ -21,6 +21,7 @@
   "files": [
     "src",
     "build/lineupengine.js",
+    "build/lineupengine.min.js",
     "build/typings/src"
   ],
   "scripts": {
