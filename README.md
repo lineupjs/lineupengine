@@ -1,5 +1,6 @@
-LineUpEngine  [![License: MIT][mit-image]][mit-url] [![NPM version][npm-image]][npm-url]  [![CircleCI][ci-image]][ci-url] 
+LineUpEngine
 ============
+[![License: MIT][mit-image]][mit-url] [![NPM version][npm-image]][npm-url]  [![CircleCI][ci-image]][ci-url] 
 
 a fast engine for rendering large tables consisting of rows, rows+columns, multiple rows+columns instances. 
 
