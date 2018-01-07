@@ -10,6 +10,32 @@ Supported Browsers
  * Firefox Quantum
  * Edge 16
 
+Installation
+------------
+
+Develop Version:
+
+```html
+<script src="https://sgratzl.github.io/lineupengine/develop/lineupengine.min.js"></script>
+```
+
+API Documentation
+-----------------
+
+see [Develop API documentation](https://sgratzl.github.io/lineupengine/develop/docs)
+
+Demos
+-----
+
+see [Develop Demo](https://sgratzl.github.io/lineupengine/develop/demo)
+
+
+Usage
+-----
+
+**TODO**
+
+
 Development Environment
 -----------------------
 
@@ -57,5 +83,5 @@ edge:    3.033.917px height
 [npm-url]: https://npmjs.org/package/lineupengine
 [mit-image]: https://img.shields.io/badge/License-MIT-yellow.svg
 [mit-url]: https://opensource.org/licenses/MIT
-[ci-image]: https://circleci.com/gh/sgratzl/lineupengine.svg?style=svg
+[ci-image]: https://circleci.com/gh/sgratzl/lineupengine.svg?style=shield
 [ci-url]: https://circleci.com/gh/sgratzl/lineupengine
