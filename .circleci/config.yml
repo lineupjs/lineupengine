@@ -4,6 +4,8 @@ jobs:
     working_directory: ~/phovea
     docker:
       - image: circleci/node:6-browsers
+    tags:
+      - /v.*/
     steps:
       - checkout
       - restore_cache:
@@ -27,3 +29,13 @@ jobs:
           command: npm run dist
       - store_artifacts:
           path: dist
+      - run: #update build doc
+          name: update api
+          command: |
+            git checkout gh-pages
+            TARGET="${CIRCLE_BRANCH}${CIRCLE_TAG}"
+            rm -rf "${TARGET}/"
+            mv build "$TARGET"
+            git add -A
+            git commit -m "auto updating ${CIRCLE_BRANCH}${CIRCLE_TAG} \n trigger: ${CIRCLE_BUILD_URL}"
+            git push origin
