@@ -40,4 +40,4 @@ jobs:
             git config user.name "Samuel Gratzl"
             git add -A
             git commit -m "auto updating ${CIRCLE_BRANCH}${CIRCLE_TAG} \n trigger: ${CIRCLE_BUILD_URL}"
-            git push origin
+            git push origin gh-pages
