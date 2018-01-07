@@ -20,6 +20,12 @@ Develop Version:
 <script src="https://sgratzl.github.io/lineupengine/develop/lineupengine.min.js"></script>
 ```
 
+Usage
+-----
+
+**TODO**
+
+
 API Documentation
 -----------------
 
@@ -29,12 +35,6 @@ Demos
 -----
 
 see [Develop Demo](https://sgratzl.github.io/lineupengine/develop/demo)
-
-
-Usage
------
-
-**TODO**
 
 
 Development Environment
