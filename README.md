@@ -17,7 +17,7 @@ Installation
 Develop Version:
 
 ```html
-<script src="https://sgratzl.github.io/lineupengine/develop/lineupengine.min.js"></script>
+<script src="https://sgratzl.github.io/lineupengine_docs/develop/lineupengine.min.js"></script>
 ```
 
 Usage
@@ -29,12 +29,12 @@ Usage
 API Documentation
 -----------------
 
-see [Develop API documentation](https://sgratzl.github.io/lineupengine/develop/docs)
+see [Develop API documentation](https://sgratzl.github.io/lineupengine_docs/develop/docs)
 
 Demos
 -----
 
-see [Develop Demo](https://sgratzl.github.io/lineupengine/develop/demo)
+see [Develop Demo](https://sgratzl.github.io/lineupengine/develop_docs/demo)
 
 
 Development Environment
