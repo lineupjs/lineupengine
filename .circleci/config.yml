@@ -32,15 +32,16 @@ jobs:
       - run: #update build doc and readme
           name: update api
           command: |
-            cp README.md _README.md
-            git checkout gh-pages
-            TARGET="${CIRCLE_BRANCH}${CIRCLE_TAG}"
-            rm -rf "${TARGET}/"
-            rm README.md
-            mv _README.md README.md
-            mv build "$TARGET"
-            git config user.email "samuel_gratzl@gmx.at"
-            git config user.name "Samuel Gratzl"
-            git add -A
-            git commit -m "auto updating ${CIRCLE_BRANCH}${CIRCLE_TAG}" -m "trigger: ${CIRCLE_BUILD_URL}"
-            git push origin gh-pages
+            if [ "${CIRCLE_BRANCH}" == "develop" ] || [ "${CIRCLE_BRANCH}" == "master" ] ; then
+                git clone git@github.com/sgratz/lineupengine_docs.git
+                cd lineupengine_docs
+                rm -rf "${CIRCLE_BRANCH}/"
+                rm README.md
+                cp ../README.md README.md
+                mv ../build "${CIRCLE_BRANCH}"
+                git config user.email "samuel_gratzl@gmx.at"
+                git config user.name "Samuel Gratzl"
+                git add -A
+                git commit -m "auto updating ${CIRCLE_BRANCH}" -m "trigger: ${CIRCLE_BUILD_URL}"
+                git push origin master
+            fi
