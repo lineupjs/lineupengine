@@ -3,19 +3,43 @@ import KeyFinder from './KeyFinder';
 
 export {default as KeyFinder} from './KeyFinder';
 
+/**
+ * different row animation modes
+ */
 export enum EAnimationMode {
+  /**
+   * plain update existed both before and after
+   */
   UPDATE,
+  /**
+   * exists both before and after but wasn't visible yet thus waas created
+   */
   UPDATE_CREATE,
+  /**
+   * exists both before and after is visible but not needed anymore and thus removed
+   */
   UPDATE_REMOVE,
+  /**
+   * row appears
+   */
   SHOW,
+  /**
+   * row disappears
+   */
   HIDE
 }
 
+/**
+ * animated row item
+ */
 export interface IAnimationItem {
   mode: EAnimationMode;
   node: HTMLElement;
   key: string;
 
+  /**
+   * previous context information
+   */
   previous: {
     index: number | -1;
     y: number;
@@ -31,6 +55,9 @@ export interface IAnimationItem {
    */
   nodeYCurrentHeight: number;
 
+  /**
+   * current position
+   */
   current: {
     index: number | -1;
     y: number;

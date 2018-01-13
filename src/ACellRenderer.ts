@@ -87,16 +87,20 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
 
     const scroller = <HTMLElement>this.body.parentElement;
 
+
     //sync scrolling of header and body
     let oldLeft = scroller.scrollLeft;
+    let oldWidth = scroller.clientWidth;
     const handler = () => {
       const left = scroller.scrollLeft;
-      if (Math.abs(oldLeft - left) < this.options.minScrollDelta) {
+      const width = scroller.clientWidth;
+      if (Math.abs(oldLeft - left) < this.options.minScrollDelta && Math.abs(oldWidth - width) < this.options.minScrollDelta) {
         return;
       }
       const isGoingRight = left > oldLeft;
       oldLeft = left;
-      this.onScrolledHorizontally(left, scroller.clientWidth, isGoingRight);
+      oldWidth = width;
+      this.onScrolledHorizontally(left, width, isGoingRight);
     };
     scroller.addEventListener('scroll', this.createDelayedHandler(handler));
 
