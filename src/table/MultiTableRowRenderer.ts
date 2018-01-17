@@ -169,6 +169,11 @@ export default class MultiTableRowRenderer {
     return true;
   }
 
+  clear() {
+    this.sections.splice(0, this.sections.length).forEach((s) => s.destroy());
+    this.update();
+  }
+
   widthChanged() {
     this.update();
   }
