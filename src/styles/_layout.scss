@@ -12,6 +12,11 @@
   > header {
     flex: 0 0 auto;
     overflow-x: hidden;
+
+    @supports (-moz-appearance:meterbar) { // firefox only
+      overflow-y: hidden;
+    }
+
     margin-bottom: 3px;
 
     > :last-child {
