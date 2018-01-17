@@ -99,14 +99,17 @@ export abstract class ARowRenderer {
 
     //sync scrolling of header and body
     let oldTop = scroller.scrollTop;
+    let oldHeight = scroller.clientHeight;
     this.scrollListener = () => {
       const top = scroller.scrollTop;
-      if (oldTop === top) {
+      const height = scroller.clientHeight;
+      if (oldTop === top && oldHeight == height) {
         return;
       }
       const isGoingDown = top > oldTop;
       oldTop = top;
-      this.onScrolledVertically(top, scroller.clientHeight, isGoingDown);
+      oldHeight = height;
+      this.onScrolledVertically(top, height, isGoingDown);
     };
     scroller.addEventListener('scroll', this.scrollListener);
     this.recreate();

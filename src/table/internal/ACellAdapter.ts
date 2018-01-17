@@ -22,7 +22,7 @@ export abstract class ACellAdapter<T extends IColumn> {
   private readonly cellPool: HTMLElement[][] = [];
 
   protected readonly visibleColumns = {
-    frozen: <number[]>[],
+    frozen: <number[]>[], // column indices that are visible even tho they would be out of range
     first: 0,
     forcedFirst: 0,
     last: -1,
@@ -329,6 +329,8 @@ export abstract class ACellAdapter<T extends IColumn> {
     if (context.hasFrozenColumns) {
       const {target} = updateFrozen([], context.columns, first);
       this.visibleColumns.frozen = target;
+    } else {
+      this.visibleColumns.frozen = [];
     }
     this.updateColumnOffset(firstRowPos);
   }
@@ -343,10 +345,10 @@ export abstract class ACellAdapter<T extends IColumn> {
   }
 
   createRow(node: HTMLElement, rowIndex: number): void {
-    const {columns, hasFrozenColumns} = this.context;
+    const {columns} = this.context;
     const visible = this.visibleColumns;
 
-    if (hasFrozenColumns) {
+    if (visible.frozen.length > 0) {
       for (const i of visible.frozen) {
         const cell = this.selectCell(rowIndex, i, columns);
         node.appendChild(cell);
@@ -359,7 +361,7 @@ export abstract class ACellAdapter<T extends IColumn> {
   }
 
   updateRow(node: HTMLElement, rowIndex: number): void {
-    const {columns, hasFrozenColumns} = this.context;
+    const {columns} = this.context;
     const visible = this.visibleColumns;
 
     //columns may not match anymore if it is a pooled item a long time ago
@@ -367,7 +369,7 @@ export abstract class ACellAdapter<T extends IColumn> {
 
     switch (existing.length) {
       case 0:
-        if (hasFrozenColumns) {
+        if (visible.frozen.length > 0) {
           this.insertFrozenCells(node, rowIndex, visible.frozen, 0, columns);
         }
         this.addCellAtEnd(node, rowIndex, visible.first, visible.last, columns);
@@ -377,75 +379,48 @@ export abstract class ACellAdapter<T extends IColumn> {
         const id = old.dataset.id!;
         const columnIndex = columns.findIndex((c) => c.id === id);
         node.removeChild(old);
-        this.recycleCell(old, columnIndex);
+        if (columnIndex >= 0) {
+          this.recycleCell(old, columnIndex);
+        }
 
-        if (hasFrozenColumns) {
+        if (visible.frozen.length > 0) {
           this.insertFrozenCells(node, rowIndex, visible.frozen, 0, columns);
         }
         this.addCellAtEnd(node, rowIndex, visible.first, visible.last, columns);
         break;
-      default: //>=2
-        if (hasFrozenColumns) {
-          //sync the frozen columns
-          const currentFrozen = <number[]>[];
-          for (const node of existing) {
-            const id = node.dataset.id!;
-            const col = columns.findIndex((c) => c.id === id);
-            if (columns[col].frozen) {
-              currentFrozen.push(col);
-            } else {
-              //just interested in the first frozen
-              break;
-            }
-          }
-          const {common, removed, added} = frozenDelta(currentFrozen, visible.frozen);
-          //update the common ones
-          existing.slice(0, common).forEach((child, i) => {
-            const col = columns[currentFrozen[i]];
-            const cell = this.updateCell(child, rowIndex, col);
-            if (cell && cell !== child) {
-              setColumn(cell, col);
-              node.replaceChild(cell, child);
-            }
-          });
-          this.removeFrozenCells(node, removed, common);
-          this.insertFrozenCells(node, rowIndex, added, common, columns);
-          //remove the ones already handled
-          existing.splice(0, currentFrozen.length);
-        }
-        if (existing.length === 0) {
-          // all are frozen
-          break;
-        }
-        const firstId = existing[0].dataset.id!;
-        const lastId = existing[existing.length - 1].dataset.id!;
-        const firstIndex = columns.findIndex((c) => c.id === firstId);
-        const lastIndex = columns.findIndex((c) => c.id === lastId);
-        const frozenShift = visible.frozen.length;
+      default:
+        this.mergeColumns(node, rowIndex, existing);
+        break;
+    }
+  }
 
-        if (firstIndex === visible.first && lastIndex === visible.last) {
-          //match update
-          existing.forEach((child, i) => {
-            const col = columns[i + visible.first];
-            const cell = this.updateCell(child, rowIndex, col);
-            if (cell && cell !== child) {
-              setColumn(cell, col);
-              node.replaceChild(cell, child);
-            }
-          });
-        } else if (visible.last > firstIndex || visible.first < lastIndex) {
-          //no match at all
-          this.removeAllCells(node, false, firstIndex);
-          this.addCellAtStart(node, rowIndex, visible.first, visible.last, frozenShift, columns);
-        } else if (visible.first < firstIndex) {
-          //some first rows missing and some last rows to much
-          this.removeCellFromEnd(node, visible.last + 1, firstIndex);
-          this.addCellAtStart(node, rowIndex, visible.first, firstIndex - 1, frozenShift, columns);
-        } else {
-          //some last rows missing and some first rows to much
-          this.removeCellFromStart(node, firstIndex, visible.first - 1, frozenShift);
-          this.addCellAtEnd(node, rowIndex, lastIndex + 1, visible.last, columns);
-        }
+  private mergeColumns(node: HTMLElement, rowIndex: number, existing: HTMLElement[]) {
+    const {columns} = this.context;
+    const visible = this.visibleColumns;
+
+
+    node.innerHTML = '';
+
+    const ids = new Map(existing.map((e) => (<[string, HTMLElement]>[e.dataset.id!, e])));
+
+    const updateImpl = (i: number) => {
+      const col = columns[i];
+      const existing = ids.get(col.id);
+      if (!existing) {
+        const cell = this.selectCell(rowIndex, i, columns);
+        node.appendChild(cell);
+        return;
+      }
+      const cell = this.updateCell(existing, rowIndex, col);
+      if (cell && cell !== existing) {
+        setColumn(cell, col);;
+      }
+      node.appendChild(cell || existing);
+    };
+
+    visible.frozen.forEach(updateImpl);
+    for(let i = visible.first; i <= visible.last; ++i) {
+      updateImpl(i);
     }
   }
 
