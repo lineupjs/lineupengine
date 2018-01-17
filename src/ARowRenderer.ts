@@ -103,7 +103,7 @@ export abstract class ARowRenderer {
     this.scrollListener = () => {
       const top = scroller.scrollTop;
       const height = scroller.clientHeight;
-      if (oldTop === top && oldHeight == height) {
+      if (oldTop === top && oldHeight === height) {
         return;
       }
       const isGoingDown = top > oldTop;

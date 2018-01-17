@@ -413,7 +413,7 @@ export abstract class ACellAdapter<T extends IColumn> {
       }
       const cell = this.updateCell(existing, rowIndex, col);
       if (cell && cell !== existing) {
-        setColumn(cell, col);;
+        setColumn(cell, col);
       }
       node.appendChild(cell || existing);
     };
