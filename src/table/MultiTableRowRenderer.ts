@@ -72,14 +72,17 @@ export default class MultiTableRowRenderer {
 
     const main = this.main;
     let oldLeft = main.scrollLeft;
+    let oldWidth = main.clientWidth;
     main.addEventListener('scroll', () => {
       const left = main.scrollLeft;
-      if (left === oldLeft) {
+      const width = main.clientWidth;
+      if (left === oldLeft && width === oldWidth) {
         return;
       }
       const isGoingRight = left > oldLeft;
       oldLeft = left;
-      this.onScrolledHorizontally(left, main.clientWidth, isGoingRight);
+      oldWidth = width;
+      this.onScrolledHorizontally(left, width, isGoingRight);
     });
   }
 
@@ -191,6 +194,11 @@ export default class MultiTableRowRenderer {
     section.destroy();
     this.update();
     return true;
+  }
+
+  clear() {
+    this.sections.splice(0, this.sections.length).forEach((s) => s.destroy());
+    this.update();
   }
 
   /**
