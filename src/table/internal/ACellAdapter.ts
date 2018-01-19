@@ -8,7 +8,6 @@ const debug = false;
 export interface ICellAdapterRenderContext<T extends IColumn> extends IExceptionContext {
   readonly column: IExceptionContext;
   readonly columns: T[];
-  hasFrozenColumns?: boolean;
 }
 
 export abstract class ACellAdapter<T extends IColumn> {
@@ -293,9 +292,6 @@ export abstract class ACellAdapter<T extends IColumn> {
 
   recreate(left: number, width: number) {
     const context = this.context;
-    if (context.hasFrozenColumns === undefined) {
-      context.hasFrozenColumns = context.columns.some((c) => c.frozen);
-    }
 
     this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, context.column.padding, this.tableId);
 
@@ -323,7 +319,7 @@ export abstract class ACellAdapter<T extends IColumn> {
 
     this.visibleColumns.first = this.visibleColumns.forcedFirst = first;
     this.visibleColumns.last = this.visibleColumns.forcedLast = last;
-    if (context.hasFrozenColumns) {
+    if (context.columns.some((c) => c.frozen)) {
       const {target} = updateFrozen([], context.columns, first);
       this.visibleColumns.frozen = target;
     } else {
@@ -422,10 +418,10 @@ export abstract class ACellAdapter<T extends IColumn> {
   }
 
   private syncFrozen(first: number) {
-    const {columns, hasFrozenColumns} = this.context;
+    const {columns} = this.context;
     const visible = this.visibleColumns;
 
-    if (!hasFrozenColumns) {
+    if (!columns.some((d) => d.frozen)) {
       return 0;
     }
     if (first === 0) {
