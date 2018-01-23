@@ -17,7 +17,7 @@
     "url": "https://github.com/sgratzl/lineupengine.git"
   },
   "main": "build/lineupengine.js",
-  "typings": "build/typings/src",
+  "types": "build/typings/src/index.d.ts",
   "files": [
     "src",
     "build/lineupengine.js",
