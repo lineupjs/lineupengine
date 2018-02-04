@@ -16,6 +16,8 @@
       flex: 0 0 auto;
       overflow-x: hidden;
       margin-bottom: 3px;
+      padding-bottom: 1px;
+
       @supports (-moz-appearance:meterbar) { // firefox only
         overflow-y: hidden;
       }
