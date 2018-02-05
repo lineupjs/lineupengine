@@ -70,6 +70,7 @@
       /* @include collapsing-row-border($engine_row_hover_width, #eee); */
       background: white;
 
+      &.le-highlighted,
       &:hover {
         position: relative;
         z-index: 2;
