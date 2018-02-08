@@ -412,7 +412,7 @@ export abstract class ACellAdapter<T extends IColumn> {
     };
 
     visible.frozen.forEach(updateImpl);
-    for(let i = visible.first; i <= visible.last; ++i) {
+    for (let i = visible.first; i <= visible.last; ++i) {
       updateImpl(i);
     }
   }
