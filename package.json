@@ -17,19 +17,20 @@
     "url": "https://github.com/sgratzl/lineupengine.git"
   },
   "main": "build/lineupengine.js",
-  "types": "build/typings/src/index.d.ts",
+  "types": "build/typings/index.d.ts",
   "files": [
     "src",
     "build/lineupengine.js",
     "build/lineupengine.min.js",
-    "build/typings/src"
+    "build/typings"
   ],
   "scripts": {
+    "clean": "rimraf build dist",
     "compile": "tsc",
     "lint": "tslint --project tsconfig.json -c tslint.json && stylelint src/**/*.scss",
     "docs": "typedoc --out ./build/docs/ src tsd.d.ts",
-    "prebuild": "node -e \"process.exit(process.env.PHOVEA_SKIP_TESTS === undefined?1:0)\" || npm run test",
-    "pretest": "npm run compile",
+    "prebuild": "npm run clean && (node -e \"process.exit(process.env.PHOVEA_SKIP_TESTS === undefined?1:0)\" || npm run test)",
+    "pretest": "npm run clean && npm run compile",
     "test": "node -e \"require('fs').existsSync('./tests')?0:1\" || karma start",
     "posttest": "npm run lint",
     "test:watch": "karma start --autoWatch=true --singleRun=false",
@@ -63,6 +64,7 @@
     "karma-webpack": "^2.0.9",
     "mkdirp": "^0.5.1",
     "node-sass": "^4.7.2",
+    "rimraf": "^2.6.2",
     "sass-loader": "^6.0.6",
     "style-loader": "^0.20.1",
     "stylelint": "^8.4.0",
