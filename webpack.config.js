@@ -54,7 +54,9 @@ const webpackloaders = [
 function generateWebpack(options) {
   const base = {
     target: 'node',
-    entry: {
+    entry: options.isProduction ? {
+      lineupengine: './src/index.ts'
+    }: {
       lineupengine: './src/index.ts',
       demo: './demo/index.ts',
       cell: './demo/cell.ts'
@@ -102,10 +104,6 @@ function generateWebpack(options) {
         banner: banner,
         raw: true
       }));
-      base.plugins.push(new webpack.optimize.MinChunkSizePlugin({
-        minChunkSize: 10000 //at least 10.000 characters
-      }),
-      new webpack.optimize.AggressiveMergingPlugin());
   }
 
   if (!options.isTest) {
