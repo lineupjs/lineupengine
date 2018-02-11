@@ -10,6 +10,7 @@ export interface ICellAdapterRenderContext<T extends IColumn> extends IException
   readonly columns: T[];
 }
 
+/** @internal **/
 export abstract class ACellAdapter<T extends IColumn> {
   /**
    * pool of cells per column

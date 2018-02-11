@@ -4,5 +4,5 @@ export {
   ISeparatorFactory,
   ITableFactory,
   ITableSection,
-  default
+  default as MultiTableRowRenderer
 } from './MultiTableRowRenderer';
