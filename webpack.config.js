@@ -131,9 +131,9 @@ function generateWebpack(options) {
         },
         extractComments: false
       }));
-  } else {
+  } else if (options.isDev) {
     //generate source maps
-    base.devtool = 'cheap-module-eval-source-map';
+    base.devtool = 'source-map';
   }
   return base;
 }
