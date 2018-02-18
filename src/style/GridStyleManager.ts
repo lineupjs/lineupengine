@@ -20,7 +20,7 @@ export function setTemplate(root: HTMLElement) {
  * @param {HTMLElement} node the column node
  * @param {{index: number; id: string}} column the column meta data
  */
-export function setColumn(node: HTMLElement, column: { index: number, id: string }) {
+export function setColumn(node: HTMLElement, column: {index: number, id: string}) {
   (<any>node.style).gridColumnStart = column.id;
   node.dataset.id = column.id;
 }
@@ -41,9 +41,27 @@ export default class GridStyleManager extends StyleManager {
     const headerScroller = <HTMLElement>root.querySelector('header');
     const bodyScroller = <HTMLElement>root.querySelector('main');
 
+    let oldMargin = 0;
+
     // update frozen and sync header with body
     bodyScroller.addEventListener('scroll', () => {
-      headerScroller.scrollLeft = bodyScroller.scrollLeft;
+      const old = headerScroller.scrollLeft;
+      const newValue = bodyScroller.scrollLeft;
+      if (old !== newValue) {
+        requestAnimationFrame(() => headerScroller.scrollLeft = newValue);
+      }
+
+      // shift for different scrollbar in header and body
+      const delta = bodyScroller.clientWidth - headerScroller.clientWidth;
+      if (delta === oldMargin) {
+        return;
+      }
+      oldMargin = delta;
+      this.updateRule('__scollBarFix', `
+        ${this.id} > header > :last-child {
+          margin-right: ${delta}px;
+        }
+      `);
     });
   }
 
@@ -53,7 +71,7 @@ export default class GridStyleManager extends StyleManager {
    * @param {string} unit
    * @return {string}
    */
-  static columnWidths(columns: { width: number }[], unit: string = 'px') {
+  static columnWidths(columns: {width: number}[], unit: string = 'px') {
     function repeatStandard(count: number, width: string) {
       return `repeat(${count}, ${width})`;
     }
@@ -82,7 +100,7 @@ export default class GridStyleManager extends StyleManager {
     return r;
   }
 
-  static gridColumn(columns: { id: string, width: number }[], unit: string = 'px') {
+  static gridColumn(columns: {id: string, width: number}[], unit: string = 'px') {
     const widths = GridStyleManager.columnWidths(columns, unit);
 
     return `grid-template-columns: ${widths};

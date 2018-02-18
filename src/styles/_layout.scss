@@ -18,7 +18,9 @@
       margin-bottom: 3px;
       padding-bottom: 1px;
 
-      @supports (-moz-appearance:meterbar) { // firefox only
+      @supports (-moz-appearance: meterbar) {
+
+        // firefox only
         overflow-y: hidden;
       }
 
@@ -38,6 +40,7 @@
       flex-direction: row;
       align-items: stretch;
       justify-content: stretch;
+      scroll-behavior: auto;
 
       > * {
         flex: 0 0 auto;
