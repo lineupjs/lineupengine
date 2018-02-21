@@ -100,10 +100,10 @@ export abstract class ARowRenderer {
     //sync scrolling of header and body
     let oldTop = scroller.scrollTop;
     let oldHeight = scroller.clientHeight;
-    this.scrollListener = () => {
+    const handler = () => {
       const top = scroller.scrollTop;
       const height = scroller.clientHeight;
-      if (oldTop === top && oldHeight === height) {
+      if (Math.abs(oldTop - top) < 3 && Math.abs(oldHeight - height) < 3) {
         return;
       }
       const isGoingDown = top > oldTop;
@@ -111,9 +111,44 @@ export abstract class ARowRenderer {
       oldHeight = height;
       this.onScrolledVertically(top, height, isGoingDown);
     };
+    this.scrollListener = this.createDelayedHandler(handler);
     scroller.addEventListener('scroll', this.scrollListener);
     this.recreate();
   }
+
+  protected createDelayedHandler(delayedHandler: () => void) {
+    const hasImmediate = typeof (window.setImmediate) === 'function';
+
+    let delayer: (callback: () => void) => number;
+
+    const async: string|number = 'immediate';
+
+    if (async === 'immediate' && hasImmediate) {
+      delayer = setImmediate;
+    } else if (async === 'animation' || async === 'immediate') { // no Immediate available
+      delayer = requestAnimationFrame;
+    } else if (typeof async === 'number') {
+      delayer = (c) => self.setTimeout(c, async);
+    } else {
+      delayer = (c) => {
+        c();
+        return -1;
+      };
+    }
+    let timeOut = -1;
+
+    const wrapper = () => {
+      timeOut = -1;
+      delayedHandler();
+    };
+
+    return () => {
+      if (timeOut > -1) {
+        return; // already scheduled
+      }
+      timeOut = delayer(wrapper);
+    };
+}
 
   destroy() {
     this.bodyScroller.removeEventListener('scroll', this.scrollListener);
