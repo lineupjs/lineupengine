@@ -13,7 +13,8 @@
     flex: 0 0 auto;
     overflow-x: hidden;
 
-    @supports (-moz-appearance:meterbar) { // firefox only
+    @supports (-moz-appearance: meterbar) {
+      // firefox only
       overflow-y: hidden;
     }
 
@@ -64,7 +65,6 @@
 
   > main:not(.scrolling) > article > div {
     /* @include collapsing-row-border($engine_row_hover_width, #eee); */
-
     padding-top: 2px;
 
     &:hover {
@@ -77,9 +77,19 @@
 
   &:not(.ms-edge) > header > article,
   &:not(.ms-edge) > main > article > div {
-    > .frozen { // frozen one
+    > .frozen {
+      // frozen one
       position: sticky;
       left: 0;
+    }
+  }
+
+  &#{$engine_selector}-striped > main > article {
+    &:not(.odd) > div:nth-child(even),
+    &.odd > div:nth-child(odd),
+    &:not(.odd) > div:nth-child(even) > *.frozen,
+    &.odd > div:nth-child(odd) > *.frozen {
+      background-color: $engine_even_color;
     }
   }
 
