@@ -14,6 +14,7 @@
     overflow-x: hidden;
 
     @supports (-moz-appearance: meterbar) {
+
       // firefox only
       overflow-y: hidden;
     }
@@ -78,6 +79,7 @@
   &:not(.ms-edge) > header > article,
   &:not(.ms-edge) > main > article > div {
     > .frozen {
+
       // frozen one
       position: sticky;
       left: 0;
