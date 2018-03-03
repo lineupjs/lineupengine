@@ -25,7 +25,10 @@
     "noUnusedParameters": true,
     "strictNullChecks": true,
     "stripInternal": true,
-    "skipLibCheck": true
+    "strictFunctionTypes": true,
+    "strictPropertyInitialization": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true
   },
   "compileOnSave": false,
   "include": [
