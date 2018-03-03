@@ -21,7 +21,6 @@
   "files": [
     "src",
     "build/lineupengine.js",
-    "build/lineupengine.min.js",
     "build/typings"
   ],
   "scripts": {
