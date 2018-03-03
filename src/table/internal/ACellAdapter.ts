@@ -288,8 +288,8 @@ export abstract class ACellAdapter<T extends IColumn> {
 
   updateHeaders() {
     const {columns} = this.context;
-    Array.from(this.header.children).forEach((node: HTMLElement, i) => {
-      this.updateHeader(node, columns[i]);
+    Array.from(this.header.children).forEach((node: Element, i) => {
+      this.updateHeader(<HTMLElement>node, columns[i]);
     });
   }
 

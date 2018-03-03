@@ -60,7 +60,7 @@ export abstract class ARowRenderer {
 
   private readonly adapter: IMixinAdapter;
   private readonly mixins: IMixin[];
-  private scrollListener: (evt: MouseEvent) => void;
+  private scrollListener: ((evt: UIEvent) => void) | null = null;
 
   private abortAnimation: () => void = () => undefined;
 
@@ -174,7 +174,7 @@ export abstract class ARowRenderer {
       }
     });
 
-    scroller.addEventListener('scroll', this.scrollListener);
+    scroller.addEventListener('scroll', this.scrollListener!);
     this.recreate();
   }
 
@@ -217,7 +217,7 @@ export abstract class ARowRenderer {
    * destroys this renderer and unregisters all event listeners
    */
   destroy() {
-    this.bodyScroller.removeEventListener('scroll', this.scrollListener);
+    this.bodyScroller.removeEventListener('scroll', this.scrollListener!);
     this.body.remove();
   }
 
@@ -227,7 +227,7 @@ export abstract class ARowRenderer {
     }
   }
 
-  private select(index: number): { item: HTMLElement, result: IAbortAblePromise<void> | void } {
+  private select(index: number): {item: HTMLElement, result: IAbortAblePromise<void> | void} {
     let item: HTMLElement;
     let result: IAbortAblePromise<void> | void;
     if (this.pool.length > 0) {
@@ -323,7 +323,7 @@ export abstract class ARowRenderer {
   protected update() {
     const first = this.visible.first;
     const fragment = this.fragment;
-    const items = Array.from(this.body.children);
+    const items = <HTMLElement[]>Array.from(this.body.children);
     this.body.innerHTML = '';
     items.forEach((item: HTMLElement, i) => {
       if (this.loading.has(item)) {
@@ -343,7 +343,7 @@ export abstract class ARowRenderer {
    * @param {boolean} inplace whether the DOM changes should be performed inplace instead of in a fragment
    */
   protected forEachRow(callback: (row: HTMLElement, rowIndex: number) => void, inplace: boolean = false) {
-    const rows = Array.from(this.body.children);
+    const rows = <HTMLElement[]>Array.from(this.body.children);
     const fragment = this.fragment;
     if (!inplace) {
       this.body.innerHTML = '';
@@ -453,7 +453,7 @@ export abstract class ARowRenderer {
 
 
   private recreateAnimated(ctx: IAnimationContext) {
-    const lookup = new Map<string, { n: HTMLElement, pos: number, i: number }>();
+    const lookup = new Map<string, {n: HTMLElement, pos: number, i: number}>();
     const prev = new KeyFinder(ctx.previous, ctx.previousKey);
     const cur = new KeyFinder(this.context, ctx.currentKey);
     const next = range(this.bodyScroller.scrollTop, this.bodyScroller.clientHeight, cur.context.defaultRowHeight, cur.context.exceptions, cur.context.numberOfRows);

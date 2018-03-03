@@ -22,7 +22,7 @@ export abstract class ACellRenderer {
   //private readonly fragment: DocumentFragment;
 
   /** @internal */
-  private tree: QuadTreeNode;
+  private tree: QuadTreeNode | null = null;
 
   constructor(private readonly root: HTMLElement) {
     root.innerHTML = template;
@@ -156,7 +156,7 @@ export abstract class ACellRenderer {
     const row = range(top, height, context.row.defaultRowHeight, context.row.exceptions, context.row.numberOfRows);
 
     const root = <HTMLElement>this.body.firstElementChild!;
-    this.render(this.tree, root, row.first, row.last, col.first, col.last);
+    this.render(this.tree!, root, row.first, row.last, col.first, col.last);
   }
 
   private renderLeaf(leaf: QuadTreeLeafNode, parent: HTMLElement) {
