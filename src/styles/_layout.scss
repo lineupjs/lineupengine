@@ -84,7 +84,11 @@
 
   &#{$engine_selector}-striped > main > article {
     &:not(.odd) > div:nth-child(even),
-    &.odd > div:nth-child(odd),
+    &.odd > div:nth-child(odd) {
+      background-image: linear-gradient(transparent $engine_row_outline_width, $engine_even_color $engine_row_outline_width);
+      background-repeat: repeat-x;
+    }
+
     &:not(.odd) > div:nth-child(even) > *.frozen,
     &.odd > div:nth-child(odd) > *.frozen {
       background-color: $engine_even_color;
