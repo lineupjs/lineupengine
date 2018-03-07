@@ -81,6 +81,16 @@
         @include collapsing-row-border($engine_row_outline_width, $engine_row_outline_color);
       }
     }
+
+    &#{$engine_selector}-striped > main > article {
+      &:not(.odd) > div:nth-child(even),
+      &.odd > div:nth-child(odd),
+      &:not(.odd) > div:nth-child(even) > *.frozen,
+      &.odd > div:nth-child(odd) > *.frozen {
+        background-color: $engine_even_color;
+        background-clip: content-box;
+      }
+    }
   }
 
   #{$engine_multi_selector} {
