@@ -121,7 +121,7 @@ export abstract class ARowRenderer {
 
     let delayer: (callback: () => void) => number;
 
-    const async: string|number = 'immediate';
+    const async: string | number = Boolean((<any>window).chrome) ? 'animation' : 'immediate'; // animation frame on chrome
 
     if (async === 'immediate' && hasImmediate) {
       delayer = setImmediate;
@@ -148,7 +148,7 @@ export abstract class ARowRenderer {
       }
       timeOut = delayer(wrapper);
     };
-}
+  }
 
   destroy() {
     this.bodyScroller.removeEventListener('scroll', this.scrollListener);
@@ -161,7 +161,7 @@ export abstract class ARowRenderer {
     }
   }
 
-  private select(index: number): { item: HTMLElement, result: IAbortAblePromise<void> | void } {
+  private select(index: number): {item: HTMLElement, result: IAbortAblePromise<void> | void} {
     let item: HTMLElement;
     let result: IAbortAblePromise<void> | void;
     if (this.pool.length > 0) {
@@ -378,7 +378,7 @@ export abstract class ARowRenderer {
 
 
   private recreateAnimated(ctx: IAnimationContext) {
-    const lookup = new Map<string, { n: HTMLElement, pos: number, i: number }>();
+    const lookup = new Map<string, {n: HTMLElement, pos: number, i: number}>();
     const prev = new KeyFinder(ctx.previous, ctx.previousKey);
     const cur = new KeyFinder(this.context, ctx.currentKey);
     const next = range(this.bodyScroller.scrollTop, this.bodyScroller.clientHeight, cur.context.defaultRowHeight, cur.context.exceptions, cur.context.numberOfRows);
