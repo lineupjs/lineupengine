@@ -56,16 +56,11 @@
       align-items: stretch;
       justify-items: stretch;
 
-      > * {
-        overflow: hidden;
-        text-overflow: ellipsis;
-
-        &.frozen {
-          position: sticky;
-          left: 0;
-          background-color: white;
-          z-index: 1;
-        }
+      > .frozen {
+        position: sticky;
+        left: 0;
+        background-color: white;
+        z-index: 1;
       }
     }
 
@@ -85,8 +80,8 @@
     &#{$engine_selector}-striped > main > article {
       &:not(.odd) > div:nth-child(even),
       &.odd > div:nth-child(odd),
-      &:not(.odd) > div:nth-child(even) > *.frozen,
-      &.odd > div:nth-child(odd) > *.frozen {
+      &:not(.odd) > div:nth-child(even) > .frozen,
+      &.odd > div:nth-child(odd) > .frozen {
         background-color: $engine_even_color;
         background-clip: content-box;
       }
