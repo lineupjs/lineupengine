@@ -22,6 +22,9 @@ export interface IRowRendererOptions {
    */
   minScrollDelta: number;
 
+  // min number of rows that should be added or removed
+  batchSize: number;
+
   /**
    * class of mixins to use for optimized rendering
    */
@@ -68,11 +71,13 @@ export abstract class ARowRenderer {
     async: Boolean((<any>window).chrome) ? 'animation' : 'immediate', // animation frame on chrome
     minScrollDelta: 3,
     mixins: [],
-    scrollingHint: false
+    scrollingHint: false,
+    batchSize: 5
   };
 
   constructor(protected readonly body: HTMLElement, options: Partial<IRowRendererOptions> = {}) {
     this.adapter = this.createAdapter();
+    this.bodyScroller.tabIndex = -1;
     Object.assign(this.options, options);
     this.mixins = this.options.mixins.map((mixinClass) => new mixinClass(this.adapter));
 
@@ -371,6 +376,10 @@ export abstract class ARowRenderer {
   }
 
   private remove(from: number, to: number, fromBeginning: boolean) {
+    if (to < from) {
+      return;
+    }
+    // console.log('remove', (to - from) + 1);
     for (let i = from; i <= to; ++i) {
       const item = <HTMLElement>(fromBeginning ? this.body.firstChild : this.body.lastChild);
       item.remove();
@@ -379,6 +388,10 @@ export abstract class ARowRenderer {
   }
 
   private addAtBeginning(from: number, to: number) {
+    if (to < from) {
+      return;
+    }
+    // console.log('add', (to - from) + 1);
     if (from === to) {
       this.body.insertBefore(this.create(from), this.body.firstChild);
       return;
@@ -391,6 +404,10 @@ export abstract class ARowRenderer {
   }
 
   private addAtBottom(from: number, to: number) {
+    if (to < from) {
+      return;
+    }
+    // console.log('add', (to - from) + 1);
     if (from === to) {
       this.body.appendChild(this.create(from));
       return;
@@ -703,9 +720,37 @@ export abstract class ARowRenderer {
     return scrollResult;
   }
 
+  private shiftLast(current: number, currentDelta: number) {
+    const b = this.options.batchSize;
+    if (currentDelta >= b) {
+      return current;
+    }
+    const total = this.context.numberOfRows;
+    return Math.min(total - 1, current + (this.options.batchSize - currentDelta));
+  }
+
+  private shiftFirst(current: number, currentFirstRow: number, currentDelta: number) {
+    const b = this.options.batchSize;
+    if (currentDelta >= b || current <= 0) {
+      return {first: current, firstRowPos: currentFirstRow};
+    }
+    const first = Math.max(0, current - (this.options.batchSize - currentDelta));
+
+    const {exceptionsLookup, defaultRowHeight} = this.context;
+    let firstRowPos = currentFirstRow;
+    for(let i = first; i < current; ++i) {
+      if (exceptionsLookup.has(i)) {
+        firstRowPos -= exceptionsLookup.get(i)!;
+      } else {
+        firstRowPos -= defaultRowHeight;
+      }
+    }
+    return {first, firstRowPos};
+  }
+
   private onScrolledImpl(scrollTop: number, clientHeight: number): EScrollResult {
     const context = this.context;
-    const {first, last, firstRowPos} = range(scrollTop, clientHeight, context.defaultRowHeight, context.exceptions, context.numberOfRows);
+    let {first, last, firstRowPos} = range(scrollTop, clientHeight, context.defaultRowHeight, context.exceptions, context.numberOfRows);
 
     const visible = this.visible;
     visible.forcedFirst = first;
@@ -722,18 +767,37 @@ export abstract class ARowRenderer {
       //no overlap, clean and draw everything
       //console.log(`ff added: ${last - first + 1} removed: ${visibleLast - visibleFirst + 1} ${first}:${last} ${offset}`);
       //removeRows(visibleFirst, visibleLast);
+
       this.removeAll();
       this.addAtBottom(first, last);
       r = EScrollResult.ALL;
     } else if (first < visible.first) {
       //some first rows missing and some last rows to much
       //console.log(`up added: ${visibleFirst - first + 1} removed: ${visibleLast - last + 1} ${first}:${last} ${offset}`);
-      this.removeFromBottom(last + 1, visible.last);
+      const toRemove = visible.last - (last + 1);
+      if (toRemove >= this.options.batchSize) {
+        this.removeFromBottom(last + 1, visible.last);
+      } else {
+        last = visible.last;
+      }
+
+      const r = this.shiftFirst(first, firstRowPos, visible.first - 1 - first);;
+      first = r.first;
+      firstRowPos = r.firstRowPos;
       this.addAtBeginning(first, visible.first - 1);
     } else {
       //console.log(`do added: ${last - visibleLast + 1} removed: ${first - visibleFirst + 1} ${first}:${last} ${offset}`);
       //some last rows missing and some first rows to much
-      this.removeFromBeginning(visible.first, first - 1);
+      const toRemove = first - 1 - visible.first;
+      if (toRemove >= this.options.batchSize) {
+        this.removeFromBeginning(visible.first, first - 1);
+      } else {
+        first = visible.first;
+        firstRowPos = this.visibleFirstRowPos;
+      }
+
+      last = this.shiftLast(last, last - visible.last + 1);
+
       this.addAtBottom(visible.last + 1, last);
     }
 
