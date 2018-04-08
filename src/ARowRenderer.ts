@@ -781,7 +781,7 @@ export abstract class ARowRenderer {
         last = visible.last;
       }
 
-      const r = this.shiftFirst(first, firstRowPos, visible.first - 1 - first);;
+      const r = this.shiftFirst(first, firstRowPos, visible.first - 1 - first);
       first = r.first;
       firstRowPos = r.firstRowPos;
       this.addAtBeginning(first, visible.first - 1);
