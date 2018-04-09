@@ -4,8 +4,8 @@
 @include exports('lineupengine/animation') {
   #{$engine_selector} {
     *,
-    *:before,
-    *:after {
+    *::before,
+    *::after {
       box-sizing: border-box;
     }
 
