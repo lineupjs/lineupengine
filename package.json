@@ -24,7 +24,7 @@
     "build/typings"
   ],
   "scripts": {
-    "clean": "rimraf build dist",
+    "clean": "rimraf build dist src/**/*.map src/**/*.js tests/**/*.js tests/**/*.map",
     "compile": "tsc",
     "lint": "tslint --project tsconfig.json -c tslint.json && stylelint src/**/*.scss",
     "docs": "typedoc --out ./build/docs/ src tsd.d.ts",
