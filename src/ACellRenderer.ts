@@ -3,6 +3,7 @@ import {ARowRenderer, IRowRendererOptions} from './ARowRenderer';
 import {EScrollResult, IMixinClass} from './mixin';
 import {GridStyleManager, IColumn, setTemplate} from './style';
 import ACellAdapter, {ICellAdapterRenderContext} from './table/internal/ACellAdapter';
+import {addScroll} from './internal';
 
 
 export declare type ICellRenderContext<T extends IColumn> = ICellAdapterRenderContext<T>;
@@ -87,22 +88,14 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
 
     const scroller = <HTMLElement>this.body.parentElement;
 
-
-    //sync scrolling of header and body
-    let oldLeft = scroller.scrollLeft;
-    let oldWidth = scroller.clientWidth;
-    const handler = () => {
-      const left = scroller.scrollLeft;
-      const width = scroller.clientWidth;
-      if (Math.abs(oldLeft - left) < this.options.minScrollDelta && Math.abs(oldWidth - width) < this.options.minScrollDelta) {
+    let old = addScroll(scroller, this.options.async, (act) => {
+      if (Math.abs(old.left - act.left) < this.options.minScrollDelta && Math.abs(old.width - act.width) < this.options.minScrollDelta) {
         return;
       }
-      const isGoingRight = left > oldLeft;
-      oldLeft = left;
-      oldWidth = width;
-      this.onScrolledHorizontally(left, width, isGoingRight);
-    };
-    scroller.addEventListener('scroll', this.createDelayedHandler(handler));
+      const isGoingRight = act.left > old.left;
+      old = act;
+      this.onScrolledHorizontally(act.left, act.width, isGoingRight);
+    });
 
     super.init();
   }

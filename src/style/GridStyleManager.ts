@@ -1,5 +1,6 @@
 import {IColumn} from './IColumn';
 import StyleManager from './StyleManager';
+import {addScroll} from '../internal';
 
 export const TEMPLATE = `
   <header>
@@ -44,24 +45,26 @@ export default class GridStyleManager extends StyleManager {
     let oldMargin = 0;
 
     // update frozen and sync header with body
-    bodyScroller.addEventListener('scroll', () => {
+    addScroll(bodyScroller, 'animation', (act) => {
       const old = headerScroller.scrollLeft;
-      const newValue = bodyScroller.scrollLeft;
+      const newValue = act.left;
       if (old !== newValue) {
-        requestAnimationFrame(() => headerScroller.scrollLeft = newValue);
+        headerScroller.scrollLeft = newValue;
       }
 
       // shift for different scrollbar in header and body
-      const delta = bodyScroller.clientWidth - headerScroller.clientWidth;
-      if (delta === oldMargin) {
+      const delta = act.width - headerScroller.clientWidth;
+      if (Math.abs(delta - oldMargin) < 3) {
         return;
       }
       oldMargin = delta;
-      this.updateRule('__scollBarFix', `
-        ${this.id} > header > :last-child {
-          margin-right: ${delta}px;
-        }
-      `);
+      setTimeout(() => {
+        this.updateRule('__scollBarFix', `
+          ${this.id} > header > :last-child {
+            margin-right: ${delta}px;
+          }
+        `);
+      }, 0);
     });
   }
 

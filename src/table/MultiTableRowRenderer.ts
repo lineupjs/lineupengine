@@ -1,6 +1,7 @@
 import {IExceptionContext, nonUniformContext, range, uniformContext} from '../logic';
 import {EScrollResult} from '../mixin';
 import {GridStyleManager} from '../style/index';
+import {addScroll} from '../internal';
 
 /**
  * basic interface of a table section
@@ -38,6 +39,21 @@ export interface IMultiTableRowRendererOptions {
    * @default 0
    */
   columnPadding: number;
+  /**
+   * async update on scrolling
+   * animation -> use requestAnimationFrame
+   * immediate -> use setImmediate if available
+   * sync -> execute within scroll listener
+   * {number} -> execute within this delay using setTimeout
+   * @default is chrome ? animation else 0
+   */
+  async: number | 'animation' | 'sync' | 'immediate';
+
+  /**
+   * minimal number of pixel the scrollbars has to move
+   * @default 30
+   */
+  minScrollDelta: number;
 }
 
 /**
@@ -58,7 +74,9 @@ export default class MultiTableRowRenderer {
   };
 
   private readonly options: Readonly<IMultiTableRowRendererOptions> = {
-    columnPadding: 0
+    columnPadding: 0,
+    async: Boolean((<any>window).chrome) ? 'animation' : 0, // animation frame on chrome
+    minScrollDelta: 30
   };
 
   private context: IExceptionContext = uniformContext(0, 500);
@@ -70,19 +88,13 @@ export default class MultiTableRowRenderer {
 
     this.style = new GridStyleManager(this.node, htmlId);
 
-    const main = this.main;
-    let oldLeft = main.scrollLeft;
-    let oldWidth = main.clientWidth;
-    main.addEventListener('scroll', () => {
-      const left = main.scrollLeft;
-      const width = main.clientWidth;
-      if (left === oldLeft && width === oldWidth) {
+    let old = addScroll(this.main, this.options.async, (act) => {
+      if (Math.abs(old.left - act.left) < this.options.minScrollDelta && Math.abs(old.width - act.width) < this.options.minScrollDelta) {
         return;
       }
-      const isGoingRight = left > oldLeft;
-      oldLeft = left;
-      oldWidth = width;
-      this.onScrolledHorizontally(left, width, isGoingRight);
+      const isGoingRight = act.left > old.left;
+      old = act;
+      this.onScrolledHorizontally(act.left, act.width, isGoingRight);
     });
   }
 

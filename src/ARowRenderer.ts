@@ -3,6 +3,7 @@ import {defaultPhases, EAnimationMode, IAnimationContext, IAnimationItem, IPhase
 import KeyFinder from './animation/KeyFinder';
 import {IExceptionContext, range} from './logic';
 import {EScrollResult, IMixin, IMixinAdapter, IMixinClass} from './mixin';
+import {addScroll, removeScroll, IScrollInfo, IDelayedMode} from './internal';
 
 export declare type IRowRenderContext = IExceptionContext;
 
@@ -13,12 +14,13 @@ export interface IRowRendererOptions {
    * immediate -> use setImmediate if available
    * sync -> execute within scroll listener
    * {number} -> execute within this delay using setTimeout
-   * @default is chrome ? animation else immediate
+   * @default is chrome ? animation else 0
    */
-  async: number | 'animation' | 'sync' | 'immediate';
+  async: IDelayedMode;
 
   /**
    * minimal number of pixel the scrollbars has to move
+   * @default 10
    */
   minScrollDelta: number;
 
@@ -63,13 +65,13 @@ export abstract class ARowRenderer {
 
   private readonly adapter: IMixinAdapter;
   private readonly mixins: IMixin[];
-  private scrollListener: ((evt: UIEvent) => void) | null = null;
+  private scrollListener: ((act: IScrollInfo) => void) | null = null;
 
   private abortAnimation: () => void = () => undefined;
 
   protected readonly options: Readonly<IRowRendererOptions> = {
-    async: Boolean((<any>window).chrome) ? 'animation' : 'immediate', // animation frame on chrome
-    minScrollDelta: 3,
+    async: Boolean((<any>window).chrome) ? 'animation' : 0, // animation frame on chrome
+    minScrollDelta: 10,
     mixins: [],
     scrollingHint: false,
     batchSize: 5
@@ -160,76 +162,29 @@ export abstract class ARowRenderer {
   protected init() {
     const scroller = this.bodyScroller;
 
-    //sync scrolling of header and body
-    let oldTop = scroller.scrollTop;
-    let oldHeight = scroller.clientHeight;
-
-    const handler = () => {
-      const top = scroller.scrollTop;
-      const height = scroller.clientHeight;
-      if (Math.abs(oldTop - top) < this.options.minScrollDelta && Math.abs(oldHeight - height) < this.options.minScrollDelta) {
+    let old = addScroll(scroller, this.options.async, this.scrollListener = (act) => {
+      if (Math.abs(old.top - act.top) < this.options.minScrollDelta && Math.abs(old.height - act.height) < this.options.minScrollDelta) {
         return;
       }
-      const isGoingDown = top > oldTop;
-      oldTop = top;
-      oldHeight = height;
-      this.onScrolledVertically(top, height, isGoingDown);
+      const isGoingDown = act.top > old.top;
+      old = act;
+      this.onScrolledVertically(act.top, act.height, isGoingDown);
       if (this.options.scrollingHint) {
         scroller.classList.remove('le-scrolling');
       }
-    };
-
-
-    this.scrollListener = this.createDelayedHandler(handler, () => {
-      if (this.options.scrollingHint) {
-        scroller.classList.add('le-scrolling');
-      }
     });
-
-    scroller.addEventListener('scroll', this.scrollListener!);
+    if (this.options.scrollingHint) {
+      addScroll(scroller, 'animation', () => scroller.classList.add('le-scrolling'));
+    }
     this.recreate();
   }
 
-  protected createDelayedHandler(delayedHandler: () => void, immediateCallback?: () => void) {
-    const hasImmediate = typeof (window.setImmediate) === 'function';
-
-    let delayer: (callback: () => void) => number;
-
-    if (this.options.async === 'immediate' && hasImmediate) {
-      delayer = setImmediate;
-    } else if (this.options.async === 'animation' || this.options.async === 'immediate') { // no Immediate available
-      delayer = requestAnimationFrame;
-    } else if (typeof this.options.async === 'number') {
-      delayer = (c) => self.setTimeout(c, this.options.async);
-    } else {
-      delayer = (c) => {
-        c();
-        return -1;
-      };
-    }
-    let timeOut = -1;
-
-    const wrapper = () => {
-      timeOut = -1;
-      delayedHandler();
-    };
-
-    return () => {
-      if (immediateCallback) {
-        immediateCallback();
-      }
-      if (timeOut > -1) {
-        return; // already scheduled
-      }
-      timeOut = delayer(wrapper);
-    };
-  }
 
   /**
    * destroys this renderer and unregisters all event listeners
    */
   destroy() {
-    this.bodyScroller.removeEventListener('scroll', this.scrollListener!);
+    removeScroll(this.bodyScroller, this.scrollListener!);
     this.body.remove();
   }
 
