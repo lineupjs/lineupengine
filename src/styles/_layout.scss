@@ -13,7 +13,7 @@
     overflow-x: auto;
 
     > header {
-      flex: 0 0 auto;x^x
+      flex: 0 0 auto;
       overflow-x: hidden;
       margin-bottom: 3px;
       padding-bottom: 1px;
@@ -78,11 +78,17 @@
       }
     }
 
+    > main > article > footer {
+      transition: none !important;
+      height: 1px !important;
+      visibility: hidden;
+    }
+
     &#{$engine_selector}-striped > main > article {
-      &:not(.odd) > div:nth-child(even),
-      &.odd > div:nth-child(odd),
-      &:not(.odd) > div:nth-child(even) > .frozen,
-      &.odd > div:nth-child(odd) > .frozen {
+      &:not(.odd) > div:nth-child(odd),
+      &.odd > div:nth-child(even),
+      &:not(.odd) > div:nth-child(odd) > .frozen,
+      &.odd > div:nth-child(even) > .frozen {
         background-color: $engine_even_color;
         background-clip: content-box;
       }
