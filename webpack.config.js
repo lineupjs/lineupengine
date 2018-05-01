@@ -21,7 +21,6 @@ const banner = '/*! ' + (pkg.title || pkg.name) + ' - v' + pkg.version + ' - ' +
 module.exports = (env, options) => {
   const dev = options.mode.startsWith('d');
   return {
-    target: 'node',
     entry: !dev ? {
       lineupengine: './src/index.ts'
     } : {
