@@ -85,7 +85,7 @@ class ScrollHandler {
 
   push(mode: IDelayedMode, handler: (act: IScrollInfo)=>void) {
     // convert mode
-    if (mode !== 'immediate' && typeof (self.setImmediate) !== 'function') {
+    if (mode === 'immediate' && typeof (self.setImmediate) !== 'function') {
       mode = 0;
     }
     if (this.handlers.has(mode)) {
