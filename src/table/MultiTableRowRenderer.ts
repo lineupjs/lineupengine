@@ -1,7 +1,7 @@
 import {IExceptionContext, nonUniformContext, range, uniformContext} from '../logic';
 import {EScrollResult} from '../mixin';
 import {GridStyleManager} from '../style/index';
-import {addScroll} from '../internal';
+import {addScroll, defaultMode} from '../internal';
 
 /**
  * basic interface of a table section
@@ -75,7 +75,7 @@ export default class MultiTableRowRenderer {
 
   private readonly options: Readonly<IMultiTableRowRendererOptions> = {
     columnPadding: 0,
-    async: Boolean((<any>window).chrome) ? 'animation' : 0, // animation frame on chrome
+    async: defaultMode,
     minScrollDelta: 30
   };
 
@@ -130,7 +130,7 @@ export default class MultiTableRowRenderer {
 
     visible.first = first;
     visible.last = last;
-    return EScrollResult.PARTIAL;
+    return EScrollResult.SOME;
   }
 
   destroy() {

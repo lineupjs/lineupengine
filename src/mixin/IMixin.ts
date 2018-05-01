@@ -13,9 +13,17 @@ export enum EScrollResult {
    */
   ALL,
   /**
-   * partial rows need to be created
+   * unknown
    */
-  PARTIAL
+  SOME,
+  /**
+   * some rows are added at the bottom
+   */
+  SOME_BOTTOM,
+  /**
+   * some rows are added at the top
+   */
+  SOME_TOP
 }
 
 /**

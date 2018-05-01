@@ -3,7 +3,7 @@ import {defaultPhases, EAnimationMode, IAnimationContext, IAnimationItem, IPhase
 import KeyFinder from './animation/KeyFinder';
 import {IExceptionContext, range} from './logic';
 import {EScrollResult, IMixin, IMixinAdapter, IMixinClass} from './mixin';
-import {addScroll, removeScroll, IScrollInfo, IDelayedMode} from './internal';
+import {addScroll, removeScroll, IScrollInfo, IDelayedMode, defaultMode} from './internal';
 
 export declare type IRowRenderContext = IExceptionContext;
 
@@ -70,7 +70,7 @@ export abstract class ARowRenderer {
   private abortAnimation: () => void = () => undefined;
 
   protected readonly options: Readonly<IRowRendererOptions> = {
-    async: Boolean((<any>window).chrome) ? 'animation' : 0, // animation frame on chrome
+    async: defaultMode,
     minScrollDelta: 10,
     mixins: [],
     scrollingHint: false,
@@ -344,7 +344,7 @@ export abstract class ARowRenderer {
     if (to < from) {
       return;
     }
-    // console.log('remove', (to - from) + 1);
+    // console.log('remove', fromBeginning, (to - from) + 1, this.body.childElementCount - ((to - from) + 1));
     for (let i = from; i <= to; ++i) {
       const item = <HTMLElement>(fromBeginning ? this.body.firstChild!.nextSibling : this.body.lastChild);
       item.remove();
@@ -356,7 +356,7 @@ export abstract class ARowRenderer {
     if (to < from) {
       return;
     }
-    // console.log('add', (to - from) + 1);
+    // console.log('add', (to - from) + 1, this.body.childElementCount + ((to - from) + 1));
     if (from === to) {
       this.body.insertBefore(this.create(from), this.body.firstChild!.nextSibling);
       return;
@@ -372,7 +372,7 @@ export abstract class ARowRenderer {
     if (to < from) {
       return;
     }
-    // console.log('add', (to - from) + 1);
+    // console.log('add_b', (to - from) + 1, this.body.childElementCount + ((to - from) + 1));
     if (from === to) {
       this.body.appendChild(this.create(from));
       return;
@@ -728,7 +728,7 @@ export abstract class ARowRenderer {
       return EScrollResult.NONE;
     }
 
-    let r: EScrollResult = EScrollResult.PARTIAL;
+    let r: EScrollResult = EScrollResult.SOME;
 
     if (first > visible.last || last < visible.first) {
       //no overlap, clean and draw everything
@@ -748,10 +748,11 @@ export abstract class ARowRenderer {
         last = visible.last;
       }
 
-      const r = this.shiftFirst(first, firstRowPos, visible.first - 1 - first);
-      first = r.first;
-      firstRowPos = r.firstRowPos;
+      const shift = this.shiftFirst(first, firstRowPos, visible.first - 1 - first);
+      first = shift.first;
+      firstRowPos = shift.firstRowPos;
       this.addAtBeginning(first, visible.first - 1);
+      r = EScrollResult.SOME_TOP;
     } else {
       //console.log(`do added: ${last - visibleLast + 1} removed: ${first - visibleFirst + 1} ${first}:${last} ${offset}`);
       //some last rows missing and some first rows to much
@@ -766,6 +767,7 @@ export abstract class ARowRenderer {
       last = this.shiftLast(last, last - visible.last + 1);
 
       this.addAtBottom(visible.last + 1, last);
+      r = EScrollResult.SOME_BOTTOM;
     }
 
     visible.first = first;

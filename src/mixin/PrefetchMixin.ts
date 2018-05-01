@@ -148,11 +148,10 @@ export default class PrefetchMixin implements IMixin {
   }
 
   onScrolled(isGoingDown: boolean, scrollResult: EScrollResult) {
-    if (scrollResult === EScrollResult.NONE) {
-      if (this.options.cleanUpRows > 0) {
-        this.triggerCleanUp(this.adapter.visible.forcedFirst, this.adapter.visible.forcedLast, isGoingDown);
-      }
-    } else if (this.options.prefetchRows > 0) {
+    if (scrollResult !== EScrollResult.ALL && this.options.cleanUpRows > 0) {
+      this.triggerCleanUp(this.adapter.visible.forcedFirst, this.adapter.visible.forcedLast, isGoingDown);
+    }
+    if (scrollResult !== EScrollResult.NONE && this.options.prefetchRows > 0) {
       this.triggerPrefetch(isGoingDown);
     }
   }

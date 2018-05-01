@@ -459,7 +459,7 @@ export abstract class ACellAdapter<T extends IColumn> {
       return EScrollResult.NONE;
     }
 
-    let r: EScrollResult = EScrollResult.PARTIAL;
+    let r: EScrollResult = EScrollResult.SOME;
 
     const frozenShift = this.syncFrozen(first);
 
@@ -475,11 +475,13 @@ export abstract class ACellAdapter<T extends IColumn> {
       //console.log(`up added: ${visibleFirst - first + 1} removed: ${visibleLast - last + 1} ${first}:${last} ${offset}`);
       this.removeColumnFromEnd(last + 1, visible.last);
       this.addColumnAtStart(first, visible.first - 1, frozenShift);
+      r = EScrollResult.SOME_TOP;
     } else {
       //console.log(`do added: ${last - visibleLast + 1} removed: ${first - visibleFirst + 1} ${first}:${last} ${offset}`);
       //some last rows missing and some first rows to much
       this.removeColumnFromStart(visible.first, first - 1, frozenShift);
       this.addColumnAtEnd(visible.last + 1, last);
+      r = EScrollResult.SOME_BOTTOM;
     }
 
     visible.first = first;
