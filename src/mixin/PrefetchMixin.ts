@@ -93,7 +93,7 @@ export default class PrefetchMixin implements IMixin {
     // go down if we are already at the top, too
     const op = (isGoingDown || isFirst) ? this.prefetchDown.bind(this) : this.prefetchUp.bind(this);
 
-    this.prefetchTimeout = setTimeout(op, this.options.delay);
+    this.prefetchTimeout = self.setTimeout(op, this.options.delay);
   }
 
   private cleanUpTop(first: number) {
@@ -144,7 +144,7 @@ export default class PrefetchMixin implements IMixin {
       return;
     }
 
-    this.prefetchTimeout = setTimeout(isGoingDown ? this.cleanUpTop.bind(this) : this.cleanUpBottom.bind(this), this.options.delay, isGoingDown ? first : last);
+    this.prefetchTimeout = self.setTimeout(isGoingDown ? this.cleanUpTop.bind(this) : this.cleanUpBottom.bind(this), this.options.delay, isGoingDown ? first : last);
   }
 
   onScrolled(isGoingDown: boolean, scrollResult: EScrollResult) {

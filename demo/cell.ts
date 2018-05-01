@@ -19,7 +19,7 @@ export default class CellRenderer extends ACellRenderer {
 
   run() {
     //wait till layouted
-    setTimeout(super.init.bind(this), 100);
+    self.setTimeout(super.init.bind(this), 100);
   }
 
   protected get context() {

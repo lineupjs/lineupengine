@@ -585,7 +585,7 @@ export abstract class ARowRenderer {
       if (actPhase < phases.length) {
         // schedule the next one
         const next = phases[actPhase]!;
-        currentTimer = setTimeout(run, next.delay);
+        currentTimer = self.setTimeout(run, next.delay);
         return;
       }
 
@@ -654,7 +654,7 @@ export abstract class ARowRenderer {
     };
 
     // next tick such that DOM will be updated
-    currentTimer = setTimeout(run, phases[actPhase].delay);
+    currentTimer = self.setTimeout(run, phases[actPhase].delay);
   }
 
   /**

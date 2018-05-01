@@ -2,45 +2,6 @@
 
 export declare type IDelayedMode = number | 'animation' | 'sync' | 'immediate';
 
-/**
- * @internal
- */
-export function createDelayedHandler(mode: IDelayedMode, delayedHandler: () => void, immediateCallback?: () => void) {
-  const hasImmediate = typeof (window.setImmediate) === 'function';
-
-  let delayer: (callback: () => void) => number;
-
-  if (mode === 'immediate' && hasImmediate) {
-    delayer = setImmediate;
-  } else if (mode === 'animation' || mode === 'immediate') { // no Immediate available
-    delayer = requestAnimationFrame;
-  } else if (typeof mode === 'number') {
-    delayer = (c) => self.setTimeout(c, mode);
-  } else {
-    delayer = (c) => {
-      c();
-      return -1;
-    };
-  }
-  let timeOut = -1;
-
-  const wrapper = () => {
-    timeOut = -1;
-    delayedHandler();
-  };
-
-  return () => {
-    if (immediateCallback) {
-      immediateCallback();
-    }
-    if (timeOut > -1) {
-      return; // already scheduled
-    }
-    timeOut = delayer(wrapper);
-  };
-}
-
-
 export interface IScrollInfo {
   left: number;
   top: number;
@@ -93,7 +54,7 @@ class ScrollHandler {
     if (this.immediateTimeout >= 0 || !this.has('immediate')) {
       return;
     }
-    this.immediateTimeout = setImmediate(() => {
+    this.immediateTimeout = self.setImmediate(() => {
       this.immediateTimeout = -1;
       this.handle('immediate');
     });
@@ -106,7 +67,7 @@ class ScrollHandler {
     }
     for(const n of numbers) {
       this.timersWaiting.add(n);
-      setTimeout(() => {
+      self.setTimeout(() => {
         this.timersWaiting.delete(n);
         this.handle(n);
       }, n);
@@ -124,7 +85,7 @@ class ScrollHandler {
 
   push(mode: IDelayedMode, handler: (act: IScrollInfo)=>void) {
     // convert mode
-    if (mode !== 'immediate' && typeof (window.setImmediate) !== 'function') {
+    if (mode !== 'immediate' && typeof (self.setImmediate) !== 'function') {
       mode = 0;
     }
     if (this.handlers.has(mode)) {

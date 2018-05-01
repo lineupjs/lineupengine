@@ -58,7 +58,7 @@ export default class GridStyleManager extends StyleManager {
         return;
       }
       oldMargin = delta;
-      setTimeout(() => {
+      self.setTimeout(() => {
         this.updateRule('__scollBarFix', `
           ${this.id} > header > :last-child {
             margin-right: ${delta}px;
