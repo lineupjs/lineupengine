@@ -65,14 +65,18 @@
       }
     }
 
+    > main > article > div {
+      position: relative;
+      background: white;
+      background-clip: content-box;
+    }
+
     > main:not(.scrolling) > article > div {
       /* @include collapsing-row-border($engine_row_hover_width, #eee); */
-      background: white;
 
-      &.le-highlighted,
-      &:hover {
-        position: relative;
-        z-index: 2;
+      &:hover,
+      &.le-highlighted {
+        // z-index: 2;
 
         @include collapsing-row-border($engine_row_outline_width, $engine_row_outline_color);
       }
@@ -90,7 +94,6 @@
       &:not(.odd) > div:nth-child(odd) > .frozen,
       &.odd > div:nth-child(even) > .frozen {
         background-color: $engine_even_color;
-        background-clip: content-box;
       }
     }
   }
