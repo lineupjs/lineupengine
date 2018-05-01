@@ -76,8 +76,6 @@
 
       &:hover,
       &.le-highlighted {
-        // z-index: 2;
-
         @include collapsing-row-border($engine_row_outline_width, $engine_row_outline_color);
       }
     }
