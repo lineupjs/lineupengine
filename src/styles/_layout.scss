@@ -13,11 +13,11 @@
     overflow-x: auto;
 
     > header {
-      flex: 0 0 auto;
+      flex: 0 0 auto;x^x
       overflow-x: hidden;
       margin-bottom: 3px;
       padding-bottom: 1px;
-      transform: translate3d(0, 0, 0);
+      transform: translate3d(0, 0, 2px);
 
       @supports (-moz-appearance: meterbar) {
 
@@ -33,7 +33,6 @@
     > main {
       flex: 1 1 auto;
       overflow-y: auto;
-      transform: translate3d(0, 0, 0.01);
     }
 
     > header,
