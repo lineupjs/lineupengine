@@ -23,6 +23,8 @@ class ScrollHandler {
       this.handleAnimation();
       this.handleImmediate();
       this.handleTimeouts();
+    }, {
+      passive: true
     });
   }
 
