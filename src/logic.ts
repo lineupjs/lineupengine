@@ -71,7 +71,7 @@ export interface IExceptionContext {
   /**
    * padding between rows, however already included in all heights to have the precise numbers
    */
-  readonly padding: (index: number)=>number;
+  readonly padding: (index: number) => number;
 }
 
 /**
@@ -121,19 +121,19 @@ function mostFrequentValue(values: { forEach: (callback: (height: number, index:
   });
   const mostFrequent = sorted[0][0];
   if (mostFrequent === 0) { // cornercase
-    return sorted.length > 1 ? sorted[1][0]: 20; // all empty
+    return sorted.length > 1 ? sorted[1][0] : 20; // all empty
   }
   return mostFrequent;
 }
 
 /**
  * creates a non uniform context based on the given array like heights
- * @param {{forEach: ((callback: (height: number, index: number) => any) => any)}} rowHeights
+ * @param rowHeights arrayish to get the heights
  * @param {number} defaultRowHeight if not given the most frequent value will be used
  * @param {number} rowPadding padding between rows
  * @return {IExceptionContext}
  */
-export function nonUniformContext(rowHeights: { forEach: (callback: (height: number, index: number) => any) => any }, defaultRowHeight: number = NaN, rowPadding: number|((index: number)=>number) = 0): IExceptionContext {
+export function nonUniformContext(rowHeights: { forEach: (callback: (height: number, index: number) => any) => any }, defaultRowHeight: number = NaN, rowPadding: number | ((index: number) => number) = 0): IExceptionContext {
   const exceptionsLookup = new Map<number, number>();
   const exceptions: IRowHeightException[] = [];
 
@@ -165,7 +165,7 @@ export function nonUniformContext(rowHeights: { forEach: (callback: (height: num
 }
 
 /**
- * creates a random context with the given contraints
+ * creates a random context with the given constraints
  * @param {number} numberOfRows
  * @param {number} defaultRowHeight
  * @param {number} minRowHeight
@@ -231,7 +231,12 @@ export function range(scrollTop: number, clientHeight: number, rowHeight: number
     return {first: 0, last: -1, firstRowPos: 0, endPos: 0};
   }
   if (numberOfRows === 1) {
-    return {first: 0, last: 0, firstRowPos: 0, endPos: heightExceptions.length === 0 ? rowHeight : heightExceptions[0].y2};
+    return {
+      first: 0,
+      last: 0,
+      firstRowPos: 0,
+      endPos: heightExceptions.length === 0 ? rowHeight : heightExceptions[0].y2
+    };
   }
   const offset = scrollTop;
   const offset2 = offset + clientHeight;

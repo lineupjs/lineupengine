@@ -1,10 +1,8 @@
-/**
- * Created by Samuel Gratzl on 13.07.2017.
- */
-import 'file-loader?name=demo.html!extract-loader!html-loader!./index.html';
-import {ICellRenderContext, ACellRenderer, uniformContext, IColumn, PrefetchMixin} from '../src';
+import 'file-loader?name=demo.html!./index.html';
+import {ACellRenderer, ICellRenderContext, IColumn, PrefetchMixin, uniformContext} from '../src';
 import '../src/style.scss';
 
+/** @internal */
 class Column<T> implements IColumn {
   constructor(public readonly index: number, public readonly name: string, public readonly frozen: boolean = false, public readonly width = 100) {
 
@@ -39,11 +37,12 @@ class Column<T> implements IColumn {
   }
 }
 
+/** @internal */
 export default class TestRenderer extends ACellRenderer<Column<number>> {
   protected readonly _context: ICellRenderContext<Column<number>>;
 
   constructor(root: HTMLElement, id: string, numberOfRows = 1000, numberOfColumns = 20) {
-    super(root, `#${id}`, PrefetchMixin);
+    super(root, `#${id}`, {mixins: [PrefetchMixin]});
     root.id = id;
 
     const defaultRowHeight = 20;
@@ -77,7 +76,7 @@ export default class TestRenderer extends ACellRenderer<Column<number>> {
 
   run() {
     //wait till layouted
-    setTimeout(super.init.bind(this), 100);
+    self.setTimeout(super.init.bind(this), 100);
   }
 
   protected get context() {
@@ -86,7 +85,7 @@ export default class TestRenderer extends ACellRenderer<Column<number>> {
 
   protected updateRow(node: HTMLElement, index: number) {
     //return abortAble(resolveIn(2000)).then(() => {
-      super.updateRow(node, index);
+    super.updateRow(node, index);
     //});
   }
 }

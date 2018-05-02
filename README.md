@@ -1,29 +1,70 @@
-lineupengine [![Phovea][phovea-image]][phovea-url] [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency Status][daviddm-image]][daviddm-url]
-=====================
+LineUpEngine
+============
+[![License: MIT][mit-image]][mit-url] [![NPM version][npm-image]][npm-url]  [![CircleCI][ci-image]][ci-url] 
 
+a fast engine for rendering large tables consisting of rows, rows+columns, multiple rows+columns instances. 
 
+Supported Browsers
+------------------
+
+ * latest Chrome (best performance)
+ * Firefox Quantum
+ * Edge 16
 
 Installation
 ------------
 
+Develop Version:
+
+```html
+<script src="https://sgratzl.github.io/lineupengine_docs/develop/lineupengine.min.js"></script>
 ```
+
+Usage
+-----
+
+**TODO**
+
+
+API Documentation
+-----------------
+
+see [Develop API documentation](https://sgratzl.github.io/lineupengine_docs/develop/docs)
+
+Demos
+-----
+
+see [Develop Demo](https://sgratzl.github.io/lineupengine/develop_docs/demo)
+
+
+Development Environment
+-----------------------
+
+**Installation**
+
+```bash
 git clone https://github.com/sgratzl/lineupengine.git
 cd lineupengine
 npm install
 ```
 
-Testing
--------
+**Build distribution packages**
 
-```
-npm test
-```
-
-Building
---------
-
-```
+```bash
 npm run build
+```
+
+**Run Linting**
+
+```bash
+npm run lint
+```
+
+
+**Watch file changes**
+
+```bash
+npm run watch
 ```
 
 Notes
@@ -39,18 +80,9 @@ firefox: 17.895.566px marginTop + height
 edge:    3.033.917px height
 ```
 
-
-***
-
-<a href="https://caleydo.org"><img src="http://caleydo.org/assets/images/logos/caleydo.svg" align="left" width="200px" hspace="10" vspace="6"></a>
-This repository is part of **[Phovea](http://phovea.caleydo.org/)**, a platform for developing web-based visualization applications. For tutorials, API docs, and more information about the build and deployment process, see the [documentation page](http://phovea.caleydo.org).
-
-
-[phovea-image]: https://img.shields.io/badge/Phovea-Client%20Plugin-F47D20.svg
-[phovea-url]: https://phovea.caleydo.org
 [npm-image]: https://badge.fury.io/js/lineupengine.svg
 [npm-url]: https://npmjs.org/package/lineupengine
-[travis-image]: https://travis-ci.org/sgratzl/lineupengine.svg?branch=master
-[travis-url]: https://travis-ci.org/sgratzl/lineupengine
-[daviddm-image]: https://david-dm.org/sgratzl/lineupengine/status.svg
-[daviddm-url]: https://david-dm.org/sgratzl/lineupengine
+[mit-image]: https://img.shields.io/badge/License-MIT-yellow.svg
+[mit-url]: https://opensource.org/licenses/MIT
+[ci-image]: https://circleci.com/gh/sgratzl/lineupengine.svg?style=shield
+[ci-url]: https://circleci.com/gh/sgratzl/lineupengine

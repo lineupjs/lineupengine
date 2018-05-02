@@ -1,10 +1,6 @@
 import {IExceptionContext, range} from '../logic';
 import QuadTreeNode, {
-  BOTTOM_LEFT,
-  BOTTOM_RIGHT,
-  QuadTreeInnerNode,
-  QuadTreeLeafNode,
-  TOP_LEFT,
+  BOTTOM_LEFT, BOTTOM_RIGHT, QuadTreeInnerNode, QuadTreeLeafNode, TOP_LEFT,
   TOP_RIGHT
 } from './internal/QuadTreeNode';
 
@@ -25,7 +21,8 @@ export abstract class ACellRenderer {
   private readonly poolInner: HTMLElement[] = [];
   //private readonly fragment: DocumentFragment;
 
-  private tree: QuadTreeNode;
+  /** @internal */
+  private tree: QuadTreeNode | null = null;
 
   constructor(private readonly root: HTMLElement) {
     root.innerHTML = template;
@@ -159,7 +156,7 @@ export abstract class ACellRenderer {
     const row = range(top, height, context.row.defaultRowHeight, context.row.exceptions, context.row.numberOfRows);
 
     const root = <HTMLElement>this.body.firstElementChild!;
-    this.render(this.tree, root, row.first, row.last, col.first, col.last);
+    this.render(this.tree!, root, row.first, row.last, col.first, col.last);
   }
 
   private renderLeaf(leaf: QuadTreeLeafNode, parent: HTMLElement) {

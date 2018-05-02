@@ -1,6 +1,3 @@
-/**
- * Created by Samuel Gratzl on 13.07.2017.
- */
 import {range} from '../logic';
 import {EScrollResult, IMixin, IMixinAdapter} from './IMixin';
 
@@ -22,8 +19,12 @@ export interface IPrefetchRendererOptions {
   readonly delay: number;
 }
 
+/**
+ * mixin that prefetches rows depending on the scrolling direction for faster rendering
+ */
 export default class PrefetchMixin implements IMixin {
   private prefetchTimeout: number = -1;
+  private cleanupTimeout: number = -1;
 
   private readonly options: IPrefetchRendererOptions = {
     prefetchRows: 20,
@@ -40,7 +41,7 @@ export default class PrefetchMixin implements IMixin {
   private prefetchDown() {
     this.prefetchTimeout = -1;
     const context = this.adapter.context;
-    const nextLast = Math.min(this.adapter.visible.last + this.options.prefetchRows, context.numberOfRows - 1);
+    const nextLast = Math.min(this.adapter.visible.forcedLast + this.options.prefetchRows, context.numberOfRows - 1);
     // add some rows in advance
     if (this.adapter.visible.last === nextLast && this.adapter.visible.last >= (this.adapter.visible.forcedLast + this.options.prefetchRows)) {
       return;
@@ -80,22 +81,31 @@ export default class PrefetchMixin implements IMixin {
       clearTimeout(this.prefetchTimeout);
     }
 
-    if ((isGoingDown && this.adapter.visible.last >= (this.adapter.visible.forcedLast + this.options.prefetchRows)) ||
-      (!isGoingDown && this.adapter.visible.first <= (this.adapter.visible.forcedFirst - this.options.prefetchRows))) {
+    const prefetchDownPossible = this.adapter.visible.last < (this.adapter.visible.forcedLast + this.options.prefetchRows);
+    const prefetchUpPossible = this.adapter.visible.first > (this.adapter.visible.forcedFirst - this.options.prefetchRows);
+
+    const isLast = this.adapter.visible.last === this.adapter.context.numberOfRows;
+    const isFirst = this.adapter.visible.first === 0;
+
+    if ((isGoingDown && !prefetchDownPossible && !isLast) || (!isGoingDown && !prefetchUpPossible && !isFirst)) {
       return;
     }
 
-    this.prefetchTimeout = setTimeout(isGoingDown ? this.prefetchDown.bind(this) : this.prefetchUp.bind(this), this.options.delay);
+    // go down if we are already at the top, too
+    const op = (isGoingDown || isFirst) ? this.prefetchDown.bind(this) : this.prefetchUp.bind(this);
+
+    this.prefetchTimeout = self.setTimeout(op, this.options.delay);
   }
 
   private cleanUpTop(first: number) {
-    this.prefetchTimeout = -1;
+    this.cleanupTimeout = -1;
     const newFirst = Math.max(0, first - this.options.cleanUpRows);
 
     if (newFirst <= this.adapter.visible.first) {
       return;
     }
 
+    //console.log('cleanup top');
     const frozenShift = this.adapter.syncFrozen ? this.adapter.syncFrozen(newFirst) : 0;
 
     this.adapter.removeFromBeginning(this.adapter.visible.first, newFirst - 1, frozenShift);
@@ -116,35 +126,34 @@ export default class PrefetchMixin implements IMixin {
   }
 
   private cleanUpBottom(last: number) {
-    this.prefetchTimeout = -1;
+    this.cleanupTimeout = -1;
     const newLast = last + this.options.cleanUpRows;
     if (this.adapter.visible.last <= newLast) {
       return;
     }
+    //console.log('cleanup bottom');
     this.adapter.removeFromBottom(newLast + 1, this.adapter.visible.last);
-    //console.log('cleanup bottom', visibleFirst, visibleLast, '=>', newLast, ranking.children.length);
     this.adapter.visible.last = newLast;
 
     this.prefetchUp();
   }
 
   private triggerCleanUp(first: number, last: number, isGoingDown: boolean) {
-    if (this.prefetchTimeout >= 0) {
-      clearTimeout(this.prefetchTimeout);
+    if (this.cleanupTimeout >= 0) {
+      clearTimeout(this.cleanupTimeout);
     }
     if ((isGoingDown && (first - this.options.cleanUpRows) <= this.adapter.visible.first) || (!isGoingDown && this.adapter.visible.last <= (last + this.options.cleanUpRows))) {
       return;
     }
 
-    this.prefetchTimeout = setTimeout(isGoingDown ? this.cleanUpTop.bind(this) : this.cleanUpBottom.bind(this), this.options.delay, isGoingDown ? first : last);
+    this.cleanupTimeout = self.setTimeout(isGoingDown ? this.cleanUpTop.bind(this) : this.cleanUpBottom.bind(this), this.options.delay, isGoingDown ? first : last);
   }
 
   onScrolled(isGoingDown: boolean, scrollResult: EScrollResult) {
-    if (scrollResult === EScrollResult.NONE) {
-      if (this.options.cleanUpRows > 0) {
-        this.triggerCleanUp(this.adapter.visible.forcedFirst, this.adapter.visible.forcedLast, isGoingDown);
-      }
-    } else if (this.options.prefetchRows > 0) {
+    if (scrollResult !== EScrollResult.ALL && this.options.cleanUpRows > 0) {
+      this.triggerCleanUp(this.adapter.visible.forcedFirst, this.adapter.visible.forcedLast, isGoingDown);
+    }
+    if (scrollResult !== EScrollResult.NONE && this.options.prefetchRows > 0) {
       this.triggerPrefetch(isGoingDown);
     }
   }

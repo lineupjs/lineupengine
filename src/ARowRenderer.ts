@@ -1,14 +1,46 @@
-/**
- * Created by Samuel Gratzl on 13.07.2017.
- */
-import {IExceptionContext, range} from './logic';
 import {ABORTED, IAbortAblePromise, isAbortAble} from './abortAble';
-import {EScrollResult, IMixin, IMixinAdapter, IMixinClass} from './mixin';
+import {defaultPhases, EAnimationMode, IAnimationContext, IAnimationItem, IPhase, noAnimationChange} from './animation';
 import KeyFinder from './animation/KeyFinder';
-import {defaultPhases, IAnimationContext, IAnimationItem, IPhase, EAnimationMode} from './animation';
+import {IExceptionContext, range} from './logic';
+import {EScrollResult, IMixin, IMixinAdapter, IMixinClass} from './mixin';
+import {addScroll, removeScroll, IScrollInfo, IDelayedMode, defaultMode} from './internal';
 
 export declare type IRowRenderContext = IExceptionContext;
 
+export interface IRowRendererOptions {
+  /**
+   * async update on scrolling
+   * animation -> use requestAnimationFrame
+   * immediate -> use setImmediate if available
+   * sync -> execute within scroll listener
+   * {number} -> execute within this delay using setTimeout
+   * @default is chrome ? animation else 0
+   */
+  async: IDelayedMode;
+
+  /**
+   * minimal number of pixel the scrollbars has to move
+   * @default 10
+   */
+  minScrollDelta: number;
+
+  // min number of rows that should be added or removed
+  batchSize: number;
+
+  /**
+   * class of mixins to use for optimized rendering
+   */
+  mixins: IMixinClass[];
+
+  /**
+   * add the scrolling hint class while scrolling to give a user feedback
+   */
+  scrollingHint: boolean;
+}
+
+/**
+ * base class for creating a scalable table renderer based on rows
+ */
 export abstract class ARowRenderer {
   private readonly pool: HTMLElement[] = [];
   private readonly loadingPool: HTMLElement[] = [];
@@ -16,27 +48,52 @@ export abstract class ARowRenderer {
 
   private readonly fragment: DocumentFragment;
 
+  /**
+   * currently visible slice
+   */
   protected readonly visible = {
     first: 0,
     forcedFirst: 0,
     last: -1,
     forcedLast: -1
   };
+  /**
+   * position of the first visible row in pixel
+   * @type {number}
+   */
   protected visibleFirstRowPos = 0;
 
   private readonly adapter: IMixinAdapter;
   private readonly mixins: IMixin[];
-  private scrollListener: () => void;
+  private scrollListener: ((act: IScrollInfo) => void) | null = null;
 
   private abortAnimation: () => void = () => undefined;
 
-  constructor(protected readonly body: HTMLElement, ...mixinClasses: IMixinClass[]) {
+  protected readonly options: Readonly<IRowRendererOptions> = {
+    async: defaultMode,
+    minScrollDelta: 10,
+    mixins: [],
+    scrollingHint: false,
+    batchSize: 5
+  };
+
+  constructor(protected readonly body: HTMLElement, options: Partial<IRowRendererOptions> = {}) {
     this.adapter = this.createAdapter();
-    this.mixins = mixinClasses.map((mixinClass) => new mixinClass(this.adapter));
+    this.bodyScroller.tabIndex = -1;
+    Object.assign(this.options, options);
+    this.mixins = this.options.mixins.map((mixinClass) => new mixinClass(this.adapter));
 
     this.fragment = body.ownerDocument.createDocumentFragment();
+
+    // height helper
+    this.body.innerHTML = `<footer>&nbsp;</footer>`;
   }
 
+  /**
+   * register another mixin to this renderer
+   * @param {IMixinClass} mixinClass the mixin class to instantitiate
+   * @param options optional constructor options
+   */
   protected addMixin(mixinClass: IMixinClass, options?: any) {
     this.mixins.push(new mixinClass(this.adapter, options));
   }
@@ -64,8 +121,16 @@ export abstract class ARowRenderer {
     return r;
   }
 
+  /**
+   * get the scrolling container i.e. parent of the body element
+   * @returns {HTMLElement}
+   */
   protected get bodyScroller() {
     return <HTMLElement>this.body.parentElement;
+  }
+
+  private get footer() {
+    return <HTMLElement>this.body.firstElementChild;
   }
 
   /**
@@ -97,61 +162,29 @@ export abstract class ARowRenderer {
   protected init() {
     const scroller = this.bodyScroller;
 
-    //sync scrolling of header and body
-    let oldTop = scroller.scrollTop;
-    let oldHeight = scroller.clientHeight;
-    const handler = () => {
-      const top = scroller.scrollTop;
-      const height = scroller.clientHeight;
-      if (Math.abs(oldTop - top) < 3 && Math.abs(oldHeight - height) < 3) {
+    let old = addScroll(scroller, this.options.async, this.scrollListener = (act) => {
+      if (Math.abs(old.top - act.top) < this.options.minScrollDelta && Math.abs(old.height - act.height) < this.options.minScrollDelta) {
         return;
       }
-      const isGoingDown = top > oldTop;
-      oldTop = top;
-      oldHeight = height;
-      this.onScrolledVertically(top, height, isGoingDown);
-    };
-    this.scrollListener = this.createDelayedHandler(handler);
-    scroller.addEventListener('scroll', this.scrollListener);
+      const isGoingDown = act.top > old.top;
+      old = act;
+      this.onScrolledVertically(act.top, act.height, isGoingDown);
+      if (this.options.scrollingHint) {
+        scroller.classList.remove('le-scrolling');
+      }
+    });
+    if (this.options.scrollingHint) {
+      addScroll(scroller, 'animation', () => scroller.classList.add('le-scrolling'));
+    }
     this.recreate();
   }
 
-  protected createDelayedHandler(delayedHandler: () => void) {
-    const hasImmediate = typeof (window.setImmediate) === 'function';
 
-    let delayer: (callback: () => void) => number;
-
-    const async: string | number = Boolean((<any>window).chrome) ? 'animation' : 'immediate'; // animation frame on chrome
-
-    if (async === 'immediate' && hasImmediate) {
-      delayer = setImmediate;
-    } else if (async === 'animation' || async === 'immediate') { // no Immediate available
-      delayer = requestAnimationFrame;
-    } else if (typeof async === 'number') {
-      delayer = (c) => self.setTimeout(c, async);
-    } else {
-      delayer = (c) => {
-        c();
-        return -1;
-      };
-    }
-    let timeOut = -1;
-
-    const wrapper = () => {
-      timeOut = -1;
-      delayedHandler();
-    };
-
-    return () => {
-      if (timeOut > -1) {
-        return; // already scheduled
-      }
-      timeOut = delayer(wrapper);
-    };
-  }
-
+  /**
+   * destroys this renderer and unregisters all event listeners
+   */
   destroy() {
-    this.bodyScroller.removeEventListener('scroll', this.scrollListener);
+    removeScroll(this.bodyScroller, this.scrollListener!);
     this.body.remove();
   }
 
@@ -245,18 +278,23 @@ export abstract class ARowRenderer {
   private removeAll() {
     const arr = <HTMLElement[]>Array.from(this.body.children);
     this.body.innerHTML = '';
-    arr.forEach((item) => {
+    this.body.appendChild(arr[0]);
+    arr.slice(1).forEach((item) => {
       this.recycle(item);
     });
   }
 
 
+  /**
+   * triggers and visual update of all visible rows
+   */
   protected update() {
     const first = this.visible.first;
     const fragment = this.fragment;
-    const items = Array.from(this.body.children);
+    const items = <HTMLElement[]>Array.from(this.body.children);
     this.body.innerHTML = '';
-    items.forEach((item: HTMLElement, i) => {
+    this.body.appendChild(items[0]);
+    items.slice(1).forEach((item: HTMLElement, i) => {
       if (this.loading.has(item)) {
         // still loading
         return;
@@ -268,13 +306,19 @@ export abstract class ARowRenderer {
     this.body.appendChild(fragment);
   }
 
+  /**
+   * utility to execute a function for each visible row
+   * @param {(row: HTMLElement, rowIndex: number) => void} callback callback to execute
+   * @param {boolean} inplace whether the DOM changes should be performed inplace instead of in a fragment
+   */
   protected forEachRow(callback: (row: HTMLElement, rowIndex: number) => void, inplace: boolean = false) {
-    const rows = Array.from(this.body.children);
+    const rows = <HTMLElement[]>Array.from(this.body.children);
     const fragment = this.fragment;
     if (!inplace) {
       this.body.innerHTML = '';
+      this.body.appendChild(rows[0]);
     }
-    rows.forEach((row: HTMLElement, index) => {
+    rows.slice(1).forEach((row: HTMLElement, index) => {
       if (!row.classList.contains('loading') && row.dataset.animation !== 'update_remove' && row.dataset.animation !== 'hide') {
         //skip loading ones and temporary ones
         callback(row, index + this.visible.first);
@@ -297,26 +341,38 @@ export abstract class ARowRenderer {
   }
 
   private remove(from: number, to: number, fromBeginning: boolean) {
+    if (to < from) {
+      return;
+    }
+    // console.log('remove', fromBeginning, (to - from) + 1, this.body.childElementCount - ((to - from) + 1));
     for (let i = from; i <= to; ++i) {
-      const item = <HTMLElement>(fromBeginning ? this.body.firstChild : this.body.lastChild);
+      const item = <HTMLElement>(fromBeginning ? this.body.firstChild!.nextSibling : this.body.lastChild);
       item.remove();
       this.recycle(item);
     }
   }
 
   private addAtBeginning(from: number, to: number) {
+    if (to < from) {
+      return;
+    }
+    // console.log('add', (to - from) + 1, this.body.childElementCount + ((to - from) + 1));
     if (from === to) {
-      this.body.insertBefore(this.create(from), this.body.firstChild);
+      this.body.insertBefore(this.create(from), this.body.firstChild!.nextSibling);
       return;
     }
     const fragment = this.fragment;
     for (let i = from; i <= to; ++i) {
       fragment.appendChild(this.create(i));
     }
-    this.body.insertBefore(fragment, this.body.firstChild);
+    this.body.insertBefore(fragment, this.body.firstChild!.nextSibling);
   }
 
   private addAtBottom(from: number, to: number) {
+    if (to < from) {
+      return;
+    }
+    // console.log('add_b', (to - from) + 1, this.body.childElementCount + ((to - from) + 1));
     if (from === to) {
       this.body.appendChild(this.create(from));
       return;
@@ -336,11 +392,12 @@ export abstract class ARowRenderer {
     this.body.classList.toggle('odd', this.visible.first % 2 === 1);
 
     this.body.style.transform = `translate(0, ${firstRowPos.toFixed(0)}px)`;
-    this.body.style.height = `${Math.max(1, totalHeight - firstRowPos).toFixed(0)}px`;
+    this.footer.style.transform = `translate3d(0, ${(Math.max(1, totalHeight - firstRowPos) - 1).toFixed(0)}px, 1px)`;
   }
 
   /**
    * removes all rows and recreates the table
+   * @param {IAnimationContext} ctx optional animation context to create a transition between the previous and the current tables
    * @returns {void} nothing
    */
   protected recreate(ctx?: IAnimationContext) {
@@ -388,6 +445,9 @@ export abstract class ARowRenderer {
       const old = Object.assign({}, this.visible);
       //store the current rows in a lookup and clear
 
+      this.body.innerHTML = ``;
+      this.body.appendChild(rows.splice(0, 1)[0]);
+
       prev.positions(old.first, Math.min(old.last, old.first + rows.length), this.visibleFirstRowPos, (i, key, pos) => {
         const n = rows[i];
         if (n) { // shouldn't happen that it is not there
@@ -397,7 +457,6 @@ export abstract class ARowRenderer {
         //  console.error(i, key, pos, rows);
         //}
       });
-      this.body.innerHTML = ``;
     }
 
     this.visible.first = this.visible.forcedFirst = next.first;
@@ -513,8 +572,8 @@ export abstract class ARowRenderer {
     let currentTimer: any = -1;
     let actPhase = 0;
 
-    const executePhase = (phase: IPhase) => {
-      animation.forEach((anim) => phase.apply(anim, previousFinder, currentFinder));
+    const executePhase = (phase: IPhase, items = animation) => {
+      items.forEach((anim) => phase.apply(anim, previousFinder, currentFinder));
     };
 
     const run = () => {
@@ -526,7 +585,7 @@ export abstract class ARowRenderer {
       if (actPhase < phases.length) {
         // schedule the next one
         const next = phases[actPhase]!;
-        currentTimer = setTimeout(run, next.delay);
+        currentTimer = self.setTimeout(run, next.delay);
         return;
       }
 
@@ -550,6 +609,38 @@ export abstract class ARowRenderer {
       currentTimer = -1;
     };
 
+    // execute all phases having a delay of zero
+    while (phases[actPhase].delay === 0) {
+      executePhase(phases[actPhase++]);
+    }
+    // after the initial one
+    const body = this.body;
+    this.body.appendChild(fragment);
+
+    const dummyAnimation: IAnimationItem[] = [];
+    animation = animation.filter((d) => {
+      if (noAnimationChange(d, previousFinder.context.defaultRowHeight, currentFinder.context.defaultRowHeight)) {
+        dummyAnimation.push(d);
+        return false;
+      }
+      return true;
+    });
+
+    if (dummyAnimation.length > 0) {
+      // execute all phases for them
+      phases.slice(actPhase).forEach((phase) => executePhase(phase, dummyAnimation));
+    }
+
+    if (animation.length === 0) {
+      return;
+    }
+
+    body.classList.add('le-row-animation');
+    (new Set(animation.map((d) => d.mode))).forEach((mode) => {
+      // add class but map to UPDATE only
+      body.classList.add(`le-${EAnimationMode[mode].toLowerCase().split('_')[0]}-animation`);
+    });
+
     this.abortAnimation = () => {
       if (currentTimer <= 0) {
         return;
@@ -562,28 +653,21 @@ export abstract class ARowRenderer {
       run();
     };
 
-    // execute all phases having a delay of zero
-    while (phases[actPhase].delay === 0) {
-      executePhase(phases[actPhase++]);
-    }
-    // after the initial one
-    const body = this.body;
-    this.body.appendChild(fragment);
-
-    body.classList.add('le-row-animation');
-    (new Set(animation.map((d) => d.mode))).forEach((mode) => {
-      // add class but map to UPDATE only
-      body.classList.add(`le-${EAnimationMode[mode].toLowerCase().split('_')[0]}-animation`);
-    });
     // next tick such that DOM will be updated
-    currentTimer = setTimeout(run, phases[actPhase].delay);
+    currentTimer = self.setTimeout(run, phases[actPhase].delay);
   }
 
+  /**
+   * clears the row pool used for faster creation
+   */
   protected clearPool() {
     // clear pool
     this.pool.splice(0, this.pool.length);
   }
 
+  /**
+   * triggers a revalidation of the current scrolling offest
+   */
   protected revalidate() {
     const scroller = this.bodyScroller;
     this.onScrolledVertically(scroller.scrollTop, scroller.clientHeight, true);
@@ -603,9 +687,37 @@ export abstract class ARowRenderer {
     return scrollResult;
   }
 
+  private shiftLast(current: number, currentDelta: number) {
+    const b = this.options.batchSize;
+    if (currentDelta >= b) {
+      return current;
+    }
+    const total = this.context.numberOfRows;
+    return Math.min(total - 1, current + (this.options.batchSize - currentDelta));
+  }
+
+  private shiftFirst(current: number, currentFirstRow: number, currentDelta: number) {
+    const b = this.options.batchSize;
+    if (currentDelta >= b || current <= 0) {
+      return {first: current, firstRowPos: currentFirstRow};
+    }
+    const first = Math.max(0, current - (this.options.batchSize - currentDelta));
+
+    const {exceptionsLookup, defaultRowHeight} = this.context;
+    let firstRowPos = currentFirstRow;
+    for(let i = first; i < current; ++i) {
+      if (exceptionsLookup.has(i)) {
+        firstRowPos -= exceptionsLookup.get(i)!;
+      } else {
+        firstRowPos -= defaultRowHeight;
+      }
+    }
+    return {first, firstRowPos};
+  }
+
   private onScrolledImpl(scrollTop: number, clientHeight: number): EScrollResult {
     const context = this.context;
-    const {first, last, firstRowPos} = range(scrollTop, clientHeight, context.defaultRowHeight, context.exceptions, context.numberOfRows);
+    let {first, last, firstRowPos} = range(scrollTop, clientHeight, context.defaultRowHeight, context.exceptions, context.numberOfRows);
 
     const visible = this.visible;
     visible.forcedFirst = first;
@@ -616,25 +728,46 @@ export abstract class ARowRenderer {
       return EScrollResult.NONE;
     }
 
-    let r: EScrollResult = EScrollResult.PARTIAL;
+    let r: EScrollResult = EScrollResult.SOME;
 
     if (first > visible.last || last < visible.first) {
       //no overlap, clean and draw everything
       //console.log(`ff added: ${last - first + 1} removed: ${visibleLast - visibleFirst + 1} ${first}:${last} ${offset}`);
       //removeRows(visibleFirst, visibleLast);
+
       this.removeAll();
       this.addAtBottom(first, last);
       r = EScrollResult.ALL;
     } else if (first < visible.first) {
       //some first rows missing and some last rows to much
       //console.log(`up added: ${visibleFirst - first + 1} removed: ${visibleLast - last + 1} ${first}:${last} ${offset}`);
-      this.removeFromBottom(last + 1, visible.last);
+      const toRemove = visible.last - (last + 1);
+      if (toRemove >= this.options.batchSize) {
+        this.removeFromBottom(last + 1, visible.last);
+      } else {
+        last = visible.last;
+      }
+
+      const shift = this.shiftFirst(first, firstRowPos, visible.first - 1 - first);
+      first = shift.first;
+      firstRowPos = shift.firstRowPos;
       this.addAtBeginning(first, visible.first - 1);
+      r = EScrollResult.SOME_TOP;
     } else {
       //console.log(`do added: ${last - visibleLast + 1} removed: ${first - visibleFirst + 1} ${first}:${last} ${offset}`);
       //some last rows missing and some first rows to much
-      this.removeFromBeginning(visible.first, first - 1);
+      const toRemove = first - 1 - visible.first;
+      if (toRemove >= this.options.batchSize) {
+        this.removeFromBeginning(visible.first, first - 1);
+      } else {
+        first = visible.first;
+        firstRowPos = this.visibleFirstRowPos;
+      }
+
+      last = this.shiftLast(last, last - visible.last + 1);
+
       this.addAtBottom(visible.last + 1, last);
+      r = EScrollResult.SOME_BOTTOM;
     }
 
     visible.first = first;

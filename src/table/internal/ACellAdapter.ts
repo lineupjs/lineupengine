@@ -1,19 +1,18 @@
-/**
- * Created by Samuel Gratzl on 19.07.2017.
- */
 import {IExceptionContext, range, updateFrozen} from '../../logic';
 import {EScrollResult, IMixin, IMixinAdapter, IMixinClass} from '../../mixin';
 import GridStyleManager, {setColumn} from '../../style/GridStyleManager';
-import {IColumn} from '../../style/IColumn';
+import {IColumn} from '../../style';
 
 const debug = false;
 
 export interface ICellAdapterRenderContext<T extends IColumn> extends IExceptionContext {
   readonly column: IExceptionContext;
   readonly columns: T[];
-  hasFrozenColumns?: boolean;
 }
 
+/**
+ * @internal
+ */
 export abstract class ACellAdapter<T extends IColumn> {
   /**
    * pool of cells per column
@@ -77,7 +76,7 @@ export abstract class ACellAdapter<T extends IColumn> {
 
   init() {
     const context = this.context;
-    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, context.column.defaultRowHeight - context.column.padding(-1), context.column.padding, this.tableId);
+    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, context.column.padding, this.tableId);
 
     context.columns.forEach(() => {
       //init pool
@@ -105,7 +104,7 @@ export abstract class ACellAdapter<T extends IColumn> {
 
   protected abstract updateCell(node: HTMLElement, index: number, column: T): HTMLElement | void;
 
-  protected abstract forEachRow(callback: (row: HTMLElement, rowIndex: number)=>void): void;
+  protected abstract forEachRow(callback: (row: HTMLElement, rowIndex: number) => void): void;
 
   private removeColumnFromStart(from: number, to: number, frozenShift: number = this.visibleColumns.frozen.length) {
     this.forEachRow((row: HTMLElement) => {
@@ -289,18 +288,15 @@ export abstract class ACellAdapter<T extends IColumn> {
 
   updateHeaders() {
     const {columns} = this.context;
-    Array.from(this.header.children).forEach((node: HTMLElement, i) => {
-      this.updateHeader(node, columns[i]);
+    Array.from(this.header.children).forEach((node: Element, i) => {
+      this.updateHeader(<HTMLElement>node, columns[i]);
     });
   }
 
   recreate(left: number, width: number) {
     const context = this.context;
-    if (context.hasFrozenColumns === undefined) {
-      context.hasFrozenColumns = context.columns.some((c) => c.frozen);
-    }
 
-    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, context.column.defaultRowHeight - context.column.padding(-1),context.column.padding, this.tableId);
+    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, context.column.padding, this.tableId);
 
 
     this.clearPool();
@@ -326,7 +322,7 @@ export abstract class ACellAdapter<T extends IColumn> {
 
     this.visibleColumns.first = this.visibleColumns.forcedFirst = first;
     this.visibleColumns.last = this.visibleColumns.forcedLast = last;
-    if (context.hasFrozenColumns) {
+    if (context.columns.some((c) => c.frozen)) {
       const {target} = updateFrozen([], context.columns, first);
       this.visibleColumns.frozen = target;
     } else {
@@ -419,16 +415,16 @@ export abstract class ACellAdapter<T extends IColumn> {
     };
 
     visible.frozen.forEach(updateImpl);
-    for(let i = visible.first; i <= visible.last; ++i) {
+    for (let i = visible.first; i <= visible.last; ++i) {
       updateImpl(i);
     }
   }
 
   private syncFrozen(first: number) {
-    const {columns, hasFrozenColumns} = this.context;
+    const {columns} = this.context;
     const visible = this.visibleColumns;
 
-    if (!hasFrozenColumns) {
+    if (!columns.some((d) => d.frozen)) {
       return 0;
     }
     if (first === 0) {
@@ -463,7 +459,7 @@ export abstract class ACellAdapter<T extends IColumn> {
       return EScrollResult.NONE;
     }
 
-    let r: EScrollResult = EScrollResult.PARTIAL;
+    let r: EScrollResult = EScrollResult.SOME;
 
     const frozenShift = this.syncFrozen(first);
 
@@ -479,11 +475,13 @@ export abstract class ACellAdapter<T extends IColumn> {
       //console.log(`up added: ${visibleFirst - first + 1} removed: ${visibleLast - last + 1} ${first}:${last} ${offset}`);
       this.removeColumnFromEnd(last + 1, visible.last);
       this.addColumnAtStart(first, visible.first - 1, frozenShift);
+      r = EScrollResult.SOME_TOP;
     } else {
       //console.log(`do added: ${last - visibleLast + 1} removed: ${first - visibleFirst + 1} ${first}:${last} ${offset}`);
       //some last rows missing and some first rows to much
       this.removeColumnFromStart(visible.first, first - 1, frozenShift);
       this.addColumnAtEnd(visible.last + 1, last);
+      r = EScrollResult.SOME_BOTTOM;
     }
 
     visible.first = first;

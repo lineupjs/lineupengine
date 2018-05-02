@@ -1,7 +1,11 @@
-import {GridStyleManager} from '../style/index';
 import {IExceptionContext, nonUniformContext, range, uniformContext} from '../logic';
-import {EScrollResult} from '../mixin/index';
+import {EScrollResult} from '../mixin';
+import {GridStyleManager} from '../style/index';
+import {addScroll, defaultMode} from '../internal';
 
+/**
+ * basic interface of a table section
+ */
 export interface ITableSection {
   readonly id: string;
   readonly width: number;
@@ -30,9 +34,31 @@ export interface ISeparatorFactory<T extends ITableSection> {
 }
 
 export interface IMultiTableRowRendererOptions {
+  /**
+   * column padding to use between columns
+   * @default 0
+   */
   columnPadding: number;
+  /**
+   * async update on scrolling
+   * animation -> use requestAnimationFrame
+   * immediate -> use setImmediate if available
+   * sync -> execute within scroll listener
+   * {number} -> execute within this delay using setTimeout
+   * @default is chrome ? animation else 0
+   */
+  async: number | 'animation' | 'sync' | 'immediate';
+
+  /**
+   * minimal number of pixel the scrollbars has to move
+   * @default 30
+   */
+  minScrollDelta: number;
 }
 
+/**
+ * manager of multiple columns separated by separators each an own row renderer
+ */
 export default class MultiTableRowRenderer {
 
   readonly style: GridStyleManager;
@@ -48,7 +74,9 @@ export default class MultiTableRowRenderer {
   };
 
   private readonly options: Readonly<IMultiTableRowRendererOptions> = {
-    columnPadding: 0
+    columnPadding: 0,
+    async: defaultMode,
+    minScrollDelta: 30
   };
 
   private context: IExceptionContext = uniformContext(0, 500);
@@ -60,19 +88,13 @@ export default class MultiTableRowRenderer {
 
     this.style = new GridStyleManager(this.node, htmlId);
 
-    const main = this.main;
-    let oldLeft = main.scrollLeft;
-    let oldWidth = main.clientWidth;
-    main.addEventListener('scroll', () => {
-      const left = main.scrollLeft;
-      const width = main.clientWidth;
-      if (left === oldLeft && width === oldWidth) {
+    let old = addScroll(this.main, this.options.async, (act) => {
+      if (Math.abs(old.left - act.left) < this.options.minScrollDelta && Math.abs(old.width - act.width) < this.options.minScrollDelta) {
         return;
       }
-      const isGoingRight = left > oldLeft;
-      oldLeft = left;
-      oldWidth = width;
-      this.onScrolledHorizontally(left, width, isGoingRight);
+      const isGoingRight = act.left > old.left;
+      old = act;
+      this.onScrolledHorizontally(act.left, act.width, isGoingRight);
     });
   }
 
@@ -85,7 +107,7 @@ export default class MultiTableRowRenderer {
   }
 
   private updateGrid() {
-    const content = GridStyleManager.gridColumn(this.sections, this.context.defaultRowHeight - this.context.padding(-1));
+    const content = GridStyleManager.gridColumn(this.sections);
     this.style.updateRule(`multiTableRule`, `${this.style.id} > header, ${this.style.id} > main { ${content} }`);
   }
 
@@ -108,7 +130,7 @@ export default class MultiTableRowRenderer {
 
     visible.first = first;
     visible.last = last;
-    return EScrollResult.PARTIAL;
+    return EScrollResult.SOME;
   }
 
   destroy() {
@@ -128,6 +150,12 @@ export default class MultiTableRowRenderer {
     return <HTMLElement>this.node.querySelector('main');
   }
 
+  /**
+   * push another table to this instance
+   * @param {ITableFactory<T extends ITableSection>} factory factory for the table
+   * @param extras additional arguments to provide for the factory
+   * @returns {T} the table instance
+   */
   pushTable<T extends ITableSection>(factory: ITableFactory<T>, ...extras: any[]) {
     const header = this.doc.createElement('article');
     const body = this.doc.createElement('article');
@@ -145,6 +173,12 @@ export default class MultiTableRowRenderer {
     return table;
   }
 
+  /**
+   * push another separator to the manager
+   * @param {ISeparatorFactory<T extends ITableSection>} factory the factory to create the separator
+   * @param extras optional additional arguments
+   * @returns {T} the new created separator
+   */
   pushSeparator<T extends ITableSection>(factory: ISeparatorFactory<T>, ...extras: any[]) {
     const header = this.doc.createElement('section');
     const body = this.doc.createElement('section');
@@ -158,6 +192,11 @@ export default class MultiTableRowRenderer {
     return separator;
   }
 
+  /**
+   * removes a given table section
+   * @param {ITableSection} section section to remove
+   * @returns {boolean} successful flag
+   */
   remove(section: ITableSection) {
     const index = this.sections.indexOf(section);
     if (index < 0) {
@@ -174,6 +213,9 @@ export default class MultiTableRowRenderer {
     this.update();
   }
 
+  /**
+   * triggers and update because of a change in width of one or more table sections
+   */
   widthChanged() {
     this.update();
   }

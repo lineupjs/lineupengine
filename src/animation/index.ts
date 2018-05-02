@@ -1,24 +1,45 @@
-/**
- * Created by Samuel Gratzl on 04.10.2017.
- */
 import {IExceptionContext} from '../logic';
 import KeyFinder from './KeyFinder';
 
 export {default as KeyFinder} from './KeyFinder';
 
+/**
+ * different row animation modes
+ */
 export enum EAnimationMode {
+  /**
+   * plain update existed both before and after
+   */
   UPDATE,
+  /**
+   * exists both before and after but wasn't visible yet thus waas created
+   */
   UPDATE_CREATE,
+  /**
+   * exists both before and after is visible but not needed anymore and thus removed
+   */
   UPDATE_REMOVE,
+  /**
+   * row appears
+   */
   SHOW,
+  /**
+   * row disappears
+   */
   HIDE
 }
 
+/**
+ * animated row item
+ */
 export interface IAnimationItem {
   mode: EAnimationMode;
   node: HTMLElement;
   key: string;
 
+  /**
+   * previous context information
+   */
   previous: {
     index: number | -1;
     y: number;
@@ -34,11 +55,23 @@ export interface IAnimationItem {
    */
   nodeYCurrentHeight: number;
 
+  /**
+   * current position
+   */
   current: {
     index: number | -1;
     y: number;
     height: number | null;
   };
+}
+
+const NO_CHANGE_DELTA = 1;
+
+export function noAnimationChange({previous, mode, nodeY, current}: IAnimationItem, previousHeight: number, currentHeight: number) {
+  // sounds like the same
+  const prev = previous.height == null ? previousHeight : previous.height;
+  const curr = current.height == null ? currentHeight : current.height;
+  return mode === EAnimationMode.UPDATE && (Math.abs(previous.y - nodeY) <= NO_CHANGE_DELTA) && (Math.abs(prev - curr) <= NO_CHANGE_DELTA);
 }
 
 export interface IPhase {
@@ -86,7 +119,7 @@ export const defaultPhases = [
       if (mode !== EAnimationMode.HIDE) { // keep height for removal
         node.style.height = current.height !== null ? `${current.height}px` : null;
       }
-      node.style.opacity = mode === EAnimationMode.SHOW  ? '1' : (mode === EAnimationMode.HIDE ? '0' : null);
+      node.style.opacity = mode === EAnimationMode.SHOW ? '1' : (mode === EAnimationMode.HIDE ? '0' : null);
     }
   },
   {

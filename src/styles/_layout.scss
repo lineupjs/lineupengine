@@ -1,106 +1,105 @@
-@import "./vars";
-@import "./mixins";
+@import './vars';
+@import './mixins';
+@import './import_once';
+@import './animation';
 
-#{$engine_selector} {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  align-content: stretch;
-  overflow-x: auto;
-
-  > header {
-    flex: 0 0 auto;
-    overflow-x: hidden;
-
-    @supports (-moz-appearance: meterbar) { // firefox only
-      overflow-y: hidden;
-    }
-
-    margin-bottom: 3px;
-
-    > :last-child {
-      margin-right: 5px; // scroll bar?
-    }
-  }
-
-  > main {
-    flex: 1 1 auto;
-    overflow-y: auto;
-  }
-
-  > header,
-  > main {
+@include exports('lineupengine') {
+  #{$engine_selector} {
+    position: relative;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     align-items: stretch;
-    justify-content: stretch;
+    align-content: stretch;
+    overflow-x: auto;
 
-    > * {
+    > header {
       flex: 0 0 auto;
+      overflow-x: hidden;
+      margin-bottom: 3px;
+      padding-bottom: 1px;
+      transform: translate3d(0, 0, 2px);
+
+      @supports (-moz-appearance: meterbar) {
+
+        // firefox only
+        overflow-y: hidden;
+      }
+
+      > :last-child {
+        margin-right: 5px; // scroll bar?
+      }
     }
-  }
 
-  > header > article,
-  > main > article > div {
-    display: -ms-grid;
-    display: grid;
-    grid-auto-flow: column;
-    -ms-grid-column-align: stretch;
-    -ms-grid-row-align: stretch;
-    align-items: stretch;
-    justify-items: stretch;
+    > main {
+      flex: 1 1 auto;
+      overflow-y: auto;
+    }
 
-    > * {
-      overflow: hidden;
-      text-overflow: ellipsis;
+    > header,
+    > main {
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+      justify-content: stretch;
+      scroll-behavior: auto;
 
-      &.frozen {
+      > * {
+        flex: 0 0 auto;
+      }
+    }
+
+    > header > article,
+    > main > article > div {
+      display: grid;
+      grid-auto-columns: 0;
+      grid-template-rows: auto;
+      grid-auto-flow: column;
+      align-items: stretch;
+      justify-items: stretch;
+
+      > .frozen {
+        position: sticky;
+        left: 0;
         background-color: white;
         z-index: 1;
       }
     }
-  }
 
-  > main:not(.scrolling) > article > div {
-    /* @include collapsing-row-border($engine_row_hover_width, #eee); */
-    padding-top: 2px;
-
-    &:hover {
+    > main > article > div {
       position: relative;
-      z-index: 2;
+      background: white;
+      background-clip: content-box;
+    }
 
-      @include collapsing-row-border($engine_row_outline_width, $engine_row_outline_color);
+    > main:not(.scrolling) > article > div {
+      /* @include collapsing-row-border($engine_row_hover_width, #eee); */
+
+      &:hover,
+      &.le-highlighted {
+        @include collapsing-row-border($engine_row_outline_width, $engine_row_outline_color);
+      }
+    }
+
+    > main > article > footer {
+      transition: none !important;
+      height: 1px !important;
+      visibility: hidden;
+    }
+
+    &#{$engine_selector}-striped > main > article {
+      &:not(.odd) > div:nth-child(odd),
+      &.odd > div:nth-child(even),
+      &:not(.odd) > div:nth-child(odd) > .frozen,
+      &.odd > div:nth-child(even) > .frozen {
+        background-color: $engine_even_color;
+      }
     }
   }
 
-  &:not(.ms-edge) > header > article,
-  &:not(.ms-edge) > main > article > div {
-    > .frozen {
-      position: sticky;
-      left: 0;
+  #{$engine_multi_selector} {
+    > header,
+    > main {
+      display: grid;
     }
-  }
-
-  &#{$engine_selector}-striped > main > article {
-    &:not(.odd) > div:nth-child(even),
-    &.odd > div:nth-child(odd) {
-      background-image: linear-gradient(transparent $engine_row_outline_width, $engine_even_color $engine_row_outline_width);
-      background-repeat: repeat-x;
-    }
-
-    &:not(.odd) > div:nth-child(even) > *.frozen,
-    &.odd > div:nth-child(odd) > *.frozen {
-      background-color: $engine_even_color;
-    }
-  }
-
-  @import './animation';
-}
-
-#{$engine_multi_selector} {
-  > header,
-  > main {
-    display: grid;
   }
 }
