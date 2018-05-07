@@ -60,9 +60,21 @@ export class QuadTreeLeafNode extends AQuadTreeNode {
   readonly type = 'leaf';
 }
 
+/**
+ * @internal
+ */
 export const TOP_LEFT = 0;
+/**
+ * @internal
+ */
 export const TOP_RIGHT = 1;
+/**
+ * @internal
+ */
 export const BOTTOM_LEFT = 2;
+/**
+ * @internal
+ */
 export const BOTTOM_RIGHT = 3;
 
 /** @internal */
@@ -85,4 +97,8 @@ export class QuadTreeInnerNode extends AQuadTreeNode {
 
 /** @internal */
 type QuadTreeNode = QuadTreeInnerNode | QuadTreeLeafNode;
+
+/**
+ * @internal
+ */
 export default QuadTreeNode;

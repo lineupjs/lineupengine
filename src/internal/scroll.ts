@@ -4,6 +4,9 @@ export declare type IDelayedMode = number | 'animation' | 'sync' | 'immediate';
 
 export const defaultMode: IDelayedMode = 'animation'; // Boolean((<any>window).chrome) ? 'animation' : 0, // animation frame on chrome;
 
+/**
+ * @internal
+ */
 export interface IScrollInfo {
   left: number;
   top: number;
@@ -110,6 +113,9 @@ class ScrollHandler {
   }
 }
 
+/**
+ * @internal
+ */
 export function addScroll(scroller: HTMLElement, mode: IDelayedMode, handler: (act: IScrollInfo)=>void) {
   // hide in element to have just one real listener
   if (!(<any>scroller).__le_scroller__) {
@@ -120,6 +126,9 @@ export function addScroll(scroller: HTMLElement, mode: IDelayedMode, handler: (a
   return s.asInfo();
 }
 
+/**
+ * @internal
+ */
 export function removeScroll(scroller: HTMLElement, handler: (act: IScrollInfo)=>void) {
   if ((<any>scroller).__le_scroller__) {
     (<ScrollHandler>(<any>scroller).__le_scroller__).remove(handler);

@@ -494,6 +494,9 @@ export abstract class ACellAdapter<T extends IColumn> {
 
 }
 
+/**
+ * @internal
+ */
 export default ACellAdapter;
 
 function verifyRow(row: HTMLElement, index: number, columns: IColumn[]) {
