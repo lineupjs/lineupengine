@@ -20,6 +20,8 @@ class ScrollHandler {
   private immediateTimeout = -1;
   private readonly timersWaiting = new Set<number>();
 
+  private readonly prevs = new Map<IDelayedMode, IScrollInfo>();
+
   constructor(private readonly node: HTMLElement) {
     node.addEventListener('scroll', () => {
       this.handle('sync');
@@ -41,6 +43,13 @@ class ScrollHandler {
       return;
     }
     const info = this.asInfo();
+    if (this.prevs.has(mode)) {
+      const prev = this.prevs.get(mode)!;
+      if ((Math.abs(info.left - prev.left) + Math.abs(info.top - prev.top)) < 4) {
+        return;
+      }
+    }
+    this.prevs.set(mode, info);
     for (const s of handlers) {
       s(info);
     }
@@ -52,6 +61,9 @@ class ScrollHandler {
     }
     this.animationWaiting = true;
     requestAnimationFrame(() => {
+      if (!this.animationWaiting) {
+        return;
+      }
       this.animationWaiting = false;
       this.handle('animation');
     });
@@ -62,6 +74,9 @@ class ScrollHandler {
       return;
     }
     this.immediateTimeout = self.setImmediate(() => {
+      if (this.immediateTimeout < 0) {
+        return;
+      }
       this.immediateTimeout = -1;
       this.handle('immediate');
     });
