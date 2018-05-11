@@ -23,10 +23,6 @@
         // firefox only
         overflow-y: hidden;
       }
-
-      > :last-child {
-        margin-right: 5px; // scroll bar?
-      }
     }
 
     > main {
@@ -47,14 +43,9 @@
       }
     }
 
-    > main > article {
-      display: table;
-      border-collapse: collapse;
-    }
-
     > header > article,
     > main > article > div {
-      display: table-row;
+      display: flex;
 
       > .frozen {
         position: sticky;
@@ -62,24 +53,19 @@
         background-color: white;
         z-index: 1;
       }
-
-      > * {
-        display: table-cell;
-      }
     }
 
     > main > article > div {
       position: relative;
       background: white;
+      padding-top: 2px;
       background-clip: content-box;
-      border-top: 2px solid white;
     }
 
     > main:not(.scrolling) > article > div {
-      &:hover > *,
-      &.le-highlighted > * {
-        border-top: $engine_row_outline_width solid $engine_row_outline_color;
-        border-bottom: $engine_row_outline_width solid $engine_row_outline_color;
+      &:hover,
+      &.le-highlighted {
+        @include collapsing-row-border($engine_row_outline_width, $engine_row_outline_color);
       }
     }
 

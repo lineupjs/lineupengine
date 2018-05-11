@@ -23,7 +23,7 @@ export function setTemplate(root: HTMLElement) {
  * @param {{index: number; id: string}} column the column meta data
  */
 export function setColumn(node: HTMLElement, column: {index: number, id: string}) {
-  node.style.gridColumnStart = column.id;
+  // node.style.gridColumnStart = column.id;
   node.dataset.id = column.id;
 }
 
@@ -43,8 +43,6 @@ export default class GridStyleManager extends StyleManager {
     const headerScroller = <HTMLElement>root.querySelector('header');
     const bodyScroller = <HTMLElement>root.querySelector('main');
 
-    let oldMargin = 0;
-
     // update frozen and sync header with body
     addScroll(bodyScroller, 'animation', (act) => {
       const old = headerScroller.scrollLeft;
@@ -55,16 +53,20 @@ export default class GridStyleManager extends StyleManager {
 
       // shift for different scrollbar in header and body
       const delta = act.width - headerScroller.clientWidth;
-      if (Math.abs(delta - oldMargin) < 3) {
+      if (Math.abs(delta) < 2) { // current value is good
         return;
       }
-      oldMargin = delta;
+      const deltaScroll = bodyScroller.scrollWidth - headerScroller.scrollWidth;
       self.setTimeout(() => {
         this.updateRule('__scollBarFix', `
-          ${this.id} > header > :last-child {
-            margin-right: ${delta}px;
+          ${this.id} > header {
+            margin-right: ${-delta}px;
           }
-        `);
+        `, false);
+        this.updateRule('__scollBarFix2', `
+          ${this.id} > header :last-child {
+            border-right: ${deltaScroll}px solid transparent;
+          }`);
       }, 0);
     });
   }
