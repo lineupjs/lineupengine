@@ -121,7 +121,7 @@ export default class GridStyleManager extends StyleManager {
    * @param {string} tableId optional tableId in case of multiple tables within the same engine
    * @param {string} unit
    */
-  update(defaultRowHeight: number, columns: IColumn[], padding: (index: number) => number, tableId?: string, unit: string = 'px') {
+  update(defaultRowHeight: number, columns: IColumn[], _padding: (index: number) => number, tableId?: string, unit: string = 'px') {
     const selectors = tableId !== undefined ? this.tableIds(tableId, true) : {
       header: `${this.id} > header > article`,
       body: `${this.id} > main > article`

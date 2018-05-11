@@ -28,6 +28,7 @@
     > main {
       flex: 1 1 auto;
       overflow: auto;
+      position: relative;
     }
 
     > header,
@@ -76,6 +77,10 @@
       visibility: hidden;
     }
 
+    > main > article {
+      position: absolute;
+    }
+
     &#{$engine_selector}-striped > main > article {
       &:not(.odd) > div:nth-child(even),
       &.odd > div:nth-child(odd),
@@ -83,13 +88,6 @@
       &.odd > div:nth-child(odd) > .frozen {
         background-color: $engine_even_color;
       }
-    }
-  }
-
-  #{$engine_multi_selector} {
-    > header,
-    > main {
-      display: grid;
     }
   }
 }

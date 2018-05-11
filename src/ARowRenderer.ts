@@ -446,7 +446,6 @@ export abstract class ARowRenderer {
       //store the current rows in a lookup and clear
 
       this.body.innerHTML = ``;
-      this.body.appendChild(rows.splice(0, 1)[0]);
 
       prev.positions(old.first, Math.min(old.last, old.first + rows.length), this.visibleFirstRowPos, (i, key, pos) => {
         const n = rows[i];
