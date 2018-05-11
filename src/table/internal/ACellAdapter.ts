@@ -20,14 +20,14 @@ export abstract class ACellAdapter<T extends IColumn> {
    */
   private readonly cellPool: HTMLElement[][] = [];
 
-  protected readonly visibleColumns = {
+  readonly visibleColumns = {
     frozen: <number[]>[], // column indices that are visible even tho they would be out of range
     first: 0,
     forcedFirst: 0,
     last: -1,
     forcedLast: -1
   };
-  protected visibleFirstColumnPos = 0;
+  visibleFirstColumnPos = 0;
 
   private readonly columnAdapter: IMixinAdapter;
   private readonly columnMixins: IMixin[];
@@ -335,7 +335,7 @@ export abstract class ACellAdapter<T extends IColumn> {
     this.cellPool.forEach((p) => p.splice(0, p.length));
   }
 
-  private updateColumnOffset(firstColumnPos: number) {
+  protected updateColumnOffset(firstColumnPos: number) {
     this.visibleFirstColumnPos = firstColumnPos;
     // TODO
   }

@@ -7,6 +7,7 @@ export const TEMPLATE = `
     <article></article>
   </header>
   <main>
+    <footer>&nbsp;</footer>
     <article></article>
   </main>`;
 
@@ -22,7 +23,7 @@ export function setTemplate(root: HTMLElement) {
  * @param {{index: number; id: string}} column the column meta data
  */
 export function setColumn(node: HTMLElement, column: {index: number, id: string}) {
-  (<any>node.style).gridColumnStart = column.id;
+  node.style.gridColumnStart = column.id;
   node.dataset.id = column.id;
 }
 
@@ -126,18 +127,10 @@ export default class GridStyleManager extends StyleManager {
 
     this.updateRule(`__heightsRule${selectors.body}`, `${selectors.body} > div {
       height: ${defaultRowHeight}px;
-    }`);
+    }`, false);
 
-    if (columns.length === 0) {
-      //restore dummy rule
-      this.deleteRule(`__widthRule${selectors.body}`);
-      return;
-    }
-
-    const content = GridStyleManager.gridColumn(columns, unit);
-    this.updateRule(`__widthRule${selectors.body}`, `${selectors.body} > div, ${selectors.header} { ${content} }`);
-
-    this.updateFrozen(columns, selectors, padding, unit);
+    this.updateColumns(columns, selectors, unit);
+    this.updateRules();
   }
 
   /**
@@ -146,15 +139,16 @@ export default class GridStyleManager extends StyleManager {
    */
   remove(tableId: string) {
     const selectors = this.tableIds(tableId, true);
-    this.deleteRule(`__heightsRule${selectors.body}`);
-    this.deleteRule(`__widthRule${selectors.body}`);
+    this.deleteRule(`__heightsRule${selectors.body}`, false);
+    this.deleteRule(`__widthRule${selectors.body}`, false);
 
-    const prefix = `__frozen${selectors.body}_`;
+    const prefix = `__col${selectors.body}_`;
     const rules = this.ruleNames.reduce((a, b) => a + (b.startsWith(prefix) ? 1 : 0), 0);
     // reset
     for (let i = 0; i < rules; ++i) {
-      this.deleteRule(`${prefix}${i}`);
+      this.deleteRule(`${prefix}${i}`, false);
     }
+    this.updateRules();
   }
 
   /**
@@ -171,28 +165,24 @@ export default class GridStyleManager extends StyleManager {
     };
   }
 
-  private updateFrozen(columns: IColumn[], selectors: ISelectors, _padding: (index: number) => number, unit: string) {
-    const prefix = `__frozen${selectors.body}_`;
+  private updateColumns(columns: IColumn[], selectors: ISelectors, unit: string = 'px') {
+    const prefix = `__col${selectors.body}_`;
     const rules = this.ruleNames.reduce((a, b) => a + (b.startsWith(prefix) ? 1 : 0), 0);
-    const frozen = columns.filter((c) => c.frozen);
-    if (frozen.length <= 0) {
-      // reset
-      for (let i = 0; i < rules; ++i) {
-        this.deleteRule(`${prefix}${i}`);
-      }
-      return;
-    }
-    //create the correct left offset
-    let offset = frozen[0].width;
-    frozen.slice(1).forEach((c, i) => {
-      const rule = `${selectors.body} > div > .frozen[data-id="${c.id}"], ${selectors.header} .frozen[data-id="${c.id}"] {
-        left: ${offset}${unit};
+
+
+    let frozen = 0;
+    columns.forEach((c, i) => {
+      const rule = `${selectors.body} > div > [data-id="${c.id}"], ${selectors.header} [data-id="${c.id}"] {
+        width: ${c.width}${unit};
+        ${c.frozen ? `left: ${frozen}px;`: ''}
       }`;
-      offset += c.width; // ignore padding since it causes problems regarding white background + padding(i);
-      this.updateRule(`${prefix}${i}`, rule);
+      if (c.frozen) {
+        frozen += c.width; // ignore padding since it causes problems regarding white background + padding(i);
+      }
+      this.updateRule(`${prefix}${i}`, rule, false);
     });
-    for (let i = frozen.length - 1; i < rules; ++i) {
-      this.deleteRule(`${prefix}${i}`);
+    for (let i = columns.length - 1; i < rules; ++i) {
+      this.deleteRule(`${prefix}${i}`, false);
     }
   }
 }

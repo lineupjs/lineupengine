@@ -46,6 +46,11 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
         return that.updateCell(node, index, column);
       }
 
+      protected updateColumnOffset(firstColumnPos: number) {
+        super.updateColumnOffset(firstColumnPos);
+        that.updateOffset(that.visibleFirstRowPos);
+      }
+
       protected forEachRow(callback: (row: HTMLElement, rowIndex: number) => void) {
         return that.forEachRow(callback);
       }
@@ -169,6 +174,16 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
   protected updateColumnWidths() {
     const context = this.context;
     this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, context.column.padding);
+  }
+
+  protected updateOffset(firstRowPos: number) {
+    super.updateOffset(firstRowPos);
+    const ctx = this.context;
+    const totalHeight = ctx.totalHeight;
+    const totalWidth = ctx.column.totalHeight;
+
+    this.body.style.transform = `translate(${this.cell.visibleFirstColumnPos.toFixed(0)}px, ${firstRowPos.toFixed(0)}px)`;
+    this.bodySizer.style.transform = `translate(${Math.max(0, totalWidth - 1).toFixed(0)}px, ${Math.max(0, totalHeight - 1).toFixed(0)}px)`;
   }
 
   /**

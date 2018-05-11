@@ -83,7 +83,7 @@ export default class MultiTableRowRenderer {
 
   constructor(public readonly node: HTMLElement, htmlId: string, options: Partial<IMultiTableRowRendererOptions> = {}) {
     Object.assign(this.options, options);
-    node.innerHTML = `<header></header><main></main>`;
+    node.innerHTML = `<header></header><main><footer>&nbsp;</footer></main>`;
     node.classList.add('lineup-engine', 'lineup-multi-engine');
 
     this.style = new GridStyleManager(this.node, htmlId);

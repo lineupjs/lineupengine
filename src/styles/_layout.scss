@@ -10,7 +10,6 @@
     flex-direction: column;
     align-items: stretch;
     align-content: stretch;
-    overflow-x: auto;
 
     > header {
       flex: 0 0 auto;
@@ -32,7 +31,7 @@
 
     > main {
       flex: 1 1 auto;
-      overflow-y: auto;
+      overflow: auto;
     }
 
     > header,
@@ -48,14 +47,14 @@
       }
     }
 
+    > main > article {
+      display: table;
+      border-collapse: collapse;
+    }
+
     > header > article,
     > main > article > div {
-      display: grid;
-      grid-auto-columns: 0;
-      grid-template-rows: auto;
-      grid-auto-flow: column;
-      align-items: stretch;
-      justify-items: stretch;
+      display: table-row;
 
       > .frozen {
         position: sticky;
@@ -63,34 +62,39 @@
         background-color: white;
         z-index: 1;
       }
+
+      > * {
+        display: table-cell;
+      }
     }
 
     > main > article > div {
       position: relative;
       background: white;
       background-clip: content-box;
+      border-top: 2px solid white;
     }
 
     > main:not(.scrolling) > article > div {
-      /* @include collapsing-row-border($engine_row_hover_width, #eee); */
-
-      &:hover,
-      &.le-highlighted {
-        @include collapsing-row-border($engine_row_outline_width, $engine_row_outline_color);
+      &:hover > *,
+      &.le-highlighted > * {
+        border-top: $engine_row_outline_width solid $engine_row_outline_color;
+        border-bottom: $engine_row_outline_width solid $engine_row_outline_color;
       }
     }
 
-    > main > article > footer {
+    > main > footer {
       transition: none !important;
       height: 1px !important;
+      width: 1px;
       visibility: hidden;
     }
 
     &#{$engine_selector}-striped > main > article {
-      &:not(.odd) > div:nth-child(odd),
-      &.odd > div:nth-child(even),
-      &:not(.odd) > div:nth-child(odd) > .frozen,
-      &.odd > div:nth-child(even) > .frozen {
+      &:not(.odd) > div:nth-child(even),
+      &.odd > div:nth-child(odd),
+      &:not(.odd) > div:nth-child(even) > .frozen,
+      &.odd > div:nth-child(odd) > .frozen {
         background-color: $engine_even_color;
       }
     }
