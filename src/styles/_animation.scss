@@ -38,6 +38,7 @@
       > * {
         overflow: hidden !important;
         transition: all $engine_animation_update_duration $engine_animation_ease;
+        will-change: transform, opacity, height;
 
         &[data-animation=show] {
           transition: all $engine_animation_show_duration $engine_animation_ease;
