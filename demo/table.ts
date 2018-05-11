@@ -1,16 +1,12 @@
-import {ACellRenderer, ICellRenderContext, PrefetchMixin, uniformContext} from '../src';
+import {ACellRenderer, ICellRenderContext, PrefetchMixin, uniformContext, ACellTableSection} from '../src';
 import {Column} from './column';
+import MultiTableRowRenderer from '../src/table/MultiTableRowRenderer';
 
 /** @internal */
-export default class TestRenderer extends ACellRenderer<Column<number>> {
-  protected readonly _context: ICellRenderContext<Column<number>>;
+export class TestRenderer extends ACellTableSection<Column<number>> {
+  protected _context: ICellRenderContext<Column<number>>;
 
-  constructor(root: HTMLElement, id: string, numberOfRows = 1000, numberOfColumns = 20) {
-    super(root, `#${id}`, {mixins: [PrefetchMixin]});
-    root.id = id;
-
-    const defaultRowHeight = 20;
-
+  build(numberOfColumns = 10, numberOfRows = 1000, defaultRowHeight = 20) {
     const columns: Column<number>[] = [];
     for (let i = 0; i < numberOfColumns; ++i) {
       columns.push(new Column(i, i.toString(36), false));
@@ -19,7 +15,11 @@ export default class TestRenderer extends ACellRenderer<Column<number>> {
       columns,
       column: uniformContext(columns.length, 100),
     }, uniformContext(numberOfRows, defaultRowHeight));
+    return this;
+  }
 
+  get id() {
+    return 'test';
   }
 
   protected createHeader(document: Document, column: Column<number>) {
@@ -38,11 +38,6 @@ export default class TestRenderer extends ACellRenderer<Column<number>> {
     return column.update(node, index);
   }
 
-  run() {
-    //wait till layouted
-    self.setTimeout(super.init.bind(this), 100);
-  }
-
   protected get context() {
     return this._context;
   }
@@ -52,4 +47,13 @@ export default class TestRenderer extends ACellRenderer<Column<number>> {
     super.updateRow(node, index);
     //});
   }
+}
+
+
+export default function run(node: HTMLElement, id: string) {
+  const table = new MultiTableRowRenderer(node, id);
+
+
+  table.pushTable((header, body, id, style) => new TestRenderer(header, body, id, style).build());
+  table.pushTable((header, body, id, style) => new TestRenderer(header, body, id, style).build());
 }

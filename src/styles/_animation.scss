@@ -3,12 +3,6 @@
 
 @include exports('lineupengine/animation') {
   #{$engine_selector} {
-    *,
-    *::before,
-    *::after {
-      box-sizing: border-box;
-    }
-
     .loading {
       background: $engine_loading_static_image center contain repeat no-repeat;
       background-blend-mode: overlay;

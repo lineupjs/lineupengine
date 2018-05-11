@@ -27,6 +27,7 @@ module.exports = (env, options) => {
     } : {
       lineupengine: './src/index.ts',
       demo: './demo/index.ts',
+      table: './demo/table.ts',
       cell: './demo/cell.ts'
     },
     output: {
