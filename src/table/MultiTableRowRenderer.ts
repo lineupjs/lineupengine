@@ -8,19 +8,20 @@ export interface ITableSection {
   readonly id: string;
   readonly width: number;
   readonly height: number;
+  readonly header: HTMLElement;
+  readonly body: HTMLElement;
 
   init(): void;
 
   /**
    * show the section
-   * @param {number} offsetLeft section start
    * @param {number} left visible left margin
    * @param {number} width visible width
    * @param {boolean} isGoingRight whether it was a shift to the right
    */
-  show(offsetLeft: number, left: number, width: number, isGoingRight: boolean): void;
+  show(left: number, width: number, isGoingRight: boolean): void;
 
-  hide(offsetLeft: number): void;
+  hide(): void;
 
   destroy(): void;
 }
@@ -92,6 +93,12 @@ export default class MultiTableRowRenderer {
 
   private update() {
     this.onScrolledHorizontally(this.main.scrollLeft, this.main.clientWidth, false);
+
+    let offset = 0;
+    this.sections.forEach((s) => {
+      s.body.style.left = s.header.style.left = `${offset}px`;
+      offset += s.width + this.options.columnPadding;
+    });
   }
 
   private onScrolledHorizontally(scrollLeft: number, clientWidth: number, isGoingRight: boolean) {
@@ -100,10 +107,11 @@ export default class MultiTableRowRenderer {
     this.sections.forEach((s) => {
       const end = offset + s.width;
       if (end < scrollLeft || offset > scrollEnd) {
-        s.hide(offset);
+        s.hide();
       } else {
-        s.show(offset, Math.max(0, scrollLeft - offset), Math.min(scrollEnd - offset, s.width), isGoingRight);
+        s.show(Math.max(0, scrollLeft - offset), Math.min(scrollEnd - offset, s.width), isGoingRight);
       }
+
       offset = end + this.options.columnPadding;
     });
 

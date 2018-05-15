@@ -14,7 +14,7 @@ export declare type ICellRenderContext<T extends IColumn> = ICellAdapterRenderCo
 export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer implements ITableSection {
   private readonly cell: ACellAdapter<T>;
 
-  constructor(protected readonly header: HTMLElement, body: HTMLElement, protected readonly tableId: string, protected readonly style: GridStyleManager, options: Partial<IRowRendererOptions> = {}) {
+  constructor(public readonly header: HTMLElement, public readonly body: HTMLElement, protected readonly tableId: string, protected readonly style: GridStyleManager, options: Partial<IRowRendererOptions> = {}) {
     super(body, options);
 
     const that = this;
@@ -94,15 +94,13 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
     // hook
   }
 
-  hide(offsetLeft: number) {
-    this.body.style.left = this.header.style.left = `${offsetLeft}px`;
+  hide() {
     this.hidden = true;
   }
 
-  show(offsetLeft: number, scrollLeft: number, clientWidth: number, isGoingRight: boolean) {
+  show(scrollLeft: number, clientWidth: number, isGoingRight: boolean) {
     const wasHidden = this.hidden;
     this.hidden = false;
-    this.body.style.left = this.header.style.left = `${offsetLeft}px`;
     if (wasHidden) { // full update
       this.revalidate();
     } else {
@@ -111,7 +109,7 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
   }
 
   init() {
-    this.hide(0); // hide by default
+    this.hide(); // hide by default
     this.cell.init();
     super.init();
   }
