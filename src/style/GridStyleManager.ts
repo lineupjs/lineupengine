@@ -23,7 +23,6 @@ export function setTemplate(root: HTMLElement) {
  * @param {{index: number; id: string}} column the column meta data
  */
 export function setColumn(node: HTMLElement, column: {index: number, id: string}) {
-  // node.style.gridColumnStart = column.id;
   node.dataset.id = column.id;
 }
 
@@ -85,48 +84,6 @@ export default class GridStyleManager extends StyleManager {
 
   get hashedId() {
     return this.id.startsWith('#') ? this.id : `#${this.id}`;
-  }
-
-  /**
-   * computes a compatible grid layout pattern based on the given columns
-   * @param {{width: number}[]} columns
-   * @param {string} unit
-   * @return {string}
-   */
-  static columnWidths(columns: {width: number}[], unit: string = 'px') {
-    function repeatStandard(count: number, width: string) {
-      return `repeat(${count}, ${width})`;
-    }
-
-    const repeat = repeatStandard;
-
-    let lastWidth = 0;
-    let count = 0;
-
-    let r = '';
-    columns.forEach(({width}) => {
-      if (lastWidth === width) {
-        count++;
-        return;
-      }
-      if (count > 0) {
-        r += count === 1 ? `${lastWidth}${unit} ` : `${repeat(count, `${lastWidth}${unit}`)} `;
-      }
-      count = 1;
-      lastWidth = width;
-    });
-
-    if (count > 0) {
-      r += count === 1 ? `${lastWidth}${unit}` : `${repeat(count, `${lastWidth}${unit}`)}`;
-    }
-    return r;
-  }
-
-  static gridColumn(columns: {id: string, width: number}[], unit: string = 'px') {
-    const widths = GridStyleManager.columnWidths(columns, unit);
-
-    return `grid-template-columns: ${widths};
-      grid-template-areas: "${columns.map((c) => c.id).join(' ')}";`;
   }
 
   /**
