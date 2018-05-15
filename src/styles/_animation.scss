@@ -3,12 +3,6 @@
 
 @include exports('lineupengine/animation') {
   #{$engine_selector} {
-    *,
-    *::before,
-    *::after {
-      box-sizing: border-box;
-    }
-
     .loading {
       background: $engine_loading_static_image center contain repeat no-repeat;
       background-blend-mode: overlay;
@@ -44,6 +38,7 @@
       > * {
         overflow: hidden !important;
         transition: all $engine_animation_update_duration $engine_animation_ease;
+        will-change: transform, opacity, height;
 
         &[data-animation=show] {
           transition: all $engine_animation_show_duration $engine_animation_ease;

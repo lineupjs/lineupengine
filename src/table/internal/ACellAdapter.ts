@@ -20,14 +20,14 @@ export abstract class ACellAdapter<T extends IColumn> {
    */
   private readonly cellPool: HTMLElement[][] = [];
 
-  protected readonly visibleColumns = {
+  readonly visibleColumns = {
     frozen: <number[]>[], // column indices that are visible even tho they would be out of range
     first: 0,
     forcedFirst: 0,
     last: -1,
     forcedLast: -1
   };
-  protected visibleFirstColumnPos = 0;
+  visibleFirstColumnPos = 0;
 
   private readonly columnAdapter: IMixinAdapter;
   private readonly columnMixins: IMixin[];
@@ -40,6 +40,12 @@ export abstract class ACellAdapter<T extends IColumn> {
     this.columnMixins = mixinClasses.map((mixinClass) => new mixinClass(this.columnAdapter));
 
     this.columnFragment = header.ownerDocument.createDocumentFragment();
+  }
+
+  leftShift() {
+    const ctx = this.context;
+    const frozen = this.visibleColumns.frozen.reduce((a, d) => a + ctx.columns[d].width + ctx.column.padding(d), 0);
+    return this.visibleFirstColumnPos - frozen;
   }
 
   protected get headerScroller() {
@@ -76,7 +82,7 @@ export abstract class ACellAdapter<T extends IColumn> {
 
   init() {
     const context = this.context;
-    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, context.column.padding, this.tableId);
+    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, 0, this.tableId);
 
     context.columns.forEach(() => {
       //init pool
@@ -296,7 +302,7 @@ export abstract class ACellAdapter<T extends IColumn> {
   recreate(left: number, width: number) {
     const context = this.context;
 
-    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, context.column.padding, this.tableId);
+    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, -this.leftShift(), this.tableId);
 
 
     this.clearPool();
@@ -335,9 +341,13 @@ export abstract class ACellAdapter<T extends IColumn> {
     this.cellPool.forEach((p) => p.splice(0, p.length));
   }
 
-  private updateColumnOffset(firstColumnPos: number) {
+  protected updateColumnOffset(firstColumnPos: number) {
+    const changed = firstColumnPos !== this.visibleFirstColumnPos;
     this.visibleFirstColumnPos = firstColumnPos;
-    // TODO
+    if (changed) {
+      const context = this.context;
+      this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, -this.leftShift(), this.tableId);
+    }
   }
 
   createRow(node: HTMLElement, rowIndex: number): void {

@@ -7,6 +7,7 @@ export const TEMPLATE = `
     <article></article>
   </header>
   <main>
+    <footer>&nbsp;</footer>
     <article></article>
   </main>`;
 
@@ -22,7 +23,6 @@ export function setTemplate(root: HTMLElement) {
  * @param {{index: number; id: string}} column the column meta data
  */
 export function setColumn(node: HTMLElement, column: {index: number, id: string}) {
-  (<any>node.style).gridColumnStart = column.id;
   node.dataset.id = column.id;
 }
 
@@ -42,7 +42,8 @@ export default class GridStyleManager extends StyleManager {
     const headerScroller = <HTMLElement>root.querySelector('header');
     const bodyScroller = <HTMLElement>root.querySelector('main');
 
-    let oldMargin = 0;
+    let oldDelta = 0;
+    let oldDeltaScroll = 0;
 
     // update frozen and sync header with body
     addScroll(bodyScroller, 'animation', (act) => {
@@ -52,73 +53,48 @@ export default class GridStyleManager extends StyleManager {
         headerScroller.scrollLeft = newValue;
       }
 
+      root.classList.toggle('le-shifted', act.left > 0);
+
       // shift for different scrollbar in header and body
       const delta = act.width - headerScroller.clientWidth;
-      if (Math.abs(delta - oldMargin) < 3) {
+      if (Math.abs(delta) < 2) { // current value is good
         return;
       }
-      oldMargin = delta;
+      const deltaScroll = bodyScroller.scrollWidth - headerScroller.scrollWidth;
+
+      if (oldDelta === delta && oldDeltaScroll === deltaScroll) {
+        return;
+      }
+      oldDelta = delta;
+      oldDeltaScroll = deltaScroll;
+
       self.setTimeout(() => {
         this.updateRule('__scollBarFix', `
-          ${this.id} > header > :last-child {
-            margin-right: ${delta}px;
+          ${this.hashedId} > header {
+            margin-right: ${-delta}px;
           }
-        `);
+        `, false);
+        this.updateRule('__scollBarFix2', `
+          ${this.hashedId} > header > :last-child {
+            border-right: ${deltaScroll}px solid transparent;
+          }`);
       }, 0);
     });
   }
 
-  /**
-   * computes a compatible grid layout pattern based on the given columns
-   * @param {{width: number}[]} columns
-   * @param {string} unit
-   * @return {string}
-   */
-  static columnWidths(columns: {width: number}[], unit: string = 'px') {
-    function repeatStandard(count: number, width: string) {
-      return `repeat(${count}, ${width})`;
-    }
-
-    const repeat = repeatStandard;
-
-    let lastWidth = 0;
-    let count = 0;
-
-    let r = '';
-    columns.forEach(({width}) => {
-      if (lastWidth === width) {
-        count++;
-        return;
-      }
-      if (count > 0) {
-        r += count === 1 ? `${lastWidth}${unit} ` : `${repeat(count, `${lastWidth}${unit}`)} `;
-      }
-      count = 1;
-      lastWidth = width;
-    });
-
-    if (count > 0) {
-      r += count === 1 ? `${lastWidth}${unit}` : `${repeat(count, `${lastWidth}${unit}`)}`;
-    }
-    return r;
-  }
-
-  static gridColumn(columns: {id: string, width: number}[], unit: string = 'px') {
-    const widths = GridStyleManager.columnWidths(columns, unit);
-
-    return `grid-template-columns: ${widths};
-      grid-template-areas: "${columns.map((c) => c.id).join(' ')}";`;
+  get hashedId() {
+    return this.id.startsWith('#') ? this.id : `#${this.id}`;
   }
 
   /**
    * updates the column widths and default row height for a table
    * @param {number} defaultRowHeight
    * @param {IColumn[]} columns
-   * @param {(index: number) => number} padding padding between columns
+   * @param {number} frozenShift shift frozen colums
    * @param {string} tableId optional tableId in case of multiple tables within the same engine
    * @param {string} unit
    */
-  update(defaultRowHeight: number, columns: IColumn[], padding: (index: number) => number, tableId?: string, unit: string = 'px') {
+  update(defaultRowHeight: number, columns: IColumn[], frozenShift: number, tableId?: string, unit: string = 'px') {
     const selectors = tableId !== undefined ? this.tableIds(tableId, true) : {
       header: `${this.id} > header > article`,
       body: `${this.id} > main > article`
@@ -126,18 +102,10 @@ export default class GridStyleManager extends StyleManager {
 
     this.updateRule(`__heightsRule${selectors.body}`, `${selectors.body} > div {
       height: ${defaultRowHeight}px;
-    }`);
+    }`, false);
 
-    if (columns.length === 0) {
-      //restore dummy rule
-      this.deleteRule(`__widthRule${selectors.body}`);
-      return;
-    }
-
-    const content = GridStyleManager.gridColumn(columns, unit);
-    this.updateRule(`__widthRule${selectors.body}`, `${selectors.body} > div, ${selectors.header} { ${content} }`);
-
-    this.updateFrozen(columns, selectors, padding, unit);
+    this.updateColumns(columns, selectors, frozenShift, unit);
+    this.updateRules();
   }
 
   /**
@@ -146,15 +114,16 @@ export default class GridStyleManager extends StyleManager {
    */
   remove(tableId: string) {
     const selectors = this.tableIds(tableId, true);
-    this.deleteRule(`__heightsRule${selectors.body}`);
-    this.deleteRule(`__widthRule${selectors.body}`);
+    this.deleteRule(`__heightsRule${selectors.body}`, false);
+    this.deleteRule(`__widthRule${selectors.body}`, false);
 
-    const prefix = `__frozen${selectors.body}_`;
+    const prefix = `__col${selectors.body}_`;
     const rules = this.ruleNames.reduce((a, b) => a + (b.startsWith(prefix) ? 1 : 0), 0);
     // reset
     for (let i = 0; i < rules; ++i) {
-      this.deleteRule(`${prefix}${i}`);
+      this.deleteRule(`${prefix}${i}`, false);
     }
+    this.updateRules();
   }
 
   /**
@@ -171,28 +140,37 @@ export default class GridStyleManager extends StyleManager {
     };
   }
 
-  private updateFrozen(columns: IColumn[], selectors: ISelectors, _padding: (index: number) => number, unit: string) {
-    const prefix = `__frozen${selectors.body}_`;
+  private updateColumns(columns: IColumn[], selectors: ISelectors, frozenShift: number, unit: string = 'px') {
+    const prefix = `__col${selectors.body}_`;
     const rules = this.ruleNames.reduce((a, b) => a + (b.startsWith(prefix) ? 1 : 0), 0);
-    const frozen = columns.filter((c) => c.frozen);
-    if (frozen.length <= 0) {
-      // reset
-      for (let i = 0; i < rules; ++i) {
-        this.deleteRule(`${prefix}${i}`);
-      }
-      return;
-    }
-    //create the correct left offset
-    let offset = frozen[0].width;
-    frozen.slice(1).forEach((c, i) => {
-      const rule = `${selectors.body} > div > .frozen[data-id="${c.id}"], ${selectors.header} .frozen[data-id="${c.id}"] {
-        left: ${offset}${unit};
+
+
+    let frozen = 0;
+    let ruleCounter = 0;
+    columns.forEach((c) => {
+      let rule = `${selectors.body} > div > [data-id="${c.id}"], ${selectors.header} [data-id="${c.id}"] {
+        width: ${c.width}${unit};
+        ${c.frozen ? `left: ${frozen}px;`: ''}
       }`;
-      offset += c.width; // ignore padding since it causes problems regarding white background + padding(i);
-      this.updateRule(`${prefix}${i}`, rule);
+      if (frozenShift !== 0 && c.frozen) {
+        // shift just for the body
+        const shiftRule = `${selectors.body} > div > [data-id="${c.id}"] {
+          width: ${c.width}${unit};
+          left: ${frozen + frozenShift}px;
+        }`;
+        rule = `${selectors.header} [data-id="${c.id}"] {
+          width: ${c.width}${unit};
+          left: ${frozen}px;
+        }`;
+        this.updateRule(`${prefix}${ruleCounter++}`, shiftRule, false);
+      }
+      if (c.frozen) {
+        frozen += c.width; // ignore padding since it causes problems regarding white background + padding(i);
+      }
+      this.updateRule(`${prefix}${ruleCounter++}`, rule, false);
     });
-    for (let i = frozen.length - 1; i < rules; ++i) {
-      this.deleteRule(`${prefix}${i}`);
+    for (let i = ruleCounter - 1; i < rules; ++i) {
+      this.deleteRule(`${prefix}${i}`, false);
     }
   }
 }

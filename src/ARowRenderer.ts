@@ -79,14 +79,10 @@ export abstract class ARowRenderer {
 
   constructor(protected readonly body: HTMLElement, options: Partial<IRowRendererOptions> = {}) {
     this.adapter = this.createAdapter();
-    this.bodyScroller.tabIndex = -1;
     Object.assign(this.options, options);
     this.mixins = this.options.mixins.map((mixinClass) => new mixinClass(this.adapter));
 
     this.fragment = body.ownerDocument.createDocumentFragment();
-
-    // height helper
-    this.body.innerHTML = `<footer>&nbsp;</footer>`;
   }
 
   /**
@@ -129,8 +125,15 @@ export abstract class ARowRenderer {
     return <HTMLElement>this.body.parentElement;
   }
 
-  private get footer() {
-    return <HTMLElement>this.body.firstElementChild;
+  protected get bodySizer(): HTMLElement {
+    const parent = this.bodyScroller;
+    const sizer = (<HTMLElement[]>Array.from(parent.children)).find((d) => d.tagName.toLowerCase() === 'footer');
+    if (sizer) {
+      return sizer;
+    }
+    const s = parent.ownerDocument.createElement('footer');
+    parent.insertBefore(s, parent.firstChild);
+    return s;
   }
 
   /**
@@ -278,8 +281,7 @@ export abstract class ARowRenderer {
   private removeAll() {
     const arr = <HTMLElement[]>Array.from(this.body.children);
     this.body.innerHTML = '';
-    this.body.appendChild(arr[0]);
-    arr.slice(1).forEach((item) => {
+    arr.forEach((item) => {
       this.recycle(item);
     });
   }
@@ -293,8 +295,7 @@ export abstract class ARowRenderer {
     const fragment = this.fragment;
     const items = <HTMLElement[]>Array.from(this.body.children);
     this.body.innerHTML = '';
-    this.body.appendChild(items[0]);
-    items.slice(1).forEach((item: HTMLElement, i) => {
+    items.forEach((item: HTMLElement, i) => {
       if (this.loading.has(item)) {
         // still loading
         return;
@@ -316,9 +317,8 @@ export abstract class ARowRenderer {
     const fragment = this.fragment;
     if (!inplace) {
       this.body.innerHTML = '';
-      this.body.appendChild(rows[0]);
     }
-    rows.slice(1).forEach((row: HTMLElement, index) => {
+    rows.forEach((row: HTMLElement, index) => {
       if (!row.classList.contains('loading') && row.dataset.animation !== 'update_remove' && row.dataset.animation !== 'hide') {
         //skip loading ones and temporary ones
         callback(row, index + this.visible.first);
@@ -346,7 +346,7 @@ export abstract class ARowRenderer {
     }
     // console.log('remove', fromBeginning, (to - from) + 1, this.body.childElementCount - ((to - from) + 1));
     for (let i = from; i <= to; ++i) {
-      const item = <HTMLElement>(fromBeginning ? this.body.firstChild!.nextSibling : this.body.lastChild);
+      const item = <HTMLElement>(fromBeginning ? this.body.firstChild : this.body.lastChild);
       item.remove();
       this.recycle(item);
     }
@@ -358,14 +358,14 @@ export abstract class ARowRenderer {
     }
     // console.log('add', (to - from) + 1, this.body.childElementCount + ((to - from) + 1));
     if (from === to) {
-      this.body.insertBefore(this.create(from), this.body.firstChild!.nextSibling);
+      this.body.insertBefore(this.create(from), this.body.firstChild);
       return;
     }
     const fragment = this.fragment;
     for (let i = from; i <= to; ++i) {
       fragment.appendChild(this.create(i));
     }
-    this.body.insertBefore(fragment, this.body.firstChild!.nextSibling);
+    this.body.insertBefore(fragment, this.body.firstChild);
   }
 
   private addAtBottom(from: number, to: number) {
@@ -384,15 +384,18 @@ export abstract class ARowRenderer {
     this.body.appendChild(fragment);
   }
 
-  private updateOffset(firstRowPos: number) {
-    const {totalHeight} = this.context;
+  protected updateOffset(firstRowPos: number) {
     this.visibleFirstRowPos = firstRowPos;
 
     //odd start patch for correct background
     this.body.classList.toggle('odd', this.visible.first % 2 === 1);
+    this.updateSizer(firstRowPos);
+  }
 
+  protected updateSizer(firstRowPos: number) {
+    const {totalHeight} = this.context;
     this.body.style.transform = `translate(0, ${firstRowPos.toFixed(0)}px)`;
-    this.footer.style.transform = `translate3d(0, ${(Math.max(1, totalHeight - firstRowPos) - 1).toFixed(0)}px, 1px)`;
+    this.bodySizer.style.transform = `translate(0, ${Math.max(0, totalHeight - 1).toFixed(0)}px)`;
   }
 
   /**
@@ -446,7 +449,6 @@ export abstract class ARowRenderer {
       //store the current rows in a lookup and clear
 
       this.body.innerHTML = ``;
-      this.body.appendChild(rows.splice(0, 1)[0]);
 
       prev.positions(old.first, Math.min(old.last, old.first + rows.length), this.visibleFirstRowPos, (i, key, pos) => {
         const n = rows[i];

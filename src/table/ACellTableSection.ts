@@ -14,7 +14,7 @@ export declare type ICellRenderContext<T extends IColumn> = ICellAdapterRenderCo
 export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer implements ITableSection {
   private readonly cell: ACellAdapter<T>;
 
-  constructor(protected readonly header: HTMLElement, body: HTMLElement, protected readonly tableId: string, protected readonly style: GridStyleManager, options: Partial<IRowRendererOptions> = {}) {
+  constructor(public readonly header: HTMLElement, public readonly body: HTMLElement, protected readonly tableId: string, protected readonly style: GridStyleManager, options: Partial<IRowRendererOptions> = {}) {
     super(body, options);
 
     const that = this;
@@ -34,6 +34,11 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
 
       protected createCell(document: Document, index: number, column: T) {
         return that.createCell(document, index, column);
+      }
+
+      protected updateColumnOffset(firstColumnPos: number) {
+        super.updateColumnOffset(firstColumnPos);
+        that.updateOffset(that.visibleFirstRowPos);
       }
 
       protected updateCell(node: HTMLElement, index: number, column: T) {
@@ -58,8 +63,17 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
     return this.context.column.totalHeight;
   }
 
+  get height() {
+    return this.context.totalHeight;
+  }
+
   get hidden() {
     return this.header.classList.contains('loading');
+  }
+
+  protected updateSizer(firstRowPos: number) {
+    this.body.style.transform = `translate(${this.cell.leftShift().toFixed(0)}px, ${firstRowPos.toFixed(0)}px)`;
+    // no sizer update since centrally managed
   }
 
   set hidden(value: boolean) {
@@ -85,8 +99,13 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
   }
 
   show(scrollLeft: number, clientWidth: number, isGoingRight: boolean) {
+    const wasHidden = this.hidden;
     this.hidden = false;
-    this.cell.onScrolledHorizontally(scrollLeft, clientWidth, isGoingRight);
+    if (wasHidden) { // full update
+      this.revalidate();
+    } else {
+      this.onScrolledHorizontally(scrollLeft, clientWidth, isGoingRight);
+    }
   }
 
   init() {
@@ -165,7 +184,7 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
    */
   protected updateColumnWidths() {
     const context = this.context;
-    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, context.column.padding, this.tableId);
+    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, - this.cell.leftShift(), this.tableId);
   }
 
   protected recreate(ctx?: IAnimationContext) {

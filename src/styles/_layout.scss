@@ -10,7 +10,12 @@
     flex-direction: column;
     align-items: stretch;
     align-content: stretch;
-    overflow-x: auto;
+    box-sizing: border-box;
+
+    *::before,
+    *::after {
+      box-sizing: inherit;
+    }
 
     > header {
       flex: 0 0 auto;
@@ -24,15 +29,12 @@
         // firefox only
         overflow-y: hidden;
       }
-
-      > :last-child {
-        margin-right: 5px; // scroll bar?
-      }
     }
 
     > main {
       flex: 1 1 auto;
-      overflow-y: auto;
+      overflow: auto;
+      position: relative;
     }
 
     > header,
@@ -50,56 +52,51 @@
 
     > header > article,
     > main > article > div {
-      display: grid;
-      grid-auto-columns: 0;
-      grid-template-rows: auto;
-      grid-auto-flow: column;
-      align-items: stretch;
-      justify-items: stretch;
+      display: flex;
+    }
 
-      > .frozen {
-        position: sticky;
-        left: 0;
-        background-color: white;
-        z-index: 1;
-      }
+    &.le-shifted > header > article > .frozen,
+    &.le-shifted > main > article > div > .frozen {
+      position: sticky;
+      left: 0;
+      background-color: white;
+      z-index: 1;
     }
 
     > main > article > div {
       position: relative;
       background: white;
       background-clip: content-box;
+      box-sizing: content-box;
     }
 
     > main:not(.scrolling) > article > div {
-      /* @include collapsing-row-border($engine_row_hover_width, #eee); */
-
       &:hover,
       &.le-highlighted {
         @include collapsing-row-border($engine_row_outline_width, $engine_row_outline_color);
       }
     }
 
-    > main > article > footer {
+    > header > footer,
+    > main > footer {
       transition: none !important;
       height: 1px !important;
+      width: 1px;
+      left: -1px;
       visibility: hidden;
     }
 
+    > main > article {
+      position: absolute;
+    }
+
     &#{$engine_selector}-striped > main > article {
-      &:not(.odd) > div:nth-child(odd),
-      &.odd > div:nth-child(even),
-      &:not(.odd) > div:nth-child(odd) > .frozen,
-      &.odd > div:nth-child(even) > .frozen {
+      &:not(.odd) > div:nth-child(even),
+      &.odd > div:nth-child(odd),
+      &:not(.odd) > div:nth-child(even) > .frozen,
+      &.odd > div:nth-child(odd) > .frozen {
         background-color: $engine_even_color;
       }
-    }
-  }
-
-  #{$engine_multi_selector} {
-    > header,
-    > main {
-      display: grid;
     }
   }
 }

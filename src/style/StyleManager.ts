@@ -20,7 +20,7 @@ export default class StyleManager {
     this.node.remove();
   }
 
-  private recreate() {
+  protected updateRules() {
     this.node.innerHTML = Array.from(this.rules.values()).join('\n');
   }
 
@@ -28,12 +28,15 @@ export default class StyleManager {
    * add a custom css rule
    * @param {string} id unique id of the rule for later identification
    * @param {string} rule the css rule itself
+   * @param {boolean} update trigger style update
    * @returns {string} the id again
    */
-  addRule(id: string, rule: string) {
+  addRule(id: string, rule: string, update = true) {
     // append
     this.rules.set(id, rule);
-    this.recreate();
+    if (update) {
+      this.updateRules();
+    }
     return id;
   }
 
@@ -41,25 +44,30 @@ export default class StyleManager {
    * updates or add a rule, see @addRule
    * @param {string} id unique id of the rule for later identification
    * @param {string} rule the css rule itself
+   * @param {boolean} update trigger style update
    * @returns {string} the id again
    */
-  updateRule(id: string, rule: string) {
+  updateRule(id: string, rule: string, update = true) {
     this.rules.set(id, rule);
-    this.recreate();
+    if (update) {
+      this.updateRules();
+    }
     return id;
   }
 
   /**
    * deletes the given rule by id
    * @param {string} id the rule to delete
+   * @param {boolean} update trigger style update
    */
-  deleteRule(id: string) {
+  deleteRule(id: string, update = true) {
     const r = this.rules.get(id);
     if (!r) {
       return;
     }
-    this.rules.delete(id);
-    this.recreate();
+    if (update) {
+      this.updateRules();
+    }
   }
 
   /**
