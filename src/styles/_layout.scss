@@ -66,8 +66,8 @@
     > main > article > div {
       position: relative;
       background: white;
-      padding-top: 2px;
       background-clip: content-box;
+      box-sizing: content-box;
     }
 
     > main:not(.scrolling) > article > div {
