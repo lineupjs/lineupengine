@@ -385,12 +385,15 @@ export abstract class ARowRenderer {
   }
 
   protected updateOffset(firstRowPos: number) {
-    const {totalHeight} = this.context;
     this.visibleFirstRowPos = firstRowPos;
 
     //odd start patch for correct background
     this.body.classList.toggle('odd', this.visible.first % 2 === 1);
+    this.updateSizer(firstRowPos);
+  }
 
+  protected updateSizer(firstRowPos: number) {
+    const {totalHeight} = this.context;
     this.body.style.transform = `translate(0, ${firstRowPos.toFixed(0)}px)`;
     this.bodySizer.style.transform = `translate(0, ${Math.max(0, totalHeight - 1).toFixed(0)}px)`;
   }

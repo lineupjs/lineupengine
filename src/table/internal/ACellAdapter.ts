@@ -42,7 +42,7 @@ export abstract class ACellAdapter<T extends IColumn> {
     this.columnFragment = header.ownerDocument.createDocumentFragment();
   }
 
-  get leftShift() {
+  leftShift() {
     const ctx = this.context;
     const frozen = this.visibleColumns.frozen.reduce((a, d) => a + ctx.columns[d].width + ctx.column.padding(d), 0);
     return this.visibleFirstColumnPos - frozen;
@@ -302,7 +302,7 @@ export abstract class ACellAdapter<T extends IColumn> {
   recreate(left: number, width: number) {
     const context = this.context;
 
-    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, -this.leftShift, this.tableId);
+    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, -this.leftShift(), this.tableId);
 
 
     this.clearPool();
@@ -346,7 +346,7 @@ export abstract class ACellAdapter<T extends IColumn> {
     this.visibleFirstColumnPos = firstColumnPos;
     if (changed) {
       const context = this.context;
-      this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, -this.leftShift, this.tableId);
+      this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, -this.leftShift(), this.tableId);
     }
   }
 

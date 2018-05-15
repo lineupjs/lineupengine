@@ -176,7 +176,7 @@ export default class GridStyleManager extends StyleManager {
 
     let frozen = 0;
     let ruleCounter = 0;
-    columns.forEach((c, i) => {
+    columns.forEach((c) => {
       let rule = `${selectors.body} > div > [data-id="${c.id}"], ${selectors.header} [data-id="${c.id}"] {
         width: ${c.width}${unit};
         ${c.frozen ? `left: ${frozen}px;`: ''}

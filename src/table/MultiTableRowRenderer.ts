@@ -1,5 +1,3 @@
-import {IExceptionContext, nonUniformContext, range, uniformContext} from '../logic';
-import {EScrollResult} from '../mixin';
 import {GridStyleManager} from '../style/index';
 import {addScroll, defaultMode} from '../internal';
 
@@ -9,18 +7,20 @@ import {addScroll, defaultMode} from '../internal';
 export interface ITableSection {
   readonly id: string;
   readonly width: number;
+  readonly height: number;
 
   init(): void;
 
   /**
    * show the section
-   * @param {number} left left margin
+   * @param {number} offsetLeft section start
+   * @param {number} left visible left margin
    * @param {number} width visible width
    * @param {boolean} isGoingRight whether it was a shift to the right
    */
-  show(left: number, width: number, isGoingRight: boolean): void;
+  show(offsetLeft: number, left: number, width: number, isGoingRight: boolean): void;
 
-  hide(): void;
+  hide(offsetLeft: number): void;
 
   destroy(): void;
 }
@@ -66,20 +66,11 @@ export default class MultiTableRowRenderer {
 
   private readonly sections: ITableSection[] = [];
 
-  private readonly visible = {
-    first: 0,
-    forcedFirst: 0,
-    last: 0,
-    forcedLast: 0
-  };
-
   private readonly options: Readonly<IMultiTableRowRendererOptions> = {
     columnPadding: 0,
     async: defaultMode,
     minScrollDelta: 30
   };
-
-  private context: IExceptionContext = uniformContext(0, 500);
 
   constructor(public readonly node: HTMLElement, htmlId: string, options: Partial<IMultiTableRowRendererOptions> = {}) {
     Object.assign(this.options, options);
@@ -99,39 +90,33 @@ export default class MultiTableRowRenderer {
   }
 
   private update() {
-    this.context = nonUniformContext(this.sections.map((d) => d.width), NaN, this.options.columnPadding);
-
-    this.updateGrid();
-
     this.onScrolledHorizontally(this.main.scrollLeft, this.main.clientWidth, false);
   }
 
-  private updateGrid() {
-    // TODO update sizer in header and body
-    const content = GridStyleManager.gridColumn(this.sections);
-    this.style.updateRule(`multiTableRule`, `${this.style.id} > header, ${this.style.id} > main { ${content} }`);
-  }
-
   private onScrolledHorizontally(scrollLeft: number, clientWidth: number, isGoingRight: boolean) {
-    const {first, last} = range(scrollLeft, clientWidth, this.context.defaultRowHeight, this.context.exceptions, this.context.numberOfRows);
-
-    const visible = this.visible;
-    visible.forcedFirst = first;
-    visible.forcedLast = last;
-
     let offset = 0;
-    this.sections.forEach((s, i) => {
-      if (i >= first && i <= last) {
-        s.show(Math.max(0, scrollLeft - offset), Math.min(scrollLeft + clientWidth - offset, s.width), isGoingRight);
+    const scrollEnd = scrollLeft + clientWidth;
+    this.sections.forEach((s) => {
+      const end = offset + s.width;
+      if (end < scrollLeft || offset > scrollEnd) {
+        s.hide(offset);
       } else {
-        s.hide();
+        s.show(offset, Math.max(0, scrollLeft - offset), Math.min(scrollEnd - offset, s.width), isGoingRight);
       }
-      offset += s.width;
+      offset = end + this.options.columnPadding;
     });
 
-    visible.first = first;
-    visible.last = last;
-    return EScrollResult.SOME;
+    this.updateOffset();
+  }
+
+  private updateOffset() {
+    const headerFooter = this.header.querySelector('footer')!;
+    const bodyFooter = this.main.querySelector('footer')!;
+
+    const maxHeight = Math.max(0, ...this.sections.map((d) => d.height));
+    const total = this.sections.reduce((a, c) => a + c.width + this.options.columnPadding, 0);
+    headerFooter.style.transform = `translate(${total}px,0)`;
+    bodyFooter.style.transform = `translate(${total}px, ${maxHeight}px)`;
   }
 
   destroy() {

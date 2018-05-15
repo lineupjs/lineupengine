@@ -77,10 +77,12 @@
       }
     }
 
+    > header > footer,
     > main > footer {
       transition: none !important;
       height: 1px !important;
       width: 1px;
+      left: -1px;
       visibility: hidden;
     }
 
