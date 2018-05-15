@@ -43,6 +43,9 @@ export default class GridStyleManager extends StyleManager {
     const headerScroller = <HTMLElement>root.querySelector('header');
     const bodyScroller = <HTMLElement>root.querySelector('main');
 
+    let oldDelta = 0;
+    let oldDeltaScroll = 0;
+
     // update frozen and sync header with body
     addScroll(bodyScroller, 'animation', (act) => {
       const old = headerScroller.scrollLeft;
@@ -59,18 +62,29 @@ export default class GridStyleManager extends StyleManager {
         return;
       }
       const deltaScroll = bodyScroller.scrollWidth - headerScroller.scrollWidth;
+
+      if (oldDelta === delta && oldDeltaScroll === deltaScroll) {
+        return;
+      }
+      oldDelta = delta;
+      oldDeltaScroll = deltaScroll;
+
       self.setTimeout(() => {
         this.updateRule('__scollBarFix', `
-          ${this.id} > header {
+          ${this.hashedId} > header {
             margin-right: ${-delta}px;
           }
         `, false);
         this.updateRule('__scollBarFix2', `
-          ${this.id} > header :last-child {
+          ${this.hashedId} > header > :last-child {
             border-right: ${deltaScroll}px solid transparent;
           }`);
       }, 0);
     });
+  }
+
+  get hashedId() {
+    return this.id.startsWith('#') ? this.id : `#${this.id}`;
   }
 
   /**

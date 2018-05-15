@@ -74,6 +74,7 @@ export default class MultiTableRowRenderer {
 
   constructor(public readonly node: HTMLElement, htmlId: string, options: Partial<IMultiTableRowRendererOptions> = {}) {
     Object.assign(this.options, options);
+    node.id = htmlId;
     node.innerHTML = `<header><footer>&nbsp;</footer></header><main><footer>&nbsp;</footer></main>`;
     node.classList.add('lineup-engine', 'lineup-multi-engine');
 
@@ -149,7 +150,7 @@ export default class MultiTableRowRenderer {
     const ids = this.style.tableIds(tableId);
     header.id = ids.header;
     body.id = ids.body;
-    this.header.appendChild(header);
+    this.header.insertBefore(header, this.header.lastElementChild); //before the footer
     this.main.appendChild(body);
 
     const table = factory(header, body, tableId, this.style, ...extras);
@@ -168,7 +169,7 @@ export default class MultiTableRowRenderer {
   pushSeparator<T extends ITableSection>(factory: ISeparatorFactory<T>, ...extras: any[]) {
     const header = this.doc.createElement('section');
     const body = this.doc.createElement('section');
-    this.header.appendChild(header);
+    this.header.insertBefore(header, this.header.lastElementChild); //before the footer
     this.main.appendChild(body);
 
     const separator = factory(header, body, this.style, ...extras);
