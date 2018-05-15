@@ -75,7 +75,7 @@ export default class MultiTableRowRenderer {
 
   constructor(public readonly node: HTMLElement, htmlId: string, options: Partial<IMultiTableRowRendererOptions> = {}) {
     Object.assign(this.options, options);
-    node.id = htmlId;
+    node.id = htmlId.startsWith('#') ? htmlId.slice(1) : htmlId;
     node.innerHTML = `<header><footer>&nbsp;</footer></header><main><footer>&nbsp;</footer></main>`;
     node.classList.add('lineup-engine', 'lineup-multi-engine');
 
