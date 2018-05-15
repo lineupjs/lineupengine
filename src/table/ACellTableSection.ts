@@ -13,7 +13,6 @@ export declare type ICellRenderContext<T extends IColumn> = ICellAdapterRenderCo
  */
 export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer implements ITableSection {
   private readonly cell: ACellAdapter<T>;
-  private offsetLeft: number = 0;
 
   constructor(protected readonly header: HTMLElement, body: HTMLElement, protected readonly tableId: string, protected readonly style: GridStyleManager, options: Partial<IRowRendererOptions> = {}) {
     super(body, options);
@@ -23,10 +22,6 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
     class LocalCell extends ACellAdapter<T> {
       protected get context(): ICellAdapterRenderContext<T> {
         return that.context;
-      }
-
-      leftShift() {
-        return super.leftShift() + that.offsetLeft;
       }
 
       protected createHeader(document: Document, column: T) {
@@ -100,18 +95,14 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
   }
 
   hide(offsetLeft: number) {
-    this.offsetLeft = offsetLeft;
+    this.body.style.left = this.header.style.left = `${offsetLeft}px`;
     this.hidden = true;
   }
 
   show(offsetLeft: number, scrollLeft: number, clientWidth: number, isGoingRight: boolean) {
     const wasHidden = this.hidden;
     this.hidden = false;
-    const hasChanged = this.offsetLeft !== offsetLeft;
-    this.offsetLeft = offsetLeft;
-    if (hasChanged) {
-      this.updateColumnWidths();
-    }
+    this.body.style.left = this.header.style.left = `${offsetLeft}px`;
     if (wasHidden) { // full update
       this.revalidate();
     } else {
