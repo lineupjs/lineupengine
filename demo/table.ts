@@ -5,21 +5,19 @@ import MultiTableRowRenderer from '../src/table/MultiTableRowRenderer';
 /** @internal */
 export class TestRenderer extends ACellTableSection<Column<number>> {
   protected _context: ICellRenderContext<Column<number>>;
+  id: string;
 
-  build(numberOfColumns = 10, numberOfRows = 1000, defaultRowHeight = 20) {
+  build(id: string, numberOfColumns = 10, numberOfRows = 1000, defaultRowHeight = 20) {
+    this.id = id;
     const columns: Column<number>[] = [];
     for (let i = 0; i < numberOfColumns; ++i) {
-      columns.push(new Column(i, i.toString(36), false));
+      columns.push(new Column(i, i.toString(36), i === 0));
     }
     this._context = Object.assign({
       columns,
       column: uniformContext(columns.length, 100),
     }, uniformContext(numberOfRows, defaultRowHeight));
     return this;
-  }
-
-  get id() {
-    return 'test';
   }
 
   protected createHeader(document: Document, column: Column<number>) {
@@ -54,6 +52,6 @@ export default function run(node: HTMLElement, id: string) {
   const table = new MultiTableRowRenderer(node, id);
 
 
-  table.pushTable((header, body, id, style) => new TestRenderer(header, body, id, style).build());
-  table.pushTable((header, body, id, style) => new TestRenderer(header, body, id, style).build());
+  table.pushTable((header, body, id, style) => new TestRenderer(header, body, id, style).build('a'));
+  table.pushTable((header, body, id, style) => new TestRenderer(header, body, id, style).build('b'));
 }

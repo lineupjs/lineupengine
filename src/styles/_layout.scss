@@ -53,13 +53,14 @@
     > header > article,
     > main > article > div {
       display: flex;
+    }
 
-      > .frozen {
-        position: sticky;
-        left: 0;
-        background-color: white;
-        z-index: 1;
-      }
+    &.le-shifted > header > article > .frozen,
+    &.le-shifted > main > article > div > .frozen {
+      position: sticky;
+      left: 0;
+      background-color: white;
+      z-index: 1;
     }
 
     > main > article > div {

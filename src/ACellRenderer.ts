@@ -173,7 +173,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
    */
   protected updateColumnWidths() {
     const context = this.context;
-    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, context.column.padding);
+    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, -this.cell.leftShift);
   }
 
   protected updateOffset(firstRowPos: number) {
@@ -182,7 +182,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
     const totalHeight = ctx.totalHeight;
     const totalWidth = ctx.column.totalHeight;
 
-    this.body.style.transform = `translate(${this.cell.visibleFirstColumnPos.toFixed(0)}px, ${firstRowPos.toFixed(0)}px)`;
+    this.body.style.transform = `translate(${this.cell.leftShift.toFixed(0)}px, ${firstRowPos.toFixed(0)}px)`;
     this.bodySizer.style.transform = `translate(${Math.max(0, totalWidth - 1).toFixed(0)}px, ${Math.max(0, totalHeight - 1).toFixed(0)}px)`;
   }
 

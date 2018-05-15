@@ -51,6 +51,8 @@ export default class GridStyleManager extends StyleManager {
         headerScroller.scrollLeft = newValue;
       }
 
+      root.classList.toggle('le-shifted', act.left > 0);
+
       // shift for different scrollbar in header and body
       const delta = act.width - headerScroller.clientWidth;
       if (Math.abs(delta) < 2) { // current value is good
@@ -117,11 +119,11 @@ export default class GridStyleManager extends StyleManager {
    * updates the column widths and default row height for a table
    * @param {number} defaultRowHeight
    * @param {IColumn[]} columns
-   * @param {(index: number) => number} padding padding between columns
+   * @param {number} frozenShift shift frozen colums
    * @param {string} tableId optional tableId in case of multiple tables within the same engine
    * @param {string} unit
    */
-  update(defaultRowHeight: number, columns: IColumn[], _padding: (index: number) => number, tableId?: string, unit: string = 'px') {
+  update(defaultRowHeight: number, columns: IColumn[], frozenShift: number, tableId?: string, unit: string = 'px') {
     const selectors = tableId !== undefined ? this.tableIds(tableId, true) : {
       header: `${this.id} > header > article`,
       body: `${this.id} > main > article`
@@ -131,7 +133,7 @@ export default class GridStyleManager extends StyleManager {
       height: ${defaultRowHeight}px;
     }`, false);
 
-    this.updateColumns(columns, selectors, unit);
+    this.updateColumns(columns, selectors, frozenShift, unit);
     this.updateRules();
   }
 
@@ -167,23 +169,36 @@ export default class GridStyleManager extends StyleManager {
     };
   }
 
-  private updateColumns(columns: IColumn[], selectors: ISelectors, unit: string = 'px') {
+  private updateColumns(columns: IColumn[], selectors: ISelectors, frozenShift: number, unit: string = 'px') {
     const prefix = `__col${selectors.body}_`;
     const rules = this.ruleNames.reduce((a, b) => a + (b.startsWith(prefix) ? 1 : 0), 0);
 
 
     let frozen = 0;
+    let ruleCounter = 0;
     columns.forEach((c, i) => {
-      const rule = `${selectors.body} > div > [data-id="${c.id}"], ${selectors.header} [data-id="${c.id}"] {
+      let rule = `${selectors.body} > div > [data-id="${c.id}"], ${selectors.header} [data-id="${c.id}"] {
         width: ${c.width}${unit};
         ${c.frozen ? `left: ${frozen}px;`: ''}
       }`;
+      if (frozenShift !== 0 && c.frozen) {
+        // shift just for the body
+        const shiftRule = `${selectors.body} > div > [data-id="${c.id}"] {
+          width: ${c.width}${unit};
+          left: ${frozen + frozenShift}px;
+        }`;
+        rule = `${selectors.header} [data-id="${c.id}"] {
+          width: ${c.width}${unit};
+          left: ${frozen}px;
+        }`;
+        this.updateRule(`${prefix}${ruleCounter++}`, shiftRule, false);
+      }
       if (c.frozen) {
         frozen += c.width; // ignore padding since it causes problems regarding white background + padding(i);
       }
-      this.updateRule(`${prefix}${i}`, rule, false);
+      this.updateRule(`${prefix}${ruleCounter++}`, rule, false);
     });
-    for (let i = columns.length - 1; i < rules; ++i) {
+    for (let i = ruleCounter - 1; i < rules; ++i) {
       this.deleteRule(`${prefix}${i}`, false);
     }
   }

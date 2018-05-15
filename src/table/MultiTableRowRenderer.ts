@@ -83,7 +83,7 @@ export default class MultiTableRowRenderer {
 
   constructor(public readonly node: HTMLElement, htmlId: string, options: Partial<IMultiTableRowRendererOptions> = {}) {
     Object.assign(this.options, options);
-    node.innerHTML = `<header></header><main><footer>&nbsp;</footer></main>`;
+    node.innerHTML = `<header><footer>&nbsp;</footer></header><main><footer>&nbsp;</footer></main>`;
     node.classList.add('lineup-engine', 'lineup-multi-engine');
 
     this.style = new GridStyleManager(this.node, htmlId);
@@ -107,6 +107,7 @@ export default class MultiTableRowRenderer {
   }
 
   private updateGrid() {
+    // TODO update sizer in header and body
     const content = GridStyleManager.gridColumn(this.sections);
     this.style.updateRule(`multiTableRule`, `${this.style.id} > header, ${this.style.id} > main { ${content} }`);
   }

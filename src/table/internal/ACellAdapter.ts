@@ -42,6 +42,12 @@ export abstract class ACellAdapter<T extends IColumn> {
     this.columnFragment = header.ownerDocument.createDocumentFragment();
   }
 
+  get leftShift() {
+    const ctx = this.context;
+    const frozen = this.visibleColumns.frozen.reduce((a, d) => a + ctx.columns[d].width + ctx.column.padding(d), 0);
+    return this.visibleFirstColumnPos - frozen;
+  }
+
   protected get headerScroller() {
     return <HTMLElement>this.header.parentElement!;
   }
@@ -76,7 +82,7 @@ export abstract class ACellAdapter<T extends IColumn> {
 
   init() {
     const context = this.context;
-    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, context.column.padding, this.tableId);
+    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, 0, this.tableId);
 
     context.columns.forEach(() => {
       //init pool
@@ -296,7 +302,7 @@ export abstract class ACellAdapter<T extends IColumn> {
   recreate(left: number, width: number) {
     const context = this.context;
 
-    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, context.column.padding, this.tableId);
+    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, -this.leftShift, this.tableId);
 
 
     this.clearPool();
@@ -336,8 +342,12 @@ export abstract class ACellAdapter<T extends IColumn> {
   }
 
   protected updateColumnOffset(firstColumnPos: number) {
+    const changed = firstColumnPos !== this.visibleFirstColumnPos;
     this.visibleFirstColumnPos = firstColumnPos;
-    // TODO
+    if (changed) {
+      const context = this.context;
+      this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, -this.leftShift, this.tableId);
+    }
   }
 
   createRow(node: HTMLElement, rowIndex: number): void {
