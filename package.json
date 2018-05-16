@@ -17,12 +17,15 @@
   },
   "main": "build/lineupengine.js",
   "jsnext:main": "build/lineupengine.js",
-  "module": "src/index.js",
+  "module": "build/src/index.js",
   "unpkg": "build/lineupengine.js",
-  "types": "src/index.d.ts",
+  "types": "build/src/index.d.ts",
+  "sideEffects": [
+    "*.scss",
+    "*.css"
+  ],
   "files": [
-    "src/**/*.js",
-    "src/**/*.d.ts",
+    "build/src",
     "build/lineupengine.js"
   ],
   "scripts": {
