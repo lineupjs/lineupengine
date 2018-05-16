@@ -5,8 +5,7 @@
   "version": "1.1.0-alpha.2",
   "author": {
     "name": "Samuel Gratzl",
-    "email": "samuel_gratzl@gmx.at",
-    "url": ""
+    "email": "samuel_gratzl@gmx.at"
   },
   "license": "MIT",
   "bugs": {
@@ -17,11 +16,14 @@
     "url": "https://github.com/sgratzl/lineupengine.git"
   },
   "main": "build/lineupengine.js",
-  "types": "build/typings/index.d.ts",
+  "jsnext:main": "build/lineupengine.js",
+  "module": "src/index.js",
+  "unpkg": "build/lineupengine.js",
+  "types": "src/index.d.ts",
   "files": [
-    "src",
-    "build/lineupengine.js",
-    "build/typings"
+    "src/**/*.js",
+    "src/**/*.d.ts",
+    "build/lineupengine.js"
   ],
   "scripts": {
     "clean": "rimraf build dist src/**/*.map src/**/*.js tests/**/*.js tests/**/*.map",
