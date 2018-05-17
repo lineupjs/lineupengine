@@ -13,7 +13,6 @@
       "es2016.array.include",
       "es2017.object"
     ],
-    "outDir": "build/src",
     "declaration": true,
     "removeComments": true,
     "noImplicitAny": true,
