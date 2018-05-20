@@ -20,6 +20,7 @@ const banner = '/*! ' + (pkg.title || pkg.name) + ' - v' + pkg.version + ' - ' +
  */
 module.exports = (env, options) => {
   const dev = options.mode.startsWith('d');
+  console.log(dev);
   return {
     node: false, // no polyfills
     entry: !dev ? {
@@ -86,11 +87,11 @@ module.exports = (env, options) => {
             {
               loader: 'ts-loader',
               options: {
-                configFile: dev ? 'tsconfig_dev.json' : 'tsconfig.json',
+                //configFile: dev ? 'tsconfig_dev.json' : 'tsconfig.json',
                 happyPackMode: true // IMPORTANT! use happyPackMode mode to speed-up  compilation and reduce errors reported to webpack
               }
             }
-          ].slice(process.env.CI ? 2 : 0) // no optimizations for CIs
+          ].slice(process.env.CI || !dev ? 2 : 0) // no optimizations for CIs and in production mode
         },
         {
           test: /\.(png|jpg)$/,
