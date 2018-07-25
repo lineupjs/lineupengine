@@ -207,6 +207,7 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
 
   protected createRow(node: HTMLElement, rowIndex: number): void {
     this.cell.createRow(node, rowIndex);
+    node.classList.add(this.style.cssClasses.tr);
   }
 
   protected updateRow(node: HTMLElement, rowIndex: number): void {

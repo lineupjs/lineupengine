@@ -218,7 +218,7 @@ export abstract class ACellAdapter<T extends IColumn> {
       return r ? r : item;
     }
     const r = this.createCell(this.header.ownerDocument, row, columnObj);
-    r.classList.add(cssClass('td'), cssClass(`td-${this.tableId}`));
+    r.classList.add(cssClass('td'), this.style.cssClasses.td, cssClass(`td-${this.tableId}`));
     setColumn(r, columnObj);
     return r;
   }
@@ -321,7 +321,7 @@ export abstract class ACellAdapter<T extends IColumn> {
       context.columns.forEach((col) => {
         const n = this.createHeader(document, col);
         setColumn(n, col);
-        n.classList.add(cssClass('th'), cssClass(`th-${this.tableId}`));
+        n.classList.add(cssClass('th'), this.style.cssClasses.th, cssClass(`th-${this.tableId}`));
         fragment.appendChild(n);
       });
       this.header.appendChild(fragment);
