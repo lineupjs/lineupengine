@@ -2,7 +2,7 @@
 @import './import_once';
 
 @include exports('lineupengine/animation') {
-  #{$engine_selector}loading {
+  .#{$engine_css_prefix}loading {
     background: $engine_loading_static_image center contain repeat no-repeat;
     background-blend-mode: overlay;
 
@@ -11,20 +11,20 @@
     }
   }
 
-  #{$engine_selector} {
-    &#{$engine_selector}-animated {
-      #{$engine_selector}-th,
-      #{$engine_selector}-tr {
+  .#{$engine_css_prefix} {
+    &.#{$engine_css_prefix}-animated {
+      .#{$engine_css_prefix}-th,
+      .#{$engine_css_prefix}-tr {
         transition: opacity 0.5s;
         opacity: 1;
       }
 
-      #{$engine_selector}loading {
+      .#{$engine_css_prefix}loading {
         background-image: $engine_loading_image;
       }
     }
 
-    > main#{$engine_selector}-scrolling {
+    > main.#{$engine_css_prefix}-scrolling {
       background-image: $engine_loading_static_image, $engine_loading_static_image;
       background-repeat: repeat-x;
       background-position: top 10px left, bottom 30px left;
@@ -32,11 +32,11 @@
     }
   }
 
-  article#{$engine_selector}-row-animation {
+  article.#{$engine_css_prefix}-row-animation {
     /**
     defaults
      */
-    > #{$engine_selector}-tr {
+    > .#{$engine_css_prefix}-tr {
       overflow: hidden !important;
       transition: all $engine_animation_update_duration $engine_animation_ease;
       will-change: transform, opacity, height;
@@ -57,7 +57,7 @@
     /**
     in case of hiding shift update and show
      */
-    &#{$engine_selector}-hide-animation > #{$engine_selector}-tr {
+    &.#{$engine_css_prefix}-hide-animation > .#{$engine_css_prefix}-tr {
       transition: all $engine_animation_update_duration $engine_animation_ease $engine_animation_hide_duration + $engine_animation_pause;
 
       &[data-animation=hide] { // since order
@@ -72,7 +72,7 @@
     /**
     in case of update shift show
      */
-    &#{$engine_selector}-update-animation > #{$engine_selector}-tr {
+    &.#{$engine_css_prefix}-update-animation > .#{$engine_css_prefix}-tr {
       &[data-animation=show] {
         transition: all $engine_animation_show_duration $engine_animation_ease $engine_animation_update_duration + $engine_animation_pause;
       }
@@ -81,7 +81,7 @@
     /**
     in case of both update and hide shift show twice
      */
-    &#{$engine_selector}-update-animation#{$engine_selector}-hide-animation > #{$engine_selector}-tr {
+    &.#{$engine_css_prefix}-update-animation.#{$engine_css_prefix}-hide-animation > .#{$engine_css_prefix}-tr {
       &[data-animation=show] {
         transition: all $engine_animation_show_duration $engine_animation_ease $engine_animation_hide_duration + $engine_animation_pause + $engine_animation_update_duration + $engine_animation_pause;
       }

@@ -1,5 +1,4 @@
-$engine_selector: '.le' !default;
-$engine_multi_selector: '.le' !default;
+$engine_css_prefix: 'le' !default;
 $engine_even_color: #f7f7f7 !default;
 $engine_assets: './assets' !default;
 $engine_loading_image: url('#{$engine_assets}/loading.svg') !default;
