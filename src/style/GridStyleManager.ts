@@ -41,7 +41,7 @@ interface ISelectors {
  */
 export function tableIds(tableId: string) {
  return {
-   thead: `thead-$${tableId}`,
+   thead: `thead-${tableId}`,
    tbody: `tbody-${tableId}`,
    tr: `tr-${tableId}`,
    th: `th-${tableId}`,

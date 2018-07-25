@@ -15,10 +15,10 @@ function assignStyles(target: any, source: any) {
     const v = <string>source[key];
 
     if (!v.endsWith(' !important')) {
-      if (target[key] === v) {
-        continue;
+      if (target[key] !== v) {
+        target[key] = v;
       }
-      target[key] = v;
+      continue;
     }
 
     // handle special important case
