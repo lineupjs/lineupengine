@@ -14,10 +14,22 @@ function assignStyles(target: any, source: any) {
   for (const key of Object.keys(source)) {
     const v = <string>source[key];
 
-    if (target[key] === v) {
+    if (!v.endsWith(' !important')) {
+      if (target[key] === v) {
+        continue;
+      }
+      target[key] = v;
+    }
+
+    // handle special important case
+    const plain = v.slice(0, -' !important'.length);
+    if (target[key] === plain) {
       continue;
     }
-    target[key] = v;
+    target[key] = plain;
+    // see https://gist.github.com/youssman/745578062609e8acac9f
+    const hyphen = key.replace(/([a-zA-Z])(?=[A-Z])/g, '$1-').toLowerCase();
+    target.setProperty(hyphen, plain, 'important');
   }
 }
 
