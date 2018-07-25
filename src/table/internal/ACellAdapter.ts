@@ -2,6 +2,7 @@ import {IExceptionContext, range, updateFrozen} from '../../logic';
 import {EScrollResult, IMixin, IMixinAdapter, IMixinClass} from '../../mixin';
 import GridStyleManager, {setColumn} from '../../style/GridStyleManager';
 import {IColumn} from '../../style';
+import {cssClass} from '../../styles';
 
 const debug = false;
 
@@ -217,6 +218,7 @@ export abstract class ACellAdapter<T extends IColumn> {
       return r ? r : item;
     }
     const r = this.createCell(this.header.ownerDocument, row, columnObj);
+    r.classList.add(cssClass('td'));
     setColumn(r, columnObj);
     return r;
   }
@@ -319,6 +321,7 @@ export abstract class ACellAdapter<T extends IColumn> {
       context.columns.forEach((col) => {
         const n = this.createHeader(document, col);
         setColumn(n, col);
+        n.classList.add(cssClass('th'));
         fragment.appendChild(n);
       });
       this.header.appendChild(fragment);

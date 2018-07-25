@@ -77,7 +77,12 @@ export default class MultiTableRowRenderer {
   constructor(public readonly node: HTMLElement, htmlId: string, options: Partial<IMultiTableRowRendererOptions> = {}) {
     Object.assign(this.options, options);
     node.id = htmlId.startsWith('#') ? htmlId.slice(1) : htmlId;
-    node.innerHTML = `<header><footer class="${cssClass('footer')}">&nbsp;</footer></header><main><footer class="${cssClass('footer')}">&nbsp;</footer></main>`;
+    node.innerHTML = `<header class="${cssClass('header')}">
+      <footer class="${cssClass('footer')}">&nbsp;</footer>
+    </header>
+    <main class="${cssClass('body')}">
+      <footer class="${cssClass('footer')}">&nbsp;</footer>
+    </main>`;
     node.classList.add(cssClass(), cssClass('engine'));
 
     this.style = new GridStyleManager(this.node, htmlId);
@@ -159,6 +164,8 @@ export default class MultiTableRowRenderer {
     const ids = this.style.tableIds(tableId);
     header.id = ids.header;
     body.id = ids.body;
+    header.classList.add(cssClass('header-table'));
+    body.classList.add(cssClass('body-table'));
     this.header.insertBefore(header, this.header.lastElementChild); //before the footer
     this.main.appendChild(body);
 
@@ -178,6 +185,8 @@ export default class MultiTableRowRenderer {
   pushSeparator<T extends ITableSection>(factory: ISeparatorFactory<T>, ...extras: any[]) {
     const header = this.doc.createElement('section');
     const body = this.doc.createElement('section');
+    header.classList.add(cssClass('header-separator'));
+    body.classList.add(cssClass('body-separator'));
     this.header.insertBefore(header, this.header.lastElementChild); //before the footer
     this.main.appendChild(body);
 

@@ -207,13 +207,14 @@ export abstract class ARowRenderer {
       result = this.updateRow(item, index);
     } else if (this.loadingPool.length > 0) {
       item = this.loadingPool.pop()!;
-      item.classList.remove('loading');
+      item.classList.remove(cssClass('loading'));
       result = this.createRow(item, index);
     } else {
       item = this.body.ownerDocument.createElement('div');
       result = this.createRow(item, index);
     }
     item.dataset.index = String(index);
+    item.classList.add(cssClass('tr'));
     return {item, result};
   }
 
@@ -223,7 +224,7 @@ export abstract class ARowRenderer {
       proxy = this.loadingPool.pop()!;
     } else {
       proxy = this.body.ownerDocument.createElement('div');
-      proxy.classList.add('loading');
+      proxy.classList.add(cssClass('loading'), cssClass('tr'));
     }
     return proxy;
   }
@@ -321,7 +322,7 @@ export abstract class ARowRenderer {
       this.body.innerHTML = '';
     }
     rows.forEach((row: HTMLElement, index) => {
-      if (!row.classList.contains('loading') && row.dataset.animation !== 'update_remove' && row.dataset.animation !== 'hide') {
+      if (!row.classList.contains(cssClass('loading')) && row.dataset.animation !== 'update_remove' && row.dataset.animation !== 'hide') {
         //skip loading ones and temporary ones
         callback(row, index + this.visible.first);
       }
@@ -390,7 +391,7 @@ export abstract class ARowRenderer {
     this.visibleFirstRowPos = firstRowPos;
 
     //odd start patch for correct background
-    this.body.classList.toggle('odd', this.visible.first % 2 === 1);
+    this.body.classList.toggle(cssClass('odd'), this.visible.first % 2 === 1);
     this.updateSizer(firstRowPos);
   }
 

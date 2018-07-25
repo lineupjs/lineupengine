@@ -4,12 +4,12 @@ import {addScroll} from '../internal';
 import {cssClass} from '../styles';
 
 export const TEMPLATE = `
-  <header>
-    <article></article>
+  <header class="${cssClass('header')}">
+    <article class="${cssClass('header-table')}"></article>
   </header>
-  <main>
+  <main class="${cssClass('body')}">
     <footer class="${cssClass('footer')}">&nbsp;</footer>
-    <article></article>
+    <article class="${cssClass('body-table')}"></article>
   </main>`;
 
 

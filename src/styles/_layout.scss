@@ -77,9 +77,9 @@
     }
 
     &#{$engine_selector}-striped > main > article {
-      &:not(.odd) > div:nth-child(even),
+      &:not(#{$engine_selector}odd) > div:nth-child(even),
       &.odd > div:nth-child(odd),
-      &:not(.odd) > div:nth-child(even) > #{$engine_selector}frozen,
+      &:not(#{$engine_selector}odd) > div:nth-child(even) > #{$engine_selector}frozen,
       &.odd > div:nth-child(odd) > #{$engine_selector}frozen {
         background-color: $engine_even_color;
       }
