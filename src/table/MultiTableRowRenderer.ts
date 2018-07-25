@@ -1,6 +1,6 @@
-import {GridStyleManager} from '../style/index';
+import {GridStyleManager, tableIds, tableCSSClasses} from '../style';
 import {addScroll, defaultMode} from '../internal';
-import {cssClass} from '../styles/index';
+import {cssClass} from '../styles';
 
 /**
  * basic interface of a table section
@@ -76,11 +76,12 @@ export default class MultiTableRowRenderer {
 
   constructor(public readonly node: HTMLElement, htmlId: string, options: Partial<IMultiTableRowRendererOptions> = {}) {
     Object.assign(this.options, options);
-    node.id = htmlId.startsWith('#') ? htmlId.slice(1) : htmlId;
-    node.innerHTML = `<header class="${cssClass('header')}">
-      <footer class="${cssClass('footer')}">&nbsp;</footer>
+    htmlId = htmlId.startsWith('#') ? htmlId.slice(1) : htmlId;
+    node.id = htmlId;
+    node.innerHTML = `<header id="header-${htmlId}" class="${cssClass('header')} ${cssClass(`header-${htmlId}`)}">
+      <footer class="${cssClass('footer')} ${cssClass(`footer-${htmlId}`)}">&nbsp;</footer>
     </header>
-    <main class="${cssClass('body')}">
+    <main id="body-${htmlId}" class="${cssClass('body')} ${cssClass(`body-${htmlId}`)}">
       <footer class="${cssClass('footer')}">&nbsp;</footer>
     </main>`;
     node.classList.add(cssClass(), cssClass('engine'));
@@ -160,12 +161,15 @@ export default class MultiTableRowRenderer {
   pushTable<T extends ITableSection>(factory: ITableFactory<T>, ...extras: any[]) {
     const header = this.doc.createElement('article');
     const body = this.doc.createElement('article');
-    const tableId = `T${this.tableId++}`;
-    const ids = this.style.tableIds(tableId);
-    header.id = ids.header;
-    body.id = ids.body;
-    header.classList.add(cssClass('header-table'));
-    body.classList.add(cssClass('body-table'));
+
+    const tableId = `${this.node.id}T${this.tableId++}`;
+    const ids = tableIds(tableId);
+    const cssClasses = tableCSSClasses(tableId);
+
+    header.id = ids.thead;
+    header.classList.add(cssClass('thead'), cssClasses.thead);
+    body.id = ids.tbody;
+    body.classList.add(cssClass('tbody'), cssClasses.tbody);
     this.header.insertBefore(header, this.header.lastElementChild); //before the footer
     this.main.appendChild(body);
 
@@ -186,7 +190,7 @@ export default class MultiTableRowRenderer {
     const header = this.doc.createElement('section');
     const body = this.doc.createElement('section');
     header.classList.add(cssClass('header-separator'));
-    body.classList.add(cssClass('body-separator'));
+    body.classList.add(cssClass('separator'));
     this.header.insertBefore(header, this.header.lastElementChild); //before the footer
     this.main.appendChild(body);
 

@@ -3,18 +3,16 @@ import StyleManager from './StyleManager';
 import {addScroll} from '../internal';
 import {cssClass} from '../styles';
 
-export const TEMPLATE = `
-  <header class="${cssClass('header')}">
-    <article class="${cssClass('header-table')}"></article>
+export function setTemplate(root: HTMLElement, id: string) {
+  id = id.startsWith('#') ? id.slice(1) : id;
+  root.innerHTML =  `
+  <header id="header-${id}" class="${cssClass('header')} ${cssClass(`header-${id}`)}">
+    <article class="${cssClass('thead')} ${cssClass(`thead-${id}`)}"></article>
   </header>
-  <main class="${cssClass('body')}">
+  <main id="body-${id}" class="${cssClass('body')} ${cssClass(`body-${id}`)}">
     <footer class="${cssClass('footer')}">&nbsp;</footer>
-    <article class="${cssClass('body-table')}"></article>
+    <article class="${cssClass('tbody')} ${cssClass(`tbody-${id}`)}"></article>
   </main>`;
-
-
-export function setTemplate(root: HTMLElement) {
-  root.innerHTML = TEMPLATE;
   return root;
 }
 
@@ -28,8 +26,38 @@ export function setColumn(node: HTMLElement, column: {index: number, id: string}
 }
 
 interface ISelectors {
-  header: string;
-  body: string;
+  thead: string;
+  tbody: string;
+  tr: string;
+  th: string;
+  td: string;
+}
+
+/**
+ * generates the HTML Ids used for the header and body article of a table
+ * @param {string} tableId base table id
+ * @param {boolean} asSelector flag whether to prepend with # for CSS selector
+ * @return {ISelectors} the table ids used for header and body
+ */
+export function tableIds(tableId: string) {
+ return {
+   thead: `thead-$${tableId}`,
+   tbody: `tbody-${tableId}`,
+   tr: `tr-${tableId}`,
+   th: `th-${tableId}`,
+   td: `td-${tableId}`
+ };
+}
+
+export function tableCSSClasses(tableId: string) {
+ const ids = tableIds(tableId);
+ return {
+   thead: cssClass(ids.thead),
+   tbody: cssClass(ids.tbody),
+   tr: cssClass(ids.tr),
+   th: cssClass(ids.th),
+   td: cssClass(ids.td)
+ };
 }
 
 /**
@@ -37,8 +65,17 @@ interface ISelectors {
  */
 export default class GridStyleManager extends StyleManager {
 
-  constructor(root: HTMLElement, public readonly id: string) {
+  readonly id: string;
+
+  readonly ids: ISelectors;
+  readonly cssClasses: ISelectors;
+
+  constructor(root: HTMLElement, id: string) {
     super(root);
+    this.id = id.startsWith('#') ? id.slice(1) : id;
+
+    this.ids = tableIds(this.id);
+    this.cssClasses = tableCSSClasses(this.id);
 
     const headerScroller = <HTMLElement>root.querySelector('header');
     const bodyScroller = <HTMLElement>root.querySelector('main');
@@ -70,18 +107,14 @@ export default class GridStyleManager extends StyleManager {
       oldDeltaScroll = deltaScroll;
 
       self.setTimeout(() => {
-        this.updateRule('__scollBarFix', `${this.hashedId} > header`, {
+        this.updateRule('__scollBarFix', `#header-${this.id}`, {
           marginRight: `${-delta}px`
         });
-        this.updateRule('__scollBarFix2', `${this.hashedId} > header > :last-child`, {
+        this.updateRule('__scollBarFix2', `#header-${this.id} > :last-child`, {
           borderRight: `${deltaScroll}px solid transparent`
         });
       }, 0);
     });
-  }
-
-  get hashedId() {
-    return this.id.startsWith('#') ? this.id : `#${this.id}`;
   }
 
   /**
@@ -92,13 +125,10 @@ export default class GridStyleManager extends StyleManager {
    * @param {string} tableId optional tableId in case of multiple tables within the same engine
    * @param {string} unit
    */
-  update(defaultRowHeight: number, columns: IColumn[], frozenShift: number, tableId?: string, unit: string = 'px') {
-    const selectors = tableId !== undefined ? this.tableIds(tableId, true) : {
-      header: `${this.id} > header > article`,
-      body: `${this.id} > main > article`
-    };
+  update(defaultRowHeight: number, columns: IColumn[], frozenShift: number, tableId: string, unit: string = 'px') {
+    const selectors = tableCSSClasses(tableId);
 
-    this.updateRule(`__heightsRule${selectors.body}`, `${selectors.body} > div`, {
+    this.updateRule(`__heightsRule${selectors.tr}`, `.${selectors.tr}`, {
       height: `${defaultRowHeight}px`
     });
 
@@ -110,11 +140,11 @@ export default class GridStyleManager extends StyleManager {
    * @param {string} tableId tableId to remove
    */
   remove(tableId: string) {
-    const selectors = this.tableIds(tableId, true);
-    this.deleteRule(`__heightsRule${selectors.body}`);
-    this.deleteRule(`__widthRule${selectors.body}`);
+    const selectors = tableCSSClasses(tableId);
+    this.deleteRule(`__heightsRule${selectors.tr}`);
+    this.deleteRule(`__widthRule${selectors.tr}`);
 
-    const prefix = `__col${selectors.body}_`;
+    const prefix = `__col${selectors.td}_`;
     const rules = this.ruleNames.reduce((a, b) => a + (b.startsWith(prefix) ? 1 : 0), 0);
     // reset
     for (let i = 0; i < rules; ++i) {
@@ -122,29 +152,15 @@ export default class GridStyleManager extends StyleManager {
     }
   }
 
-  /**
-   * generates the HTML Ids used for the header and body article of a table
-   * @param {string} tableId base table id
-   * @param {boolean} asSelector flag whether to prepend with # for CSS selector
-   * @return {{header: string; body: string}} the table ids used for header and body
-   */
-  tableIds(tableId: string, asSelector: boolean = false) {
-    const cleanId = this.id.startsWith('#') ? this.id.slice(1) : this.id;
-    return {
-      header: `${asSelector ? '#' : ''}${cleanId}_H${tableId}`,
-      body: `${asSelector ? '#' : ''}${cleanId}_B${tableId}`
-    };
-  }
-
-  private updateColumns(columns: IColumn[], selectors: ISelectors, frozenShift: number, unit: string = 'px') {
-    const prefix = `__col${selectors.body}_`;
+  private updateColumns(columns: IColumn[], cssSelectors: ISelectors, frozenShift: number, unit: string = 'px') {
+    const prefix = `__col${cssSelectors.td}_`;
     const rules = this.ruleNames.reduce((a, b) => a + (b.startsWith(prefix) ? 1 : 0), 0);
 
 
     let frozen = 0;
     let ruleCounter = 0;
     columns.forEach((c) => {
-      let ruleSelector = `${selectors.body} > div > [data-id="${c.id}"], ${selectors.header} [data-id="${c.id}"]`;
+      let ruleSelector = `.${cssSelectors.td}[data-id="${c.id}"], .${cssSelectors.th}[data-id="${c.id}"]`;
       const ruleStyle: Partial<CSSStyleDeclaration> = {
         width: `${c.width}${unit}`
       };
@@ -153,11 +169,11 @@ export default class GridStyleManager extends StyleManager {
       }
       if (frozenShift !== 0 && c.frozen) {
         // shift just for the body
-        this.updateRule(`${prefix}${ruleCounter++}`, `${selectors.body} > div > [data-id="${c.id}"]`, {
+        this.updateRule(`${prefix}${ruleCounter++}`, `.${cssSelectors.tr}[data-id="${c.id}"]`, {
           width: `${c.width}${unit}`,
           left: `${frozen + frozenShift}px`
         });
-        ruleSelector = `${selectors.header} [data-id="${c.id}"]`;
+        ruleSelector = `.${cssSelectors.th}[data-id="${c.id}"]`;
         ruleStyle.left = `${frozen}px`;
       }
       if (c.frozen) {

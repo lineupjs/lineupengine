@@ -35,7 +35,7 @@ export abstract class ACellAdapter<T extends IColumn> {
 
   private readonly columnFragment: DocumentFragment;
 
-  constructor(protected readonly header: HTMLElement, protected readonly style: GridStyleManager, private readonly tableId?: string, ...mixinClasses: IMixinClass[]) {
+  constructor(protected readonly header: HTMLElement, protected readonly style: GridStyleManager, private readonly tableId: string, ...mixinClasses: IMixinClass[]) {
 
     this.columnAdapter = this.createColumnAdapter();
     this.columnMixins = mixinClasses.map((mixinClass) => new mixinClass(this.columnAdapter));
@@ -218,7 +218,7 @@ export abstract class ACellAdapter<T extends IColumn> {
       return r ? r : item;
     }
     const r = this.createCell(this.header.ownerDocument, row, columnObj);
-    r.classList.add(cssClass('td'));
+    r.classList.add(cssClass('td'), cssClass(`td-${this.tableId}`));
     setColumn(r, columnObj);
     return r;
   }
@@ -321,7 +321,7 @@ export abstract class ACellAdapter<T extends IColumn> {
       context.columns.forEach((col) => {
         const n = this.createHeader(document, col);
         setColumn(n, col);
-        n.classList.add(cssClass('th'));
+        n.classList.add(cssClass('th'), cssClass(`th-${this.tableId}`));
         fragment.appendChild(n);
       });
       this.header.appendChild(fragment);

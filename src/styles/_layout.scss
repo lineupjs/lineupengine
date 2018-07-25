@@ -71,7 +71,7 @@
     }
   }
 
-  #{$engine_selector}-header-table,
+  #{$engine_selector}-thead,
   #{$engine_selector}-tr {
     display: flex;
   }
@@ -88,7 +88,7 @@
     }
   }
 
-  #{$engine_selector}-body-table {
+  #{$engine_selector}-tbody {
     position: absolute;
   }
 

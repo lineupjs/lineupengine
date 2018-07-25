@@ -19,7 +19,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
   private readonly cell: ACellAdapter<T>;
 
   constructor(protected readonly root: HTMLElement, htmlId: string, options: Partial<IRowRendererOptions> = {}) {
-    super(<HTMLElement>setTemplate(root).querySelector('main > article'), options);
+    super(<HTMLElement>setTemplate(root, htmlId).querySelector('main > article'), options);
     root.classList.add(cssClass());
 
     this.style = new GridStyleManager(this.root, htmlId);
@@ -57,7 +57,11 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
       }
     }
 
-    this.cell = new LocalCell(this.header, this.style, undefined, ... (options.mixins || []));
+    this.cell = new LocalCell(this.header, this.style, this.id, ... (options.mixins || []));
+  }
+
+  protected get id() {
+    return this.style.id;
   }
 
   /**
@@ -174,7 +178,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
    */
   protected updateColumnWidths() {
     const context = this.context;
-    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, -this.cell.leftShift());
+    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, -this.cell.leftShift(), this.id);
   }
 
   protected updateSizer(firstRowPos: number) {
