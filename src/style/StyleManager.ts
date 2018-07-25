@@ -12,12 +12,13 @@ interface ICSSRule {
 
 function assignStyles(target: CSSStyleDeclaration, source: Partial<CSSStyleDeclaration>) {
   for (const key of Object.keys(source)) {
-    const v = <string>source[<any>key];
+    const akey = <any>key;
+    const v = <string>source[akey];
 
-    if (target.getPropertyValue(key) === v) {
+    if (target[akey] === v) {
       continue;
     }
-    target.setProperty(key, v);
+    target[akey] = v;
   }
 }
 
@@ -81,8 +82,8 @@ export default class StyleManager {
     this.verifySheet();
     const sheet = this.sheet;
     const index = sheet.insertRule(`${selector} {}`, sheet.rules.length);
-    this.rules.push({id, selector, style});
     const rule = this.getSheetRule(index);
+    this.rules.push({id, selector: rule.selectorText, style});
     assignStyles(rule.style, style);
     return id;
   }
@@ -101,8 +102,9 @@ export default class StyleManager {
       return this.addRule(id, selector, style);
     }
     const rule = this.getSheetRule(index);
-    if (rule.selectorText !== selector) {
+    if (rule.selectorText.replace(/\s/gm, '') !== selector.replace(/\s/gm, '')) { //ignoring white space
       rule.selectorText = selector;
+      this.rules[index].selector = rule.selectorText;
     }
     assignStyles(rule.style, style);
     return id;
