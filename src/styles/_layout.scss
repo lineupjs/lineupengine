@@ -12,7 +12,6 @@
     align-content: stretch;
     box-sizing: border-box;
 
-
     &#{$engine_selector}-shifted > header > article > #{$engine_selector}frozen,
     &#{$engine_selector}-shifted > main > article > div > #{$engine_selector}frozen {
       position: sticky;
