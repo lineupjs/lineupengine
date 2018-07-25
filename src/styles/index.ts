@@ -1,7 +1,7 @@
 
 
 
-const PREFIX = 'lineup-engine';
+const PREFIX = 'le';
 
 /**
  * @internal

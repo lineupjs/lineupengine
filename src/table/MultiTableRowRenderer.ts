@@ -84,7 +84,7 @@ export default class MultiTableRowRenderer {
     <main id="body-${htmlId}" class="${cssClass('body')} ${cssClass(`body-${htmlId}`)}">
       <footer class="${cssClass('footer')}">&nbsp;</footer>
     </main>`;
-    node.classList.add(cssClass(), cssClass('engine'));
+    node.classList.add(cssClass(), cssClass('multi'), 'lineup-engine');
 
     this.style = new GridStyleManager(this.node, htmlId);
 
