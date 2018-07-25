@@ -53,22 +53,23 @@ export default class StyleManager {
 
   private verifySheet() {
     const sheet = this.sheet;
-    if (sheet.rules.length === this.rules.length && this.rules.every((d, i) => (<CSSStyleRule>sheet.rules[i]).selectorText === d.selector)) {
+    const rules = sheet.cssRules;
+    if (rules.length === this.rules.length && this.rules.every((d, i) => (<CSSStyleRule>rules[i]).selectorText === d.selector)) {
       // same
       return;
     }
 
     console.warn('invalid sheet rules detected');
 
-    const l = sheet.rules.length;
+    const l = rules.length;
     for (let i = 0; i < l; ++i) {
       sheet.deleteRule(i);
     }
 
     // create all
     for (const rule of this.rules) {
-      const index = sheet.insertRule(`${rule.selector} {}`, sheet.rules.length);
-      const cssRule = <CSSStyleRule>sheet.rules[index];
+      const index = sheet.insertRule(`${rule.selector} {}`, sheet.cssRules.length);
+      const cssRule = <CSSStyleRule>sheet.cssRules[index];
       assignStyles(cssRule.style, rule.style);
     }
   }
@@ -79,7 +80,7 @@ export default class StyleManager {
 
   private getSheetRule(index: number) {
     const sheet = this.sheet;
-    return <CSSStyleRule>sheet.rules[index];
+    return <CSSStyleRule>sheet.cssRules[index];
   }
 
   /**
@@ -92,7 +93,7 @@ export default class StyleManager {
   addRule(id: string, selector: string, style: Partial<CSSStyleDeclaration>) {
     this.verifySheet();
     const sheet = this.sheet;
-    const index = sheet.insertRule(`${selector} {}`, sheet.rules.length);
+    const index = sheet.insertRule(`${selector} {}`, sheet.cssRules.length);
     const rule = this.getSheetRule(index);
     this.rules.push({id, selector: rule.selectorText, style});
     assignStyles(rule.style, style);
