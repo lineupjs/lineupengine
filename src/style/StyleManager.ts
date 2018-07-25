@@ -10,15 +10,14 @@ interface ICSSRule {
   style: Partial<CSSStyleDeclaration>;
 }
 
-function assignStyles(target: CSSStyleDeclaration, source: Partial<CSSStyleDeclaration>) {
+function assignStyles(target: any, source: any) {
   for (const key of Object.keys(source)) {
-    const akey = <any>key;
-    const v = <string>source[akey];
+    const v = <string>source[key];
 
-    if (target[akey] === v) {
+    if (target[key] === v) {
       continue;
     }
-    target[akey] = v;
+    target[key] = v;
   }
 }
 
