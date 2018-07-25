@@ -69,15 +69,12 @@ export default class GridStyleManager extends StyleManager {
       oldDeltaScroll = deltaScroll;
 
       self.setTimeout(() => {
-        this.updateRule('__scollBarFix', `
-          ${this.hashedId} > header {
-            margin-right: ${-delta}px;
-          }
-        `, false);
-        this.updateRule('__scollBarFix2', `
-          ${this.hashedId} > header > :last-child {
-            border-right: ${deltaScroll}px solid transparent;
-          }`);
+        this.updateRule('__scollBarFix', `${this.hashedId} > header`, {
+          marginRight: `${-delta}px`
+        });
+        this.updateRule('__scollBarFix2', `${this.hashedId} > header > :last-child`, {
+          borderRight: `${deltaScroll}px solid transparent`
+        });
       }, 0);
     });
   }
@@ -100,12 +97,11 @@ export default class GridStyleManager extends StyleManager {
       body: `${this.id} > main > article`
     };
 
-    this.updateRule(`__heightsRule${selectors.body}`, `${selectors.body} > div {
-      height: ${defaultRowHeight}px;
-    }`, false);
+    this.updateRule(`__heightsRule${selectors.body}`, `${selectors.body} > div`, {
+      height: `${defaultRowHeight}px`
+    });
 
     this.updateColumns(columns, selectors, frozenShift, unit);
-    this.updateRules();
   }
 
   /**
@@ -114,16 +110,15 @@ export default class GridStyleManager extends StyleManager {
    */
   remove(tableId: string) {
     const selectors = this.tableIds(tableId, true);
-    this.deleteRule(`__heightsRule${selectors.body}`, false);
-    this.deleteRule(`__widthRule${selectors.body}`, false);
+    this.deleteRule(`__heightsRule${selectors.body}`);
+    this.deleteRule(`__widthRule${selectors.body}`);
 
     const prefix = `__col${selectors.body}_`;
     const rules = this.ruleNames.reduce((a, b) => a + (b.startsWith(prefix) ? 1 : 0), 0);
     // reset
     for (let i = 0; i < rules; ++i) {
-      this.deleteRule(`${prefix}${i}`, false);
+      this.deleteRule(`${prefix}${i}`);
     }
-    this.updateRules();
   }
 
   /**
@@ -148,29 +143,29 @@ export default class GridStyleManager extends StyleManager {
     let frozen = 0;
     let ruleCounter = 0;
     columns.forEach((c) => {
-      let rule = `${selectors.body} > div > [data-id="${c.id}"], ${selectors.header} [data-id="${c.id}"] {
-        width: ${c.width}${unit};
-        ${c.frozen ? `left: ${frozen}px;`: ''}
-      }`;
+      let ruleSelector = `${selectors.body} > div > [data-id="${c.id}"], ${selectors.header} [data-id="${c.id}"]`;
+      const ruleStyle: Partial<CSSStyleDeclaration> = {
+        width: `${c.width}${unit}`
+      };
+      if (c.frozen) {
+        ruleStyle.left = `${frozen}px`;
+      }
       if (frozenShift !== 0 && c.frozen) {
         // shift just for the body
-        const shiftRule = `${selectors.body} > div > [data-id="${c.id}"] {
-          width: ${c.width}${unit};
-          left: ${frozen + frozenShift}px;
-        }`;
-        rule = `${selectors.header} [data-id="${c.id}"] {
-          width: ${c.width}${unit};
-          left: ${frozen}px;
-        }`;
-        this.updateRule(`${prefix}${ruleCounter++}`, shiftRule, false);
+        this.updateRule(`${prefix}${ruleCounter++}`, `${selectors.body} > div > [data-id="${c.id}"]`, {
+          width: `${c.width}${unit}`,
+          left: `${frozen + frozenShift}px`
+        });
+        ruleSelector = `${selectors.header} [data-id="${c.id}"]`;
+        ruleStyle.left = `${frozen}px`;
       }
       if (c.frozen) {
         frozen += c.width; // ignore padding since it causes problems regarding white background + padding(i);
       }
-      this.updateRule(`${prefix}${ruleCounter++}`, rule, false);
+      this.updateRule(`${prefix}${ruleCounter++}`, ruleSelector, ruleStyle);
     });
     for (let i = ruleCounter - 1; i < rules; ++i) {
-      this.deleteRule(`${prefix}${i}`, false);
+      this.deleteRule(`${prefix}${i}`);
     }
   }
 }

@@ -3,8 +3,26 @@
 /**
  * utility for custom generated CSS rules
  */
+
+interface ICSSRule {
+  id: string;
+  selector: string;
+  style: Partial<CSSStyleDeclaration>;
+}
+
+function assignStyles(target: CSSStyleDeclaration, source: Partial<CSSStyleDeclaration>) {
+  for (const key of Object.keys(source)) {
+    const v = <string>source[<any>key];
+
+    if (target.getPropertyValue(key) === v) {
+      continue;
+    }
+    target.setProperty(key, v);
+  }
+}
+
 export default class StyleManager {
-  private readonly rules = new Map<string, string>();
+  private readonly rules: ICSSRule[] = [];
   private readonly node: HTMLStyleElement;
 
   /**
@@ -13,6 +31,7 @@ export default class StyleManager {
    */
   constructor(root: HTMLElement) {
     this.node = root.ownerDocument.createElement('style');
+    this.node.appendChild(root.ownerDocument.createTextNode('')); // for webkit?
     root.appendChild(this.node);
   }
 
@@ -20,54 +39,87 @@ export default class StyleManager {
     this.node.remove();
   }
 
-  protected updateRules() {
-    this.node.innerHTML = Array.from(this.rules.values()).join('\n');
+  private verifySheet() {
+    const sheet = this.sheet;
+    if (sheet.rules.length === this.rules.length && this.rules.every((d, i) => (<CSSStyleRule>sheet.rules[i]).selectorText === d.selector)) {
+      // same
+      return;
+    }
+
+    console.warn('invalid sheet rules detected');
+
+    const l = sheet.rules.length;
+    for (let i = 0; i < l; ++i) {
+      sheet.deleteRule(i);
+    }
+
+    // create all
+    for (const rule of this.rules) {
+      const index = sheet.insertRule(`${rule.selector} {}`, sheet.rules.length);
+      const cssRule = <CSSStyleRule>sheet.rules[index];
+      assignStyles(cssRule.style, rule.style);
+    }
+  }
+
+  private get sheet() {
+    return (<CSSStyleSheet>this.node.sheet);
+  }
+
+  private getSheetRule(index: number) {
+    const sheet = this.sheet;
+    return <CSSStyleRule>sheet.rules[index];
   }
 
   /**
    * add a custom css rule
    * @param {string} id unique id of the rule for later identification
-   * @param {string} rule the css rule itself
-   * @param {boolean} update trigger style update
+   * @param {string} selector the css selector
+   * @param {Partial<CSSStyleDeclaration>} style the style attributes
    * @returns {string} the id again
    */
-  addRule(id: string, rule: string, update = true) {
-    // append
-    this.rules.set(id, rule);
-    if (update) {
-      this.updateRules();
-    }
+  addRule(id: string, selector: string, style: Partial<CSSStyleDeclaration>) {
+    this.verifySheet();
+    const sheet = this.sheet;
+    const index = sheet.insertRule(`${selector} {}`, sheet.rules.length);
+    this.rules.push({id, selector, style});
+    const rule = this.getSheetRule(index);
+    assignStyles(rule.style, style);
     return id;
   }
 
   /**
    * updates or add a rule, see @addRule
    * @param {string} id unique id of the rule for later identification
-   * @param {string} rule the css rule itself
-   * @param {boolean} update trigger style update
+   * @param {string} selector the css selector
+   * @param {Partial<CSSStyleDeclaration>} style the style attributes
    * @returns {string} the id again
    */
-  updateRule(id: string, rule: string, update = true) {
-    this.rules.set(id, rule);
-    if (update) {
-      this.updateRules();
+  updateRule(id: string, selector: string, style: Partial<CSSStyleDeclaration>) {
+    this.verifySheet();
+    const index = this.rules.findIndex((d) => d.id === id);
+    if (index < 0) {
+      return this.addRule(id, selector, style);
     }
+    const rule = this.getSheetRule(index);
+    if (rule.selectorText !== selector) {
+      rule.selectorText = selector;
+    }
+    assignStyles(rule.style, style);
     return id;
   }
 
   /**
    * deletes the given rule by id
    * @param {string} id the rule to delete
-   * @param {boolean} update trigger style update
    */
-  deleteRule(id: string, update = true) {
-    const r = this.rules.get(id);
-    if (!r) {
+  deleteRule(id: string) {
+    this.verifySheet();
+    const index = this.rules.findIndex((d) => d.id === id);
+    if (index < 0) {
       return;
     }
-    if (update) {
-      this.updateRules();
-    }
+    this.rules.splice(index, 1);
+    this.sheet.deleteRule(index);
   }
 
   /**
@@ -75,6 +127,6 @@ export default class StyleManager {
    * @returns {string[]}
    */
   protected get ruleNames() {
-    return Array.from(this.rules.keys());
+    return this.rules.map((d) => d.id);
   }
 }
