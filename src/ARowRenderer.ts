@@ -699,7 +699,9 @@ export abstract class ARowRenderer {
    */
   protected onScrolledVertically(scrollTop: number, clientHeight: number, isGoingDown: boolean): EScrollResult {
     const scrollResult = this.onScrolledImpl(scrollTop, clientHeight);
-    this.mixins.forEach((mixin) => mixin.onScrolled(isGoingDown, scrollResult));
+    for (const mixin of this.mixins) {
+      mixin.onScrolled(isGoingDown, scrollResult);
+    }
     return scrollResult;
   }
 

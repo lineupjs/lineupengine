@@ -102,7 +102,9 @@ export abstract class ACellAdapter<T extends IColumn> {
 
   onScrolledHorizontally(scrollLeft: number, clientWidth: number, isGoingRight: boolean) {
     const scrollResult = this.onScrolledHorizontallyImpl(scrollLeft, clientWidth);
-    this.columnMixins.forEach((mixin) => mixin.onScrolled(isGoingRight, scrollResult));
+    for (const mixin of this.columnMixins) {
+      mixin.onScrolled(isGoingRight, scrollResult);
+    }
     return scrollResult;
   }
 
@@ -385,9 +387,8 @@ export abstract class ACellAdapter<T extends IColumn> {
     const visible = this.visibleColumns;
 
     //columns may not match anymore if it is a pooled item a long time ago
-    const existing = <HTMLElement[]>Array.from(node.children);
 
-    switch (existing.length) {
+    switch (node.childElementCount) {
       case 0:
         if (visible.frozen.length > 0) {
           this.insertFrozenCells(node, rowIndex, visible.frozen, 0, columns);
@@ -395,7 +396,7 @@ export abstract class ACellAdapter<T extends IColumn> {
         this.addCellAtEnd(node, rowIndex, visible.first, visible.last, columns);
         break;
       case 1:
-        const old = existing[0];
+        const old = <HTMLElement>node.firstElementChild;
         const id = old.dataset.id!;
         const columnIndex = columns.findIndex((c) => c.id === id);
         node.removeChild(old);
@@ -409,7 +410,7 @@ export abstract class ACellAdapter<T extends IColumn> {
         this.addCellAtEnd(node, rowIndex, visible.first, visible.last, columns);
         break;
       default:
-        this.mergeColumns(node, rowIndex, existing);
+        this.mergeColumns(node, rowIndex, <HTMLElement[]>Array.from(node.children));
         break;
     }
   }

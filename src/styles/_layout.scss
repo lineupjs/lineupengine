@@ -80,6 +80,7 @@
     background: white;
     background-clip: content-box;
     box-sizing: content-box;
+    transform: translateZ(0);
 
     &:hover,
     &.#{$engine_css_prefix}-highlighted {
