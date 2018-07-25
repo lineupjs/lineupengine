@@ -12,43 +12,6 @@
     align-content: stretch;
     box-sizing: border-box;
 
-    > header {
-      flex: 0 0 auto;
-      overflow-x: hidden;
-      margin-bottom: 3px;
-      padding-bottom: 1px;
-      transform: translate3d(0, 0, 2px);
-
-      @supports (-moz-appearance: meterbar) {
-
-        // firefox only
-        overflow-y: hidden;
-      }
-    }
-
-    > main {
-      flex: 1 1 auto;
-      overflow: auto;
-      position: relative;
-    }
-
-    > header,
-    > main {
-      display: flex;
-      flex-direction: row;
-      align-items: stretch;
-      justify-content: stretch;
-      scroll-behavior: auto;
-
-      > * {
-        flex: 0 0 auto;
-      }
-    }
-
-    > header > article,
-    > main > article > div {
-      display: flex;
-    }
 
     &#{$engine_selector}-shifted > header > article > #{$engine_selector}frozen,
     &#{$engine_selector}-shifted > main > article > div > #{$engine_selector}frozen {
@@ -56,24 +19,6 @@
       left: 0;
       background-color: white;
       z-index: 1;
-    }
-
-    > main > article > div {
-      position: relative;
-      background: white;
-      background-clip: content-box;
-      box-sizing: content-box;
-    }
-
-    > main:not(#{$engine_selector}scrolling) > article > div {
-      &:hover,
-      &#{$engine_selector}-highlighted {
-        @include collapsing-row-border($engine_row_outline_width, $engine_row_outline_color);
-      }
-    }
-
-    > main > article {
-      position: absolute;
     }
 
     &#{$engine_selector}-striped > main > article {
@@ -84,6 +29,67 @@
         background-color: $engine_even_color;
       }
     }
+  }
+
+  #{$engine_selector}-header {
+    flex: 0 0 auto;
+    overflow-x: hidden;
+    margin-bottom: 3px;
+    padding-bottom: 1px;
+    transform: translate3d(0, 0, 2px);
+
+    @supports (-moz-appearance: meterbar) {
+
+      // firefox only
+      overflow-y: hidden;
+    }
+  }
+
+  #{$engine_selector}-body {
+    flex: 1 1 auto;
+    overflow: auto;
+    position: relative;
+
+    &#{$engine_selector}scrolling > article > #{$engine_selector}-tr {
+      &:hover,
+      &#{$engine_selector}-highlighted {
+        box-shadow: unset !important;
+      }
+    }
+  }
+
+  #{$engine_selector}-header,
+  #{$engine_selector}-body {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: stretch;
+    scroll-behavior: auto;
+
+    > * {
+      flex: 0 0 auto;
+    }
+  }
+
+  #{$engine_selector}-header-table,
+  #{$engine_selector}-tr {
+    display: flex;
+  }
+
+  #{$engine_selector}-tr {
+    position: relative;
+    background: white;
+    background-clip: content-box;
+    box-sizing: content-box;
+
+    &:hover,
+    &#{$engine_selector}-highlighted {
+      @include collapsing-row-border($engine_row_outline_width, $engine_row_outline_color);
+    }
+  }
+
+  #{$engine_selector}-body-table {
+    position: absolute;
   }
 
   #{$engine_selector}-footer {
