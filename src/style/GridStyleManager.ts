@@ -181,8 +181,8 @@ export default class GridStyleManager extends StyleManager {
       }
       this.updateRule(`${prefix}${ruleCounter++}`, ruleSelector, ruleStyle);
     });
-    for (let i = ruleCounter - 1; i < rules; ++i) {
-      this.deleteRule(`${prefix}${i}`);
+    for (let i = ruleCounter; i < rules; ++i) {
+      this.deleteRule(`${prefix}${i - 1}`);
     }
   }
 }
