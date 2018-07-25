@@ -1,5 +1,6 @@
 import {IColumn} from '../src';
 import '../src/style.scss';
+import {cssClass} from '../src/styles';
 
 /** @internal */
 export class Column<T> implements IColumn {
@@ -14,7 +15,7 @@ export class Column<T> implements IColumn {
   common(document: Document) {
     const d = document.createElement('div');
     if (this.frozen) {
-      d.classList.add('frozen');
+      d.classList.add(cssClass('frozen'));
     }
     d.dataset.id = this.id;
     return d;

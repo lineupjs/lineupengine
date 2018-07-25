@@ -4,6 +4,7 @@ import KeyFinder from './animation/KeyFinder';
 import {IExceptionContext, range} from './logic';
 import {EScrollResult, IMixin, IMixinAdapter, IMixinClass} from './mixin';
 import {addScroll, removeScroll, IScrollInfo, IDelayedMode, defaultMode} from './internal';
+import {cssClass} from './styles';
 
 export declare type IRowRenderContext = IExceptionContext;
 
@@ -132,6 +133,7 @@ export abstract class ARowRenderer {
       return sizer;
     }
     const s = parent.ownerDocument.createElement('footer');
+    s.classList.add(cssClass('footer'));
     parent.insertBefore(s, parent.firstChild);
     return s;
   }
@@ -173,11 +175,11 @@ export abstract class ARowRenderer {
       old = act;
       this.onScrolledVertically(act.top, act.height, isGoingDown);
       if (this.options.scrollingHint) {
-        scroller.classList.remove('le-scrolling');
+        scroller.classList.remove(cssClass('scrolling'));
       }
     });
     if (this.options.scrollingHint) {
-      addScroll(scroller, 'animation', () => scroller.classList.add('le-scrolling'));
+      addScroll(scroller, 'animation', () => scroller.classList.add(cssClass('scrolling')));
     }
     this.recreate();
   }
@@ -594,7 +596,7 @@ export abstract class ARowRenderer {
       // last one
       const body = this.body.classList;
       Array.from(body).forEach((v) => {
-        if (v.startsWith('le-') && v.endsWith('-animation')) {
+        if (v.startsWith(cssClass()) && v.endsWith('-animation')) {
           body.remove(v);
         }
       });
@@ -637,10 +639,10 @@ export abstract class ARowRenderer {
       return;
     }
 
-    body.classList.add('le-row-animation');
+    body.classList.add(cssClass('row-animation'));
     (new Set(animation.map((d) => d.mode))).forEach((mode) => {
       // add class but map to UPDATE only
-      body.classList.add(`le-${EAnimationMode[mode].toLowerCase().split('_')[0]}-animation`);
+      body.classList.add(cssClass(`${EAnimationMode[mode].toLowerCase().split('_')[0]}-animation`));
     });
 
     this.abortAnimation = () => {

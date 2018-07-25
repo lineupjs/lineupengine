@@ -3,7 +3,7 @@
 
 @include exports('lineupengine/animation') {
   #{$engine_selector} {
-    .loading {
+    #{$engine_selector}loading {
       background: $engine_loading_static_image center contain repeat no-repeat;
       background-blend-mode: overlay;
 
@@ -19,19 +19,19 @@
         opacity: 1;
       }
 
-      .loading {
+      #{$engine_selector}loading {
         background-image: $engine_loading_image;
       }
     }
 
-    > main.le-scrolling {
+    > main#{$engine_selector}-scrolling {
       background-image: $engine_loading_static_image, $engine_loading_static_image;
       background-repeat: repeat-x;
       background-position: top 10px left, bottom 30px left;
       position: relative;
     }
 
-    article.le-row-animation {
+    article#{$engine_selector}-row-animation {
       /**
       defaults
        */
@@ -56,7 +56,7 @@
       /**
       in case of hiding shift update and show
        */
-      &.le-hide-animation > * {
+      &#{$engine_selector}-hide-animation > * {
         transition: all $engine_animation_update_duration $engine_animation_ease $engine_animation_hide_duration + $engine_animation_pause;
 
         &[data-animation=hide] { // since order
@@ -71,7 +71,7 @@
       /**
       in case of update shift show
        */
-      &.le-update-animation > * {
+      &#{$engine_selector}-update-animation > * {
         &[data-animation=show] {
           transition: all $engine_animation_show_duration $engine_animation_ease $engine_animation_update_duration + $engine_animation_pause;
         }
@@ -80,7 +80,7 @@
       /**
       in case of both update and hide shift show twice
        */
-      &.le-update-animation.le-hide-animation > * {
+      &#{$engine_selector}-update-animation#{$engine_selector}-hide-animation > * {
         &[data-animation=show] {
           transition: all $engine_animation_show_duration $engine_animation_ease $engine_animation_hide_duration + $engine_animation_pause + $engine_animation_update_duration + $engine_animation_pause;
         }

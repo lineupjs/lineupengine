@@ -4,6 +4,7 @@ import {EScrollResult, IMixinClass} from './mixin';
 import {GridStyleManager, IColumn, setTemplate} from './style';
 import ACellAdapter, {ICellAdapterRenderContext} from './table/internal/ACellAdapter';
 import {addScroll} from './internal';
+import {cssClass} from './styles';
 
 
 export declare type ICellRenderContext<T extends IColumn> = ICellAdapterRenderContext<T>;
@@ -19,7 +20,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
 
   constructor(protected readonly root: HTMLElement, htmlId: string, options: Partial<IRowRendererOptions> = {}) {
     super(<HTMLElement>setTemplate(root).querySelector('main > article'), options);
-    root.classList.add('lineup-engine');
+    root.classList.add(cssClass());
 
     this.style = new GridStyleManager(this.root, htmlId);
 

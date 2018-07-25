@@ -1,5 +1,6 @@
 import {GridStyleManager} from '../style/index';
 import {addScroll, defaultMode} from '../internal';
+import {cssClass} from '../styles/index';
 
 /**
  * basic interface of a table section
@@ -76,8 +77,8 @@ export default class MultiTableRowRenderer {
   constructor(public readonly node: HTMLElement, htmlId: string, options: Partial<IMultiTableRowRendererOptions> = {}) {
     Object.assign(this.options, options);
     node.id = htmlId.startsWith('#') ? htmlId.slice(1) : htmlId;
-    node.innerHTML = `<header><footer>&nbsp;</footer></header><main><footer>&nbsp;</footer></main>`;
-    node.classList.add('lineup-engine', 'lineup-multi-engine');
+    node.innerHTML = `<header><footer class="${cssClass('footer')}">&nbsp;</footer></header><main><footer class="${cssClass('footer')}">&nbsp;</footer></main>`;
+    node.classList.add(cssClass(), cssClass('engine'));
 
     this.style = new GridStyleManager(this.node, htmlId);
 

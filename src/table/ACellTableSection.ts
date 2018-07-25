@@ -5,6 +5,7 @@ import GridStyleManager from '../style/GridStyleManager';
 import {IColumn} from '../style';
 import ACellAdapter, {ICellAdapterRenderContext} from './internal/ACellAdapter';
 import {ITableSection} from './MultiTableRowRenderer';
+import {cssClass} from '../styles';
 
 export declare type ICellRenderContext<T extends IColumn> = ICellAdapterRenderContext<T>;
 
@@ -68,7 +69,7 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
   }
 
   get hidden() {
-    return this.header.classList.contains('loading');
+    return this.header.classList.contains(cssClass('loading'));
   }
 
   protected updateSizer(firstRowPos: number) {
@@ -81,8 +82,8 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
     if (old === value) {
       return;
     }
-    this.header.classList.toggle('loading', value);
-    this.body.classList.toggle('loading', value);
+    this.header.classList.toggle(cssClass('loading'), value);
+    this.body.classList.toggle(cssClass('loading'), value);
     this.onVisibilityChanged(!value);
   }
 

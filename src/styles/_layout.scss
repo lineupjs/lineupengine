@@ -12,11 +12,6 @@
     align-content: stretch;
     box-sizing: border-box;
 
-    *::before,
-    *::after {
-      box-sizing: inherit;
-    }
-
     > header {
       flex: 0 0 auto;
       overflow-x: hidden;
@@ -55,8 +50,8 @@
       display: flex;
     }
 
-    &.le-shifted > header > article > .frozen,
-    &.le-shifted > main > article > div > .frozen {
+    &#{$engine_selector}-shifted > header > article > #{$engine_selector}frozen,
+    &#{$engine_selector}-shifted > main > article > div > #{$engine_selector}frozen {
       position: sticky;
       left: 0;
       background-color: white;
@@ -70,20 +65,11 @@
       box-sizing: content-box;
     }
 
-    > main:not(.scrolling) > article > div {
+    > main:not(#{$engine_selector}scrolling) > article > div {
       &:hover,
-      &.le-highlighted {
+      &#{$engine_selector}-highlighted {
         @include collapsing-row-border($engine_row_outline_width, $engine_row_outline_color);
       }
-    }
-
-    > header > footer,
-    > main > footer {
-      transition: none !important;
-      height: 1px !important;
-      width: 1px;
-      left: -1px;
-      visibility: hidden;
     }
 
     > main > article {
@@ -93,10 +79,18 @@
     &#{$engine_selector}-striped > main > article {
       &:not(.odd) > div:nth-child(even),
       &.odd > div:nth-child(odd),
-      &:not(.odd) > div:nth-child(even) > .frozen,
-      &.odd > div:nth-child(odd) > .frozen {
+      &:not(.odd) > div:nth-child(even) > #{$engine_selector}frozen,
+      &.odd > div:nth-child(odd) > #{$engine_selector}frozen {
         background-color: $engine_even_color;
       }
     }
+  }
+
+  #{$engine_selector}-footer {
+    transition: none !important;
+    height: 1px !important;
+    width: 1px;
+    left: -1px;
+    visibility: hidden;
   }
 }

@@ -1,13 +1,14 @@
 import {IColumn} from './IColumn';
 import StyleManager from './StyleManager';
 import {addScroll} from '../internal';
+import {cssClass} from '../styles';
 
 export const TEMPLATE = `
   <header>
     <article></article>
   </header>
   <main>
-    <footer>&nbsp;</footer>
+    <footer class="${cssClass('footer')}">&nbsp;</footer>
     <article></article>
   </main>`;
 
@@ -53,7 +54,7 @@ export default class GridStyleManager extends StyleManager {
         headerScroller.scrollLeft = newValue;
       }
 
-      root.classList.toggle('le-shifted', act.left > 0);
+      root.classList.toggle(cssClass('shifted'), act.left > 0);
 
       // shift for different scrollbar in header and body
       const delta = act.width - headerScroller.clientWidth;
