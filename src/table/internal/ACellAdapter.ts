@@ -3,6 +3,7 @@ import {EScrollResult, IMixin, IMixinAdapter, IMixinClass} from '../../mixin';
 import GridStyleManager, {setColumn} from '../../style/GridStyleManager';
 import {IColumn} from '../../style';
 import {cssClass} from '../../styles';
+import {IScrollInfo} from '../../internal';
 
 const debug = false;
 
@@ -77,6 +78,14 @@ export abstract class ACellAdapter<T extends IColumn> {
         get: () => this.context.column,
         enumerable: true
       },
+      scrollOffset: {
+        get: () => this.lastScrollInfo ? this.lastScrollInfo.left : 0,
+        enumerable: true
+      },
+      scrollTotal: {
+        get: () => this.lastScrollInfo ? this.lastScrollInfo.width : this.headerScroller.clientWidth,
+        enumerable: true
+      }
     });
     return r;
   }
@@ -102,6 +111,8 @@ export abstract class ACellAdapter<T extends IColumn> {
    * @returns {ICellRenderContext}
    */
   protected abstract get context(): ICellAdapterRenderContext<T>;
+
+  protected abstract get lastScrollInfo(): IScrollInfo | null;
 
   protected abstract createHeader(document: Document, column: T): HTMLElement;
 

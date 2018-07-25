@@ -67,6 +67,7 @@ export abstract class ARowRenderer {
   private readonly adapter: IMixinAdapter;
   private readonly mixins: IMixin[];
   private scrollListener: ((act: IScrollInfo) => void) | null = null;
+  protected lastScrollInfo: IScrollInfo|null = null;
 
   private abortAnimation: () => void = () => undefined;
 
@@ -104,8 +105,7 @@ export abstract class ARowRenderer {
       addAtBottom: this.addAtBottom.bind(this),
       removeFromBeginning: this.removeFromBeginning.bind(this),
       removeFromBottom: this.removeFromBottom.bind(this),
-      updateOffset: this.updateOffset.bind(this),
-      scroller: this.bodyScroller
+      updateOffset: this.updateOffset.bind(this)
     };
     Object.defineProperties(r, {
       visibleFirstRowPos: {
@@ -114,6 +114,14 @@ export abstract class ARowRenderer {
       },
       context: {
         get: () => this.context,
+        enumerable: true
+      },
+      scrollOffset: {
+        get: () => this.lastScrollInfo ? this.lastScrollInfo.top : 0,
+        enumerable: true
+      },
+      scrollTotal: {
+        get: () => this.lastScrollInfo ? this.lastScrollInfo.height : this.bodyScroller.clientHeight,
         enumerable: true
       }
     });
@@ -170,6 +178,7 @@ export abstract class ARowRenderer {
     const scroller = this.bodyScroller;
 
     let old = addScroll(scroller, this.options.async, this.scrollListener = (act) => {
+      this.lastScrollInfo = act;
       if (Math.abs(old.top - act.top) < this.options.minScrollDelta && Math.abs(old.height - act.height) < this.options.minScrollDelta) {
         return;
       }

@@ -58,9 +58,8 @@ export default class PrefetchMixin implements IMixin {
       return;
     }
     const context = this.adapter.context;
-    const scroller = this.adapter.scroller;
-    const fakeOffset = Math.max(scroller.scrollTop - this.options.prefetchRows! * context.defaultRowHeight, 0);
-    const height = scroller.clientHeight;
+    const fakeOffset = Math.max(this.adapter.scrollOffset - this.options.prefetchRows! * context.defaultRowHeight, 0);
+    const height = this.adapter.scrollTotal;
     const {first, firstRowPos} = range(fakeOffset, height, context.defaultRowHeight, context.exceptions, context.numberOfRows);
 
     if (first === this.adapter.visible.first) {

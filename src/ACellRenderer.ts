@@ -31,6 +31,10 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
         return that.context;
       }
 
+      protected get lastScrollInfo() {
+        return that.lastScrollInfo;
+      }
+
       protected createHeader(document: Document, column: T) {
         return that.createHeader(document, column);
       }
