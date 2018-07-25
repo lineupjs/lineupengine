@@ -58,9 +58,11 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
     this.cell.addColumnMixin(mixinClass, options);
   }
 
-  get id() {
+  protected get idPrefix() {
     return this.tableId;
   }
+
+  abstract get id(): string;
 
   get width() {
     return this.context.column.totalHeight;

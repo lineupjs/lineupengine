@@ -57,10 +57,10 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
       }
     }
 
-    this.cell = new LocalCell(this.header, this.style, this.id, ... (options.mixins || []));
+    this.cell = new LocalCell(this.header, this.style, this.style.id, ... (options.mixins || []));
   }
 
-  protected get id() {
+  protected get idPrefix() {
     return this.style.id;
   }
 
@@ -178,7 +178,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
    */
   protected updateColumnWidths() {
     const context = this.context;
-    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, -this.cell.leftShift(), this.id);
+    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, -this.cell.leftShift(), this.idPrefix);
   }
 
   protected updateSizer(firstRowPos: number) {
