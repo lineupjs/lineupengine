@@ -71,40 +71,24 @@ export default class GridStyleManager extends StyleManager {
     const headerScroller = <HTMLElement>root.querySelector('header');
     const bodyScroller = <HTMLElement>root.querySelector('main');
 
-    let oldDelta = 0;
-    let oldDeltaScroll = 0;
+    // async since style needs to be added to dom first
+    self.setTimeout(() => {
+      const {width} = measureScrollbar(root);
+      this.updateRule('__scollBarFix2', `#header-${this.id} > :last-child`, {
+        borderRight: `${width}px solid transparent`
+      });
+    }, 20);
+
+    let old = headerScroller.scrollLeft;
 
     // update frozen and sync header with body
     addScroll(bodyScroller, 'animation', (act) => {
-      const old = headerScroller.scrollLeft;
       const newValue = act.left;
       if (old !== newValue) {
-        headerScroller.scrollLeft = newValue;
+        old = headerScroller.scrollLeft = newValue;
       }
 
       root.classList.toggle(cssClass('shifted'), act.left > 0);
-
-      // shift for different scrollbar in header and body
-      const delta = act.width - headerScroller.clientWidth;
-      if (Math.abs(delta) < 2) { // current value is good
-        return;
-      }
-      const deltaScroll = bodyScroller.scrollWidth - headerScroller.scrollWidth;
-
-      if (oldDelta === delta && oldDeltaScroll === deltaScroll) {
-        return;
-      }
-      oldDelta = delta;
-      oldDeltaScroll = deltaScroll;
-
-      self.setTimeout(() => {
-        this.updateRule('__scollBarFix', `#header-${this.id}`, {
-          marginRight: `${-delta}px`
-        });
-        this.updateRule('__scollBarFix2', `#header-${this.id} > :last-child`, {
-          borderRight: `${deltaScroll}px solid transparent`
-        });
-      }, 0);
     });
   }
 
@@ -176,4 +160,22 @@ export default class GridStyleManager extends StyleManager {
       this.deleteRule(`${prefix}${i - 1}`);
     }
   }
+}
+
+/**
+ * based on Slick grid implementation
+ * @param doc
+ */
+function measureScrollbar(root: HTMLElement) {
+  root.insertAdjacentHTML('beforeend', `
+    <div class="${cssClass('scrollbar-tester')}"><div></div></div>
+  `);
+  const elem = <HTMLElement>root.lastElementChild!;
+
+  const width = elem.offsetWidth - elem.clientWidth;
+  const height = elem.offsetHeight - elem.clientHeight;
+
+  elem.remove();
+
+  return { width, height };
 }

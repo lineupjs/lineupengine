@@ -94,4 +94,19 @@
     left: -1px;
     visibility: hidden;
   }
+
+  .#{$engine_css_prefix}-scrollbar-tester {
+    position: absolute;
+    top: -10000px;
+    left: -10000px;
+    overflow: auto;
+    width: 100px;
+    height: 100px;
+
+    > div {
+      width: 200px;
+      height: 200px;
+      overflow: auto;
+    }
+  }
 }

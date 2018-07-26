@@ -37,6 +37,8 @@ export default class StyleManager {
   private readonly rules: ICSSRule[] = [];
   private readonly node: HTMLStyleElement;
 
+  private testVerifyTimeout = -1;
+
   /**
    * the parent element to append this managed style
    * @param {HTMLElement} root
@@ -53,6 +55,17 @@ export default class StyleManager {
 
   private verifySheet() {
     const sheet = this.sheet;
+    if (!sheet) {
+      if (this.testVerifyTimeout >= 0) {
+        return;
+      }
+      // test till attached
+      this.testVerifyTimeout = self.setTimeout(() => {
+        this.testVerifyTimeout = -1;
+        this.verifySheet();
+      }, 20);
+      return;
+    }
     const rules = sheet.cssRules;
     if (rules.length === this.rules.length && this.rules.every((d, i) => (<CSSStyleRule>rules[i]).selectorText === d.selector)) {
       // same
@@ -70,17 +83,18 @@ export default class StyleManager {
     for (const rule of this.rules) {
       const index = sheet.insertRule(`${rule.selector} {}`, sheet.cssRules.length);
       const cssRule = <CSSStyleRule>sheet.cssRules[index];
+      rule.selector = cssRule.selectorText;
       assignStyles(cssRule.style, rule.style);
     }
   }
 
   private get sheet() {
-    return (<CSSStyleSheet>this.node.sheet);
+    return (<CSSStyleSheet|null>this.node.sheet);
   }
 
   private getSheetRule(index: number) {
     const sheet = this.sheet;
-    return <CSSStyleRule>sheet.cssRules[index];
+    return sheet ? <CSSStyleRule>sheet.cssRules[index] : null;
   }
 
   /**
@@ -93,8 +107,13 @@ export default class StyleManager {
   addRule(id: string, selector: string, style: Partial<CSSStyleDeclaration>) {
     this.verifySheet();
     const sheet = this.sheet;
+    if (!sheet) {
+      // upon next update
+      this.rules.push({id, selector, style});
+      return;
+    }
     const index = sheet.insertRule(`${selector} {}`, sheet.cssRules.length);
-    const rule = this.getSheetRule(index);
+    const rule = <CSSStyleRule>sheet.cssRules[index];
     this.rules.push({id, selector: rule.selectorText, style});
     assignStyles(rule.style, style);
     return id;
@@ -113,12 +132,18 @@ export default class StyleManager {
     if (index < 0) {
       return this.addRule(id, selector, style);
     }
+    const stored = this.rules[index];
+    stored.selector = selector;
+    stored.style = style;
+
     const rule = this.getSheetRule(index);
-    if (rule.selectorText.replace(/\s/gm, '') !== selector.replace(/\s/gm, '')) { //ignoring white space
-      rule.selectorText = selector;
-      this.rules[index].selector = rule.selectorText;
+    if (rule) {
+      if (rule.selectorText.replace(/\s/gm, '') !== selector.replace(/\s/gm, '')) { //ignoring white space
+        rule.selectorText = selector;
+        stored.selector = rule.selectorText;
+      }
+      assignStyles(rule.style, style);
     }
-    assignStyles(rule.style, style);
     return id;
   }
 
@@ -133,7 +158,10 @@ export default class StyleManager {
       return;
     }
     this.rules.splice(index, 1);
-    this.sheet.deleteRule(index);
+    const sheet = this.sheet;
+    if (sheet) {
+      sheet.deleteRule(index);
+    }
   }
 
   /**
