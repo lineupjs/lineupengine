@@ -1,9 +1,9 @@
 import {IExceptionContext, range, updateFrozen} from '../../logic';
 import {EScrollResult, IMixin, IMixinAdapter, IMixinClass} from '../../mixin';
-import GridStyleManager, {setColumn} from '../../style/GridStyleManager';
+import GridStyleManager from '../../style/GridStyleManager';
 import {IColumn} from '../../style';
 import {cssClass} from '../../styles';
-import {IScrollInfo} from '../../internal';
+import {IScrollInfo, clear} from '../../internal';
 
 const debug = false;
 
@@ -198,7 +198,7 @@ export abstract class ACellAdapter<T extends IColumn> {
   private removeAllCells(row: HTMLElement, includingFrozen: boolean, shift = this.visibleColumns.first) {
     const arr = <HTMLElement[]>Array.from(row.children);
     const frozen = this.visibleColumns.frozen;
-    row.innerHTML = '';
+    clear(row);
 
     if (includingFrozen || frozen.length === 0) {
       for (const i of frozen) {
@@ -226,13 +226,13 @@ export abstract class ACellAdapter<T extends IColumn> {
       const item = pool.pop()!;
       const r = this.updateCell(item, row, columnObj);
       if (r && r !== item) {
-        setColumn(r, columnObj);
+        r.dataset.id = columnObj.id;
       }
       return r ? r : item;
     }
     const r = this.createCell(this.header.ownerDocument, row, columnObj);
     r.classList.add(cssClass('td'), this.style.cssClasses.td, cssClass(`td-${this.tableId}`));
-    setColumn(r, columnObj);
+    r.dataset.id = columnObj.id;
     return r;
   }
 
@@ -330,10 +330,10 @@ export abstract class ACellAdapter<T extends IColumn> {
     {
       const fragment = this.columnFragment;
       const document = fragment.ownerDocument;
-      this.header.innerHTML = '';
+      clear(this.header);
       context.columns.forEach((col) => {
         const n = this.createHeader(document, col);
-        setColumn(n, col);
+        n.dataset.id = col.id;
         n.classList.add(cssClass('th'), this.style.cssClasses.th, cssClass(`th-${this.tableId}`));
         fragment.appendChild(n);
       });
@@ -419,8 +419,7 @@ export abstract class ACellAdapter<T extends IColumn> {
     const {columns} = this.context;
     const visible = this.visibleColumns;
 
-
-    node.innerHTML = '';
+    clear(node);
 
     const ids = new Map(existing.map((e) => (<[string, HTMLElement]>[e.dataset.id!, e])));
 
@@ -434,7 +433,7 @@ export abstract class ACellAdapter<T extends IColumn> {
       }
       const cell = this.updateCell(existing, rowIndex, col);
       if (cell && cell !== existing) {
-        setColumn(cell, col);
+        cell.dataset.id = col.id;
       }
       node.appendChild(cell || existing);
     };
