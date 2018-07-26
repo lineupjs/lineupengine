@@ -4,6 +4,7 @@ import GridStyleManager from '../../style/GridStyleManager';
 import {IColumn} from '../../style';
 import {cssClass} from '../../styles';
 import {IScrollInfo, clear} from '../../internal';
+import {isScrollEventWaiting} from '../../internal/scroll';
 
 const debug = false;
 
@@ -67,7 +68,8 @@ export abstract class ACellAdapter<T extends IColumn> {
       removeFromBottom: this.removeColumnFromEnd.bind(this),
       updateOffset: this.updateColumnOffset.bind(this),
       scroller: this.headerScroller,
-      syncFrozen: this.syncFrozen.bind(this)
+      syncFrozen: this.syncFrozen.bind(this),
+      isScrollEventWaiting: () => isScrollEventWaiting(this.headerScroller, 'animation')
     };
     Object.defineProperties(r, {
       visibleFirstRowPos: {

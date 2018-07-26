@@ -59,6 +59,8 @@ export interface IMixinAdapter {
    * @return {number} frozenShift
    */
   syncFrozen?(first: number): number;
+
+  isScrollEventWaiting(): boolean;
 }
 
 export interface IMixin {

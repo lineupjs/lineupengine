@@ -9,12 +9,12 @@ export interface IPrefetchRendererOptions {
   readonly prefetchRows: number;
   /**
    * number of rows extra before cleaning them up
-   * @default 3
+   * @default 10
    */
   readonly cleanUpRows: number;
   /**
    * delay to trigger a prefetch or clean up
-   * @default 50ms
+   * @default 200ms
    */
   readonly delay: number;
 }
@@ -28,8 +28,8 @@ export default class PrefetchMixin implements IMixin {
 
   private readonly options: IPrefetchRendererOptions = {
     prefetchRows: 20,
-    cleanUpRows: 3,
-    delay: 50
+    cleanUpRows: 10,
+    delay: 200
   };
 
   constructor(private readonly adapter: IMixinAdapter, options?: Partial<IPrefetchRendererOptions>) {
@@ -40,6 +40,9 @@ export default class PrefetchMixin implements IMixin {
 
   private prefetchDown() {
     this.prefetchTimeout = -1;
+    if (this.adapter.isScrollEventWaiting()) {
+      return;
+    }
     const context = this.adapter.context;
     const nextLast = Math.min(this.adapter.visible.forcedLast + this.options.prefetchRows, context.numberOfRows - 1);
     // add some rows in advance
@@ -54,7 +57,7 @@ export default class PrefetchMixin implements IMixin {
 
   private prefetchUp() {
     this.prefetchTimeout = -1;
-    if (this.adapter.visible.first <= (this.adapter.visible.forcedFirst - this.options.prefetchRows!)) {
+    if (this.adapter.isScrollEventWaiting() || this.adapter.visible.first <= (this.adapter.visible.forcedFirst - this.options.prefetchRows!)) {
       return;
     }
     const context = this.adapter.context;
@@ -98,6 +101,9 @@ export default class PrefetchMixin implements IMixin {
 
   private cleanUpTop(first: number) {
     this.cleanupTimeout = -1;
+    if (this.adapter.isScrollEventWaiting()) {
+      return;
+    }
     const newFirst = Math.max(0, first - this.options.cleanUpRows);
 
     if (newFirst <= this.adapter.visible.first) {
@@ -149,6 +155,9 @@ export default class PrefetchMixin implements IMixin {
   }
 
   onScrolled(isGoingDown: boolean, scrollResult: EScrollResult) {
+    if (this.adapter.isScrollEventWaiting()) {
+      return;
+    }
     if (scrollResult !== EScrollResult.ALL && this.options.cleanUpRows > 0) {
       this.triggerCleanUp(this.adapter.visible.forcedFirst, this.adapter.visible.forcedLast, isGoingDown);
     }

@@ -138,6 +138,19 @@ class ScrollHandler {
       return index >= 0;
     });
   }
+
+  isWaiting(mode: IDelayedMode) {
+    switch(mode) {
+    case 'immediate':
+      return this.immediateTimeout > 0;
+    case 'animation':
+      return this.animationWaiting;
+    case 'sync':
+      return false;
+    default:
+      return this.handlers.has(mode);
+    }
+  }
 }
 
 /**
@@ -151,6 +164,17 @@ export function addScroll(scroller: HTMLElement, mode: IDelayedMode, handler: (a
   const s: ScrollHandler = (<any>scroller).__le_scroller__;
   s.push(mode, handler);
   return s.asInfo();
+}
+
+/**
+ * @internal
+ */
+export function isScrollEventWaiting(scroller: HTMLElement, mode: IDelayedMode) {
+  if (!(<any>scroller).__le_scroller__) {
+    return false;
+  }
+  const s: ScrollHandler = (<any>scroller).__le_scroller__;
+  return s.isWaiting(mode);
 }
 
 /**

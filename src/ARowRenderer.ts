@@ -6,6 +6,7 @@ import {EScrollResult, IMixin, IMixinAdapter, IMixinClass} from './mixin';
 import {addScroll, removeScroll, IScrollInfo, IDelayedMode, defaultMode} from './internal';
 import {cssClass} from './styles';
 import {clear} from './internal';
+import {isScrollEventWaiting} from './internal/scroll';
 
 export declare type IRowRenderContext = IExceptionContext;
 
@@ -112,7 +113,8 @@ export abstract class ARowRenderer {
       addAtBottom: this.addAtBottom.bind(this),
       removeFromBeginning: this.removeFromBeginning.bind(this),
       removeFromBottom: this.removeFromBottom.bind(this),
-      updateOffset: this.updateOffset.bind(this)
+      updateOffset: this.updateOffset.bind(this),
+      isScrollEventWaiting: () => isScrollEventWaiting(this.bodyScroller, this.options.async)
     };
     Object.defineProperties(r, {
       visibleFirstRowPos: {
