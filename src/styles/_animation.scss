@@ -48,10 +48,6 @@
       &[data-animation=hide] {
         transition: all $engine_animation_hide_duration $engine_animation_ease;
       }
-
-      * {
-        overflow: hidden !important;
-      }
     }
 
     /**
