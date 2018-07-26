@@ -15,6 +15,7 @@ export interface IScrollInfo {
 }
 
 class ScrollHandler {
+  private hasNumbers = false;
   private readonly handlers = new Map<IDelayedMode, ((act: IScrollInfo)=>void)[]>();
   private animationWaiting = false;
   private immediateTimeout = -1;
@@ -60,29 +61,37 @@ class ScrollHandler {
       return;
     }
     this.animationWaiting = true;
-    requestAnimationFrame(() => {
-      if (!this.animationWaiting) {
-        return;
-      }
-      this.animationWaiting = false;
-      this.handle('animation');
-    });
+    requestAnimationFrame(this.handleAnimationImpl);
   }
+
+  private readonly handleAnimationImpl = () => {
+    if (!this.animationWaiting) {
+      return;
+    }
+    this.handle('animation');
+    this.animationWaiting = false;
+  };
 
   private handleImmediate() {
     if (this.immediateTimeout >= 0 || !this.has('immediate')) {
       return;
     }
-    this.immediateTimeout = self.setImmediate(() => {
-      if (this.immediateTimeout < 0) {
-        return;
-      }
-      this.immediateTimeout = -1;
-      this.handle('immediate');
-    });
+    this.immediateTimeout = self.setImmediate(this.handleImmediateImpl);
   }
 
+  private readonly handleImmediateImpl = () => {
+    if (this.immediateTimeout < 0) {
+      return;
+    }
+    this.handle('immediate');
+    this.immediateTimeout = -1;
+  };
+
   private handleTimeouts() {
+    if (!this.hasNumbers) {
+      return;
+    }
+
     const numbers = <number[]>Array.from(this.handlers.keys()).filter((d) => typeof d === 'number' && !this.timersWaiting.has(d));
     if (numbers.length === 0) {
       return;
@@ -109,6 +118,9 @@ class ScrollHandler {
     // convert mode
     if (mode === 'immediate' && typeof (self.setImmediate) !== 'function') {
       mode = 0;
+    }
+    if (typeof mode === 'number') {
+      this.hasNumbers = true;
     }
     if (this.handlers.has(mode)) {
       this.handlers.get(mode)!.push(handler);

@@ -55,10 +55,6 @@
     align-items: stretch;
     justify-content: stretch;
     scroll-behavior: auto;
-
-    > * {
-      flex: 0 0 auto;
-    }
   }
 
   .#{$engine_css_prefix}-thead,
