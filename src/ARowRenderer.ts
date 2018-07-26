@@ -5,6 +5,7 @@ import {IExceptionContext, range} from './logic';
 import {EScrollResult, IMixin, IMixinAdapter, IMixinClass} from './mixin';
 import {addScroll, removeScroll, IScrollInfo, IDelayedMode, defaultMode} from './internal';
 import {cssClass} from './styles';
+import {clear} from './internal';
 
 export declare type IRowRenderContext = IExceptionContext;
 
@@ -293,11 +294,12 @@ export abstract class ARowRenderer {
   }
 
   private removeAll() {
-    const arr = <HTMLElement[]>Array.from(this.body.children);
-    this.body.innerHTML = '';
-    arr.forEach((item) => {
-      this.recycle(item);
-    });
+    const b = this.body;
+    while (b.lastChild) {
+      const i = b.lastChild;
+      b.removeChild(i);
+      this.recycle(<HTMLElement>i);
+    }
   }
 
 
@@ -312,6 +314,7 @@ export abstract class ARowRenderer {
     items.forEach((item: HTMLElement, i) => {
       if (this.loading.has(item)) {
         // still loading
+        fragment.appendChild(item);
         return;
       }
       const abort = this.updateRow(item, i + first);
@@ -358,6 +361,7 @@ export abstract class ARowRenderer {
     if (to < from) {
       return;
     }
+    const b = this.body;
     // console.log('remove', fromBeginning, (to - from) + 1, this.body.childElementCount - ((to - from) + 1));
     for (let i = from; i <= to; ++i) {
       const item = <HTMLElement>(fromBeginning ? this.body.firstChild : this.body.lastChild);

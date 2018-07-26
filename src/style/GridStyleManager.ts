@@ -16,15 +16,6 @@ export function setTemplate(root: HTMLElement, id: string) {
   return root;
 }
 
-/**
- * sets the needed grid columns settings such that the given node is aligned with the given column
- * @param {HTMLElement} node the column node
- * @param {{index: number; id: string}} column the column meta data
- */
-export function setColumn(node: HTMLElement, column: {index: number, id: string}) {
-  node.dataset.id = column.id;
-}
-
 interface ISelectors {
   thead: string;
   tbody: string;
