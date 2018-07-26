@@ -227,6 +227,7 @@ export abstract class ACellAdapter<T extends IColumn> {
       const r = this.updateCell(item, row, columnObj);
       if (r && r !== item) {
         r.dataset.id = columnObj.id;
+        r.classList.add(cssClass('td'), this.style.cssClasses.td, cssClass(`td-${this.tableId}`));
       }
       return r ? r : item;
     }
@@ -437,6 +438,7 @@ export abstract class ACellAdapter<T extends IColumn> {
       const cell = this.updateCell(existing, rowIndex, col);
       if (cell && cell !== existing) {
         cell.dataset.id = col.id;
+        cell.classList.add(cssClass('td'), this.style.cssClasses.td, cssClass(`td-${this.tableId}`));
       }
       node.appendChild(cell || existing);
     };
