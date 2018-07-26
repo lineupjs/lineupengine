@@ -81,6 +81,8 @@
 
   .#{$engine_css_prefix}-tbody {
     position: absolute;
+    left: 0;
+    top: 0;
   }
 
   .#{$engine_css_prefix}-footer {

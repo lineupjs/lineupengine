@@ -229,10 +229,10 @@ export abstract class ARowRenderer {
       result = this.createRow(item, index);
     } else {
       item = this.body.ownerDocument.createElement('div');
+      item.classList.add(cssClass('tr'), cssClass(`tr-${this.idPrefix}`));
       result = this.createRow(item, index);
     }
     item.dataset.index = String(index);
-    item.classList.add(cssClass('tr'), cssClass(`tr-${this.idPrefix}`));
     if (this.options.striped) {
       item.classList.toggle(cssClass('even'), index % 2 === 0);
     }
