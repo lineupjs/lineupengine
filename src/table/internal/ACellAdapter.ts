@@ -410,18 +410,21 @@ export abstract class ACellAdapter<T extends IColumn> {
         this.addCellAtEnd(node, rowIndex, visible.first, visible.last, columns);
         break;
       default:
-        this.mergeColumns(node, rowIndex, <HTMLElement[]>Array.from(node.children));
+        this.mergeColumns(node, rowIndex);
         break;
     }
   }
 
-  private mergeColumns(node: HTMLElement, rowIndex: number, existing: HTMLElement[]) {
+  private mergeColumns(node: HTMLElement, rowIndex: number) {
     const {columns} = this.context;
     const visible = this.visibleColumns;
+    const ids = new Map<string, HTMLElement>();
 
-    clear(node);
-
-    const ids = new Map(existing.map((e) => (<[string, HTMLElement]>[e.dataset.id!, e])));
+    while (node.lastChild) {
+      const c = <HTMLElement>node.lastChild;
+      node.removeChild(c);
+      ids.set(c.dataset.id!, c);
+    }
 
     const updateImpl = (i: number) => {
       const col = columns[i];
@@ -438,7 +441,9 @@ export abstract class ACellAdapter<T extends IColumn> {
       node.appendChild(cell || existing);
     };
 
-    visible.frozen.forEach(updateImpl);
+    for (const frozen of visible.frozen) {
+      updateImpl(frozen);
+    }
     for (let i = visible.first; i <= visible.last; ++i) {
       updateImpl(i);
     }
