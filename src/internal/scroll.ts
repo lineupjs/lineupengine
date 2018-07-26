@@ -4,9 +4,6 @@ export declare type IDelayedMode = number | 'animation' | 'sync' | 'immediate';
 
 export const defaultMode: IDelayedMode = 'animation'; // Boolean((<any>window).chrome) ? 'animation' : 0, // animation frame on chrome;
 
-/**
- * @internal
- */
 export interface IScrollInfo {
   left: number;
   top: number;
