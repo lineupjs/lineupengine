@@ -310,7 +310,7 @@ export abstract class ARowRenderer {
     const first = this.visible.first;
     const fragment = this.fragment;
     const items = <HTMLElement[]>Array.from(this.body.children);
-    this.body.innerHTML = '';
+    clear(this.body);
     items.forEach((item: HTMLElement, i) => {
       if (this.loading.has(item)) {
         // still loading
@@ -333,7 +333,7 @@ export abstract class ARowRenderer {
     const rows = <HTMLElement[]>Array.from(this.body.children);
     const fragment = this.fragment;
     if (!inplace) {
-      this.body.innerHTML = '';
+      clear(this.body);
     }
     rows.forEach((row: HTMLElement, index) => {
       if (!row.classList.contains(cssClass('loading')) && row.dataset.animation !== 'update_remove' && row.dataset.animation !== 'hide') {
@@ -364,8 +364,8 @@ export abstract class ARowRenderer {
     const b = this.body;
     // console.log('remove', fromBeginning, (to - from) + 1, this.body.childElementCount - ((to - from) + 1));
     for (let i = from; i <= to; ++i) {
-      const item = <HTMLElement>(fromBeginning ? this.body.firstChild : this.body.lastChild);
-      item.remove();
+      const item = <HTMLElement>(fromBeginning ? b.firstChild : b.lastChild);
+      b.removeChild(item);
       this.recycle(item);
     }
   }
@@ -466,7 +466,7 @@ export abstract class ARowRenderer {
       const old = Object.assign({}, this.visible);
       //store the current rows in a lookup and clear
 
-      this.body.innerHTML = ``;
+      clear(this.body);
 
       prev.positions(old.first, Math.min(old.last, old.first + rows.length), this.visibleFirstRowPos, (i, key, pos) => {
         const n = rows[i];
