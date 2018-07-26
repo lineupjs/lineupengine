@@ -19,15 +19,6 @@
       background-color: white;
       z-index: 1;
     }
-
-    &.#{$engine_css_prefix}-striped > main > article {
-      &:not(.#{$engine_css_prefix}odd) > div:nth-child(even),
-      &.odd > div:nth-child(odd),
-      &:not(.#{$engine_css_prefix}odd) > div:nth-child(even) > .#{$engine_css_prefix}frozen,
-      &.odd > div:nth-child(odd) > .#{$engine_css_prefix}frozen {
-        background-color: $engine_even_color;
-      }
-    }
   }
 
   .#{$engine_css_prefix}-header {
@@ -85,6 +76,10 @@
     &:hover,
     &.#{$engine_css_prefix}-highlighted {
       @include collapsing-row-border($engine_row_outline_width, $engine_row_outline_color);
+    }
+
+    &.#{$engine_css_prefix}-even {
+      background-color: $engine_even_color;
     }
   }
 

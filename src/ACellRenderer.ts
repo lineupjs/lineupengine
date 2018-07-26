@@ -20,7 +20,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
 
   constructor(protected readonly root: HTMLElement, htmlId: string, options: Partial<IRowRendererOptions> = {}) {
     super(<HTMLElement>setTemplate(root, htmlId).querySelector('main > article'), options);
-    root.classList.add(cssClass());
+    root.classList.add(cssClass(), 'lineup-engine');
 
     this.style = new GridStyleManager(this.root, htmlId);
 

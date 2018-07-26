@@ -38,6 +38,11 @@ export interface IRowRendererOptions {
    * add the scrolling hint class while scrolling to give a user feedback
    */
   scrollingHint: boolean;
+
+  /**
+   * whether background striping should be enabled
+   */
+  striped: boolean;
 }
 
 /**
@@ -77,7 +82,8 @@ export abstract class ARowRenderer {
     minScrollDelta: 10,
     mixins: [],
     scrollingHint: false,
-    batchSize: 5
+    batchSize: 5,
+    striped: false
   };
 
   constructor(protected readonly body: HTMLElement, options: Partial<IRowRendererOptions> = {}) {
@@ -227,6 +233,9 @@ export abstract class ARowRenderer {
     }
     item.dataset.index = String(index);
     item.classList.add(cssClass('tr'), cssClass(`tr-${this.idPrefix}`));
+    if (this.options.striped) {
+      item.classList.toggle(cssClass('even'), index % 2 === 0);
+    }
     return {item, result};
   }
 
@@ -405,8 +414,6 @@ export abstract class ARowRenderer {
   protected updateOffset(firstRowPos: number) {
     this.visibleFirstRowPos = firstRowPos;
 
-    //odd start patch for correct background
-    this.body.classList.toggle(cssClass('odd'), this.visible.first % 2 === 1);
     this.updateSizer(firstRowPos);
   }
 
