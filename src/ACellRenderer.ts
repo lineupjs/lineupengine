@@ -31,6 +31,10 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
         return that.context;
       }
 
+      protected get body() {
+        return that.body;
+      }
+
       protected get lastScrollInfo() {
         return that.lastScrollInfo;
       }

@@ -143,30 +143,22 @@ export default class GridStyleManager extends StyleManager {
         transform: `translateX(${acc}${unit})`,
         width: `${c.width}${unit}`
       };
-      rules.delete(th);
-      rules.delete(td);
 
       if (c.frozen) {
         thStyles.left = `${frozen}px`;
+
+        this.updateRule(`${prefix}${td}F`, `.${cssSelectors.td}.${cssClass('shifted')}[data-id="${c.id}"]`, {
+          transform: `translateX(${acc - frozen}${unit})`,
+          left: `${frozen}px`
+        });
+        rules.delete(`${prefix}${td}F`);
         frozen += c.width;
-        // ruleStyle.transform = `translateX(${acc - frozen}${unit})`;
       }
 
-      // FIXME retest
-      // if (frozenShift !== 0 && c.frozen) {
-      //   // shift just for the body
-      //   this.updateRule(`${prefix}${ruleCounter++}`, `.${cssSelectors.td}[data-id="${c.id}"]`, {
-      //     width: `${c.width}${unit}`,
-      //     left: `${frozen + frozenShift}px`
-      //   });
-      //   ruleSelector = `.${cssSelectors.th}[data-id="${c.id}"]`;
-      //   ruleStyle.left = `${frozen}px`;
-      // }
-      // if (c.frozen) {
-      //   frozen += c.width; // ignore padding since it causes problems regarding white background + padding(i);
-      // }
-      this.updateRule(th, th, thStyles);
-      this.updateRule(td, td, tdStyles);
+      this.updateRule(`${prefix}${th}`, th, thStyles);
+      rules.delete(`${prefix}${th}`);
+      this.updateRule(`${prefix}${td}`, td, tdStyles);
+      rules.delete(`${prefix}${td}`);
       acc += c.width + padding(i);
     });
 

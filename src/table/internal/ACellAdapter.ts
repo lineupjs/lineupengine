@@ -32,6 +32,7 @@ export abstract class ACellAdapter<T extends IColumn> {
   };
   visibleFirstColumnPos = 0;
 
+  private horizontallyShifted: boolean = false;
   private readonly columnAdapter: IMixinAdapter;
   private readonly columnMixins: IMixin[];
 
@@ -115,6 +116,8 @@ export abstract class ACellAdapter<T extends IColumn> {
    * @returns {ICellRenderContext}
    */
   protected abstract get context(): ICellAdapterRenderContext<T>;
+
+  protected abstract get body(): HTMLElement;
 
   protected abstract get lastScrollInfo(): IScrollInfo | null;
 
@@ -226,17 +229,23 @@ export abstract class ACellAdapter<T extends IColumn> {
     const columnObj = columns[column];
     if (pool.length > 0) {
       const item = pool.pop()!;
-      const r = this.updateCell(item, row, columnObj);
+      const r = this.updateCell(item, row, columnObj) || item;
       if (r && r !== item) {
         r.dataset.id = columnObj.id;
         r.classList.add(cssClass('td'), this.style.cssClasses.td, cssClass(`td-${this.tableId}`));
       }
-      return r ? r : item;
+      this.updateShiftedState(r, columnObj);
+      return r;
     }
     const r = this.createCell(this.header.ownerDocument, row, columnObj);
     r.classList.add(cssClass('td'), this.style.cssClasses.td, cssClass(`td-${this.tableId}`));
     r.dataset.id = columnObj.id;
+    this.updateShiftedState(r, columnObj);
     return r;
+  }
+
+  protected updateShiftedState(node: HTMLElement, col: IColumn) {
+    node.classList.toggle(cssClass('shifted'), col.frozen && this.horizontallyShifted);
   }
 
   private recycleCell(item: HTMLElement, column: number) {
@@ -437,12 +446,13 @@ export abstract class ACellAdapter<T extends IColumn> {
         node.appendChild(cell);
         return;
       }
-      const cell = this.updateCell(existing, rowIndex, col);
+      const cell = this.updateCell(existing, rowIndex, col) || existing;
       if (cell && cell !== existing) {
         cell.dataset.id = col.id;
         cell.classList.add(cssClass('td'), this.style.cssClasses.td, cssClass(`td-${this.tableId}`));
       }
-      node.appendChild(cell || existing);
+      this.updateShiftedState(cell, col);
+      node.appendChild(cell);
     };
 
     for (const frozen of visible.frozen) {
@@ -450,6 +460,33 @@ export abstract class ACellAdapter<T extends IColumn> {
     }
     for (let i = visible.first; i <= visible.last; ++i) {
       updateImpl(i);
+    }
+  }
+
+  private updateShiftedStates() {
+    if (!this.context.columns.some((d) => d.frozen)) {
+      return;
+    }
+    const shifted = this.horizontallyShifted;
+    const clazz = cssClass('shifted');
+    if (shifted) {
+      const headers = Array.from(this.header.querySelectorAll(`.${cssClass('frozen')}:not(.${clazz})`));
+      const bodies = Array.from(this.body.querySelectorAll(`.${cssClass('frozen')}:not(.${clazz})`));
+      for (const item of headers) {
+        item.classList.add(clazz);
+      }
+      for (const item of bodies) {
+        item.classList.add(clazz);
+      }
+    } else {
+      const headers = Array.from(this.header.querySelectorAll(`.${cssClass('frozen')}.${clazz}`));
+      const bodies = Array.from(this.body.querySelectorAll(`.${cssClass('frozen')}.${clazz}`));
+      for (const item of headers) {
+        item.classList.remove(clazz);
+      }
+      for (const item of bodies) {
+        item.classList.remove(clazz);
+      }
     }
   }
 
@@ -480,6 +517,9 @@ export abstract class ACellAdapter<T extends IColumn> {
   }
 
   private onScrolledHorizontallyImpl(scrollLeft: number, clientWidth: number): EScrollResult {
+    const shiftingChanged = this.horizontallyShifted !== scrollLeft > 0;
+    this.horizontallyShifted = scrollLeft > 0;
+
     const {column} = this.context;
     const {first, last, firstRowPos} = range(scrollLeft, clientWidth, column.defaultRowHeight, column.exceptions, column.numberOfRows);
 
@@ -489,6 +529,9 @@ export abstract class ACellAdapter<T extends IColumn> {
 
     if ((first - visible.first) >= 0 && (last - visible.last) <= 0) {
       //nothing to do
+      if (shiftingChanged) {
+        this.updateShiftedStates();
+      }
       return EScrollResult.NONE;
     }
 
@@ -507,12 +550,14 @@ export abstract class ACellAdapter<T extends IColumn> {
       //some first rows missing and some last rows to much
       //console.log(`up added: ${visibleFirst - first + 1} removed: ${visibleLast - last + 1} ${first}:${last} ${offset}`);
       this.removeColumnFromEnd(last + 1, visible.last);
+      this.updateShiftedStates();
       this.addColumnAtStart(first, visible.first - 1, frozenShift);
       r = EScrollResult.SOME_TOP;
     } else {
       //console.log(`do added: ${last - visibleLast + 1} removed: ${first - visibleFirst + 1} ${first}:${last} ${offset}`);
       //some last rows missing and some first rows to much
       this.removeColumnFromStart(visible.first, first - 1, frozenShift);
+      this.updateShiftedStates();
       this.addColumnAtEnd(visible.last + 1, last);
       r = EScrollResult.SOME_BOTTOM;
     }

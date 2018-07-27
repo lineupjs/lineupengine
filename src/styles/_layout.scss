@@ -11,15 +11,6 @@
     align-items: stretch;
     align-content: stretch;
     box-sizing: border-box;
-
-    // TODO fixme
-    &.#{$engine_css_prefix}-shifted > header > article > .#{$engine_css_prefix}frozen,
-    &.#{$engine_css_prefix}-shifted > main > article > div > .#{$engine_css_prefix}frozen {
-      position: sticky;
-      left: 0;
-      background-color: white;
-      z-index: 1;
-    }
   }
 
   .#{$engine_css_prefix}-header {
@@ -83,6 +74,16 @@
     position: absolute;
     left: 0;
     top: 0;
+  }
+
+  .#{$engine_css_prefix}-td,
+  .#{$engine_css_prefix}-th {
+    &.#{$engine_css_prefix}-shifted.#{$engine_css_prefix}-frozen {
+      position: sticky;
+      left: 0;
+      background-color: white;
+      z-index: 1;
+    }
   }
 
   .#{$engine_css_prefix}-td {
