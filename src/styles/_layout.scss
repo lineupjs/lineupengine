@@ -65,8 +65,6 @@
   .#{$engine_css_prefix}-tr {
     display: flex;
     position: relative;
-    background: white;
-    background-clip: content-box;
     box-sizing: border-box;
     transform: translateZ(0);
 
@@ -76,6 +74,7 @@
     }
 
     &.#{$engine_css_prefix}-even {
+      background-clip: content-box;
       background-color: $engine_even_color;
     }
   }
