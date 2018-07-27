@@ -127,11 +127,10 @@ export default class GridStyleManager extends StyleManager {
     }
   }
 
-  private updateColumns(columns: IColumn[], padding: (index: number)=>number, cssSelectors: ISelectors, _frozenShift: number, unit: string = 'px') {
+  private updateColumns(columns: IColumn[], padding: (index: number)=>number, cssSelectors: ISelectors, frozenShift: number, unit: string = 'px') {
     const prefix = `__col${cssSelectors.td}_`;
     const rules = new Set(this.ruleNames.filter((d) => d.startsWith(prefix)));
 
-    let frozen = 0;
     let acc = 0;
     columns.forEach((c, i) => {
       const th = `.${cssSelectors.th}[data-id="${c.id}"]`;
@@ -145,14 +144,13 @@ export default class GridStyleManager extends StyleManager {
       };
 
       if (c.frozen) {
-        thStyles.left = `${frozen}px`;
+        thStyles.left = `${acc}px`;
 
         this.updateRule(`${prefix}${td}F`, `.${cssSelectors.td}.${cssClass('shifted')}[data-id="${c.id}"]`, {
-          transform: `translateX(${acc - frozen}${unit})`,
-          left: `${frozen}px`
+          transform: `translateX(0)`,
+          left: `${acc + frozenShift}${unit}`
         });
         rules.delete(`${prefix}${td}F`);
-        frozen += c.width;
       }
 
       this.updateRule(`${prefix}${th}`, th, thStyles);

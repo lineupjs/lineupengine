@@ -13,7 +13,7 @@ export default class TestRenderer extends ACellRenderer<Column<number>> {
 
     const columns: Column<number>[] = [];
     for (let i = 0; i < numberOfColumns; ++i) {
-      columns.push(new Column(i, i.toString(36), i === 0));
+      columns.push(new Column(i, i.toString(36), i === 0 || i === 2));
     }
     this._context = Object.assign({
       columns,
