@@ -182,7 +182,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
    */
   protected updateColumnWidths() {
     const context = this.context;
-    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, -this.cell.leftShift(), this.idPrefix);
+    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, context.padding, -this.cell.leftShift(), this.idPrefix);
   }
 
   protected updateSizer(firstRowPos: number) {

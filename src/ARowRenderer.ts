@@ -83,7 +83,7 @@ export abstract class ARowRenderer {
     minScrollDelta: 10,
     mixins: [],
     scrollingHint: false,
-    batchSize: 5,
+    batchSize: 10,
     striped: false
   };
 

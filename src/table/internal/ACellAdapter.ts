@@ -94,7 +94,7 @@ export abstract class ACellAdapter<T extends IColumn> {
 
   init() {
     const context = this.context;
-    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, 0, this.tableId);
+    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, context.padding, 0, this.tableId);
 
     context.columns.forEach(() => {
       //init pool
@@ -320,7 +320,7 @@ export abstract class ACellAdapter<T extends IColumn> {
   recreate(left: number, width: number) {
     const context = this.context;
 
-    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, -this.leftShift(), this.tableId);
+    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, context.padding, -this.leftShift(), this.tableId);
 
 
     this.clearPool();
@@ -365,7 +365,7 @@ export abstract class ACellAdapter<T extends IColumn> {
     this.visibleFirstColumnPos = firstColumnPos;
     if (changed) {
       const context = this.context;
-      this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, -this.leftShift(), this.tableId);
+      this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, context.padding, -this.leftShift(), this.tableId);
     }
   }
 

@@ -12,6 +12,7 @@
     align-content: stretch;
     box-sizing: border-box;
 
+    // TODO fixme
     &.#{$engine_css_prefix}-shifted > header > article > .#{$engine_css_prefix}frozen,
     &.#{$engine_css_prefix}-shifted > main > article > div > .#{$engine_css_prefix}frozen {
       position: sticky;
@@ -57,12 +58,12 @@
     scroll-behavior: auto;
   }
 
-  .#{$engine_css_prefix}-thead,
-  .#{$engine_css_prefix}-tr {
+  .#{$engine_css_prefix}-thead {
     display: flex;
   }
 
   .#{$engine_css_prefix}-tr {
+    display: flex;
     position: relative;
     background: white;
     background-clip: content-box;
@@ -83,6 +84,13 @@
     position: absolute;
     left: 0;
     top: 0;
+  }
+
+  .#{$engine_css_prefix}-td {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
   }
 
   .#{$engine_css_prefix}-footer {

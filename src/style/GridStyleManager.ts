@@ -100,14 +100,15 @@ export default class GridStyleManager extends StyleManager {
    * @param {string} tableId optional tableId in case of multiple tables within the same engine
    * @param {string} unit
    */
-  update(defaultRowHeight: number, columns: IColumn[], frozenShift: number, tableId: string, unit: string = 'px') {
+  update(defaultRowHeight: number, columns: IColumn[], padding: (index: number)=>number, frozenShift: number, tableId: string, unit: string = 'px') {
     const selectors = tableCSSClasses(tableId);
 
     this.updateRule(`__heightsRule${selectors.tr}`, `.${selectors.tr}`, {
-      height: `${defaultRowHeight}px`
+      height: `${defaultRowHeight}px`,
+      width: `${columns.reduce((a, b, i) => a + b.width + padding(i), 0)}${unit}`
     });
 
-    this.updateColumns(columns, selectors, frozenShift, unit);
+    this.updateColumns(columns, padding, selectors, frozenShift, unit);
   }
 
   /**
@@ -117,7 +118,6 @@ export default class GridStyleManager extends StyleManager {
   remove(tableId: string) {
     const selectors = tableCSSClasses(tableId);
     this.deleteRule(`__heightsRule${selectors.tr}`);
-    this.deleteRule(`__widthRule${selectors.tr}`);
 
     const prefix = `__col${selectors.td}_`;
     const rules = this.ruleNames.reduce((a, b) => a + (b.startsWith(prefix) ? 1 : 0), 0);
@@ -127,38 +127,50 @@ export default class GridStyleManager extends StyleManager {
     }
   }
 
-  private updateColumns(columns: IColumn[], cssSelectors: ISelectors, frozenShift: number, unit: string = 'px') {
+  private updateColumns(columns: IColumn[], padding: (index: number)=>number, cssSelectors: ISelectors, _frozenShift: number, unit: string = 'px') {
     const prefix = `__col${cssSelectors.td}_`;
-    const rules = this.ruleNames.reduce((a, b) => a + (b.startsWith(prefix) ? 1 : 0), 0);
-
+    const rules = new Set(this.ruleNames.filter((d) => d.startsWith(prefix)));
 
     let frozen = 0;
-    let ruleCounter = 0;
-    columns.forEach((c) => {
-      let ruleSelector = `.${cssSelectors.td}[data-id="${c.id}"], .${cssSelectors.th}[data-id="${c.id}"]`;
-      const ruleStyle: Partial<CSSStyleDeclaration> = {
+    let acc = 0;
+    columns.forEach((c, i) => {
+      const th = `.${cssSelectors.th}[data-id="${c.id}"]`;
+      const thStyles: Partial<CSSStyleDeclaration> = {
         width: `${c.width}${unit}`
       };
+      const td = `.${cssSelectors.td}[data-id="${c.id}"]`;
+      const tdStyles: Partial<CSSStyleDeclaration> = {
+        transform: `translateX(${acc}${unit})`,
+        width: `${c.width}${unit}`
+      };
+      rules.delete(th);
+      rules.delete(td);
+
       if (c.frozen) {
-        ruleStyle.left = `${frozen}px`;
+        thStyles.left = `${frozen}px`;
+        frozen += c.width;
+        // ruleStyle.transform = `translateX(${acc - frozen}${unit})`;
       }
-      if (frozenShift !== 0 && c.frozen) {
-        // shift just for the body
-        this.updateRule(`${prefix}${ruleCounter++}`, `.${cssSelectors.tr}[data-id="${c.id}"]`, {
-          width: `${c.width}${unit}`,
-          left: `${frozen + frozenShift}px`
-        });
-        ruleSelector = `.${cssSelectors.th}[data-id="${c.id}"]`;
-        ruleStyle.left = `${frozen}px`;
-      }
-      if (c.frozen) {
-        frozen += c.width; // ignore padding since it causes problems regarding white background + padding(i);
-      }
-      this.updateRule(`${prefix}${ruleCounter++}`, ruleSelector, ruleStyle);
+
+      // FIXME retest
+      // if (frozenShift !== 0 && c.frozen) {
+      //   // shift just for the body
+      //   this.updateRule(`${prefix}${ruleCounter++}`, `.${cssSelectors.td}[data-id="${c.id}"]`, {
+      //     width: `${c.width}${unit}`,
+      //     left: `${frozen + frozenShift}px`
+      //   });
+      //   ruleSelector = `.${cssSelectors.th}[data-id="${c.id}"]`;
+      //   ruleStyle.left = `${frozen}px`;
+      // }
+      // if (c.frozen) {
+      //   frozen += c.width; // ignore padding since it causes problems regarding white background + padding(i);
+      // }
+      this.updateRule(th, th, thStyles);
+      this.updateRule(td, td, tdStyles);
+      acc += c.width + padding(i);
     });
-    for (let i = ruleCounter; i < rules; ++i) {
-      this.deleteRule(`${prefix}${i - 1}`);
-    }
+
+    rules.forEach((d) => this.deleteRule(d));
   }
 }
 
