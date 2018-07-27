@@ -304,13 +304,18 @@ export abstract class ARowRenderer {
     return this.proxy(item, result);
   }
 
-  private removeAll() {
+  private removeAll(perform = true) {
     const b = this.body;
+    const torecycle: HTMLElement[] = [];
     while (b.lastChild) {
-      const i = b.lastChild;
-      b.removeChild(i);
-      this.recycle(<HTMLElement>i);
+      const i = <HTMLElement>b.lastChild;
+      if (perform) {
+        b.removeChild(i);
+        this.recycle(i);
+      }
+      torecycle.push(i);
     }
+    return torecycle;
   }
 
 
@@ -360,49 +365,57 @@ export abstract class ARowRenderer {
     }
   }
 
-  private removeFromBeginning(from: number, to: number) {
-    return this.remove(from, to, true);
+  private removeFromBeginning(from: number, to: number, perform = true) {
+    return this.remove(from, to, true, perform);
   }
 
-  private removeFromBottom(from: number, to: number) {
-    return this.remove(from, to, false);
+  private removeFromBottom(from: number, to: number, perform = true) {
+    return this.remove(from, to, false, perform);
   }
 
-  private remove(from: number, to: number, fromBeginning: boolean) {
+  private remove(from: number, to: number, fromBeginning: boolean, perform = true) {
     if (to < from) {
       return;
     }
     const b = this.body;
+    const torecycle: HTMLElement[] = [];
     // console.log('remove', fromBeginning, (to - from) + 1, this.body.childElementCount - ((to - from) + 1));
     for (let i = from; i <= to; ++i) {
       const item = <HTMLElement>(fromBeginning ? b.firstChild : b.lastChild);
-      b.removeChild(item);
-      this.recycle(item);
+      if (perform) {
+        b.removeChild(item);
+        this.recycle(item);
+      }
+      torecycle.push(item);
     }
+    return torecycle;
   }
 
-  private addAtBeginning(from: number, to: number) {
+  private addAtBeginning(from: number, to: number, perform = true) {
     if (to < from) {
       return;
     }
     // console.log('add', (to - from) + 1, this.body.childElementCount + ((to - from) + 1));
-    if (from === to) {
+    const fragment = this.fragment;
+    if (from === to && perform) {
       this.body.insertBefore(this.create(from), this.body.firstChild);
       return;
     }
-    const fragment = this.fragment;
     for (let i = from; i <= to; ++i) {
       fragment.appendChild(this.create(i));
     }
-    this.body.insertBefore(fragment, this.body.firstChild);
+    if (perform) {
+      this.body.insertBefore(fragment, this.body.firstChild);
+    }
+    return fragment;
   }
 
-  private addAtBottom(from: number, to: number) {
+  private addAtBottom(from: number, to: number, perform = true) {
     if (to < from) {
       return;
     }
     // console.log('add_b', (to - from) + 1, this.body.childElementCount + ((to - from) + 1));
-    if (from === to) {
+    if (from === to && perform) {
       this.body.appendChild(this.create(from));
       return;
     }
@@ -410,7 +423,10 @@ export abstract class ARowRenderer {
     for (let i = from; i <= to; ++i) {
       fragment.appendChild(this.create(i));
     }
-    this.body.appendChild(fragment);
+    if (perform) {
+      this.body.appendChild(fragment);
+    }
+    return fragment;
   }
 
   protected updateOffset(firstRowPos: number) {
@@ -761,20 +777,25 @@ export abstract class ARowRenderer {
 
     let r: EScrollResult = EScrollResult.SOME;
 
+    let torecycle: HTMLElement[]|undefined;
+    let toadd: DocumentFragment|undefined;
+    let toaddBottom = false;
+
     if (first > visible.last || last < visible.first) {
       //no overlap, clean and draw everything
       //console.log(`ff added: ${last - first + 1} removed: ${visibleLast - visibleFirst + 1} ${first}:${last} ${offset}`);
       //removeRows(visibleFirst, visibleLast);
 
-      this.removeAll();
-      this.addAtBottom(first, last);
+      torecycle = this.removeAll(false);
+      toadd = this.addAtBottom(first, last, false);
+      toaddBottom = true;
       r = EScrollResult.ALL;
     } else if (first < visible.first) {
       //some first rows missing and some last rows to much
       //console.log(`up added: ${visibleFirst - first + 1} removed: ${visibleLast - last + 1} ${first}:${last} ${offset}`);
       const toRemove = visible.last - (last + 1);
       if (toRemove >= this.options.batchSize) {
-        this.removeFromBottom(last + 1, visible.last);
+        torecycle = this.removeFromBottom(last + 1, visible.last, false);
       } else {
         last = visible.last;
       }
@@ -782,14 +803,15 @@ export abstract class ARowRenderer {
       const shift = this.shiftFirst(first, firstRowPos, visible.first - 1 - first);
       first = shift.first;
       firstRowPos = shift.firstRowPos;
-      this.addAtBeginning(first, visible.first - 1);
+      toadd = this.addAtBeginning(first, visible.first - 1, false);
+      toaddBottom = false;
       r = EScrollResult.SOME_TOP;
     } else {
       //console.log(`do added: ${last - visibleLast + 1} removed: ${first - visibleFirst + 1} ${first}:${last} ${offset}`);
       //some last rows missing and some first rows to much
       const toRemove = first - 1 - visible.first;
       if (toRemove >= this.options.batchSize) {
-        this.removeFromBeginning(visible.first, first - 1);
+        torecycle = this.removeFromBeginning(visible.first, first - 1, false);
       } else {
         first = visible.first;
         firstRowPos = this.visibleFirstRowPos;
@@ -797,7 +819,8 @@ export abstract class ARowRenderer {
 
       last = this.shiftLast(last, last - visible.last + 1);
 
-      this.addAtBottom(visible.last + 1, last);
+      toadd = this.addAtBottom(visible.last + 1, last, false);
+      toaddBottom = true;
       r = EScrollResult.SOME_BOTTOM;
     }
 
@@ -805,7 +828,25 @@ export abstract class ARowRenderer {
     visible.last = last;
 
     this.updateOffset(firstRowPos);
+    this.manipulate(torecycle, toadd, toaddBottom);
     return r;
+  }
+
+  private manipulate(toRecycle: HTMLElement[]|undefined, toAdd: DocumentFragment|undefined, bottom: boolean) {
+    if (toRecycle) {
+      for(const item of toRecycle) {
+        item.remove();
+        this.recycle(item);
+      }
+    }
+    if (!toAdd) {
+      return;
+    }
+    if (bottom) {
+      this.body.appendChild(toAdd);
+    } else {
+      this.body.insertBefore(toAdd, this.body.firstChild);
+    }
   }
 }
 
