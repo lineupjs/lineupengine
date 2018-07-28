@@ -33,10 +33,10 @@
   }
 
   article.#{$engine_css_prefix}-row-animation {
-    /**
-    defaults
-     */
     > .#{$engine_css_prefix}-tr {
+      /**
+      defaults
+      */
       overflow: hidden !important;
       transition: all $engine_animation_update_duration $engine_animation_ease;
       will-change: transform, opacity, height;
@@ -50,10 +50,10 @@
       }
     }
 
-    /**
-    in case of hiding shift update and show
-     */
     &.#{$engine_css_prefix}-hide-animation > .#{$engine_css_prefix}-tr {
+      /**
+      in case of hiding shift update and show
+      */
       transition: all $engine_animation_update_duration $engine_animation_ease $engine_animation_hide_duration + $engine_animation_pause;
 
       &[data-animation=hide] { // since order
@@ -65,20 +65,20 @@
       }
     }
 
-    /**
-    in case of update shift show
-     */
     &.#{$engine_css_prefix}-update-animation > .#{$engine_css_prefix}-tr {
       &[data-animation=show] {
+        /**
+        in case of update shift show
+        */
         transition: all $engine_animation_show_duration $engine_animation_ease $engine_animation_update_duration + $engine_animation_pause;
       }
     }
 
-    /**
-    in case of both update and hide shift show twice
-     */
     &.#{$engine_css_prefix}-update-animation.#{$engine_css_prefix}-hide-animation > .#{$engine_css_prefix}-tr {
       &[data-animation=show] {
+        /**
+        in case of both update and hide shift show twice
+        */
         transition: all $engine_animation_show_duration $engine_animation_ease $engine_animation_hide_duration + $engine_animation_pause + $engine_animation_update_duration + $engine_animation_pause;
       }
     }
