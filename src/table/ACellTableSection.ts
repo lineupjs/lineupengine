@@ -1,5 +1,5 @@
 import {IAnimationContext} from '../animation';
-import ARowRenderer, {IRowRendererOptions} from '../ARowRenderer';
+import ARowRenderer, {IRowRendererOptions, setTransform} from '../ARowRenderer';
 import {EScrollResult, IMixinClass} from '../mixin';
 import GridStyleManager from '../style/GridStyleManager';
 import {IColumn} from '../style';
@@ -85,7 +85,7 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
   }
 
   protected updateSizer(firstRowPos: number) {
-    this.body.style.transform = `translate(${this.cell.leftShift().toFixed(0)}px, ${firstRowPos.toFixed(0)}px)`;
+    setTransform(this.body, this.cell.leftShift().toFixed(0), firstRowPos.toFixed(0));
     // no sizer update since centrally managed
   }
 

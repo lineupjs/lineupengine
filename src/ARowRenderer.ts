@@ -27,8 +27,17 @@ export interface IRowRendererOptions {
    */
   minScrollDelta: number;
 
-  // min number of rows that should be added or removed
+  /**
+   * min number of rows that should be added or removed
+   * @default 10
+   */
   batchSize: number;
+
+  /**
+   * number of pixels the viewport is virtually larger
+   * @default 200
+   */
+  viewportOversize: number;
 
   /**
    * class of mixins to use for optimized rendering
@@ -84,7 +93,8 @@ export abstract class ARowRenderer {
     mixins: [],
     scrollingHint: false,
     batchSize: 10,
-    striped: false
+    striped: false,
+    viewportOversize: 200
   };
 
   constructor(protected readonly body: HTMLElement, options: Partial<IRowRendererOptions> = {}) {
@@ -214,9 +224,7 @@ export abstract class ARowRenderer {
   }
 
   private static cleanUp(item: HTMLElement) {
-    if (item.style.height) {
-      item.style.height = null;
-    }
+    item.style.height = null;
   }
 
   private select(index: number): {item: HTMLElement, result: IAbortAblePromise<void> | void} {
@@ -380,13 +388,17 @@ export abstract class ARowRenderer {
     const b = this.body;
     const torecycle: HTMLElement[] = [];
     // console.log('remove', fromBeginning, (to - from) + 1, this.body.childElementCount - ((to - from) + 1));
+    let act = <HTMLElement>(fromBeginning ? b.firstChild : b.lastChild);
     for (let i = from; i <= to; ++i) {
-      const item = <HTMLElement>(fromBeginning ? b.firstChild : b.lastChild);
+      const item = act;
+      act = <HTMLElement>(fromBeginning ? act.nextSibling : act.previousSibling);
+
       if (perform) {
         b.removeChild(item);
         this.recycle(item);
       }
       torecycle.push(item);
+
     }
     return torecycle;
   }
@@ -437,8 +449,8 @@ export abstract class ARowRenderer {
 
   protected updateSizer(firstRowPos: number) {
     const {totalHeight} = this.context;
-    this.body.style.transform = `translate(0, ${firstRowPos.toFixed(0)}px)`;
-    this.bodySizer.style.transform = `translate(0, ${Math.max(0, totalHeight - 1).toFixed(0)}px)`;
+    setTransform(this.body, 0, firstRowPos.toFixed(0));
+    setTransform(this.bodySizer, 0, Math.max(0, totalHeight - 1).toFixed(0));
   }
 
   /**
@@ -727,7 +739,11 @@ export abstract class ARowRenderer {
    * @return {EScrollResult} full in case of a full rebuild or partial update
    */
   protected onScrolledVertically(scrollTop: number, clientHeight: number, isGoingDown: boolean): EScrollResult {
-    const scrollResult = this.onScrolledImpl(scrollTop, clientHeight);
+    const shift = this.options.viewportOversize;
+
+    const shiftTop = Math.max(0, scrollTop - shift);
+
+    const scrollResult = this.onScrolledImpl(shiftTop, clientHeight + shift + (scrollTop - shiftTop));
     for (const mixin of this.mixins) {
       mixin.onScrolled(isGoingDown, scrollResult);
     }
@@ -851,3 +867,13 @@ export abstract class ARowRenderer {
 }
 
 export default ARowRenderer;
+
+
+export function setTransform(elem: HTMLElement, x: number|string, y: number|string) {
+  const text = `translate(${x}px, ${y}px)`;
+  const anyelem = <any>elem;
+  if (anyelem.__transform__ === text) {
+    return;
+  }
+  anyelem.__transform__ = elem.style.transform = text;
+}

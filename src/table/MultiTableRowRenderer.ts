@@ -1,6 +1,7 @@
 import {GridStyleManager, tableIds, tableCSSClasses} from '../style';
 import {addScroll, defaultMode} from '../internal';
 import {cssClass} from '../styles';
+import {setTransform} from '../ARowRenderer';
 
 /**
  * basic interface of a table section
@@ -131,8 +132,9 @@ export default class MultiTableRowRenderer {
 
     const maxHeight = Math.max(0, ...this.sections.map((d) => d.height));
     const total = this.sections.reduce((a, c) => a + c.width + this.options.columnPadding, 0);
-    headerFooter.style.transform = `translate(${total}px,0)`;
-    bodyFooter.style.transform = `translate(${total}px, ${maxHeight}px)`;
+
+    setTransform(headerFooter, total, 0);
+    setTransform(bodyFooter, total, maxHeight);
   }
 
   destroy() {

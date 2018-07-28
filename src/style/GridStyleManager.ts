@@ -101,11 +101,18 @@ export default class GridStyleManager extends StyleManager {
    * @param {string} unit
    */
   update(defaultRowHeight: number, columns: IColumn[], padding: (index: number)=>number, frozenShift: number, tableId: string, unit: string = 'px') {
+    const ids = tableIds(tableId);
     const selectors = tableCSSClasses(tableId);
+
+    const total = `${columns.reduce((a, b, i) => a + b.width + padding(i), 0)}${unit}`;
 
     this.updateRule(`__heightsRule${selectors.tr}`, `.${selectors.tr}`, {
       height: `${defaultRowHeight}px`,
-      width: `${columns.reduce((a, b, i) => a + b.width + padding(i), 0)}${unit}`
+      width: total
+    });
+
+    this.updateRule(`__heightsRule${selectors.tbody}`, `#${ids.tbody}`, {
+      width: total
     });
 
     this.updateColumns(columns, padding, selectors, frozenShift, unit);
@@ -118,6 +125,7 @@ export default class GridStyleManager extends StyleManager {
   remove(tableId: string) {
     const selectors = tableCSSClasses(tableId);
     this.deleteRule(`__heightsRule${selectors.tr}`);
+    this.deleteRule(`__heightsRule${selectors.tbody}`);
 
     const prefix = `__col${selectors.td}_`;
     const rules = this.ruleNames.reduce((a, b) => a + (b.startsWith(prefix) ? 1 : 0), 0);

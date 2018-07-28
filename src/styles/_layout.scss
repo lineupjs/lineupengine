@@ -74,6 +74,8 @@
     position: absolute;
     left: 0;
     top: 0;
+    height: 0;
+    overflow: visible;
   }
 
   .#{$engine_css_prefix}-td,
