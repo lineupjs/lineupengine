@@ -205,11 +205,11 @@ export abstract class ARowRenderer {
       old = act;
       this.onScrolledVertically(act.top, act.height, isGoingDown);
       if (this.options.scrollingHint) {
-        scroller.classList.remove(cssClass('scrolling'));
+        this.body.classList.remove(cssClass('scrolling'));
       }
     });
     if (this.options.scrollingHint) {
-      addScroll(scroller, 'animation', () => scroller.classList.add(cssClass('scrolling')));
+      addScroll(scroller, 'animation', () => this.body.classList.add(cssClass('scrolling')));
     }
     this.recreate();
   }
