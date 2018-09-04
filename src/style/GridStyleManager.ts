@@ -42,8 +42,13 @@ export default class GridStyleManager extends StyleManager {
     const headerScroller = <HTMLElement>root.querySelector('header');
     const bodyScroller = <HTMLElement>root.querySelector('main');
 
-    let oldDelta = 0;
-    let oldDeltaScroll = 0;
+    // async since style needs to be added to dom first
+    self.setTimeout(() => {
+      const {width} = measureScrollbar(root);
+      this.updateRule('__scollBarFix2', `${this.hashedId} > header > :last-child {
+        border-right: ${width}px solid transparent;
+      }`);
+    }, 20);
 
     // update frozen and sync header with body
     addScroll(bodyScroller, 'animation', (act) => {
@@ -52,33 +57,7 @@ export default class GridStyleManager extends StyleManager {
       if (old !== newValue) {
         headerScroller.scrollLeft = newValue;
       }
-
       root.classList.toggle('le-shifted', act.left > 0);
-
-      // shift for different scrollbar in header and body
-      const delta = act.width - headerScroller.clientWidth;
-      if (Math.abs(delta) < 2) { // current value is good
-        return;
-      }
-      const deltaScroll = bodyScroller.scrollWidth - headerScroller.scrollWidth;
-
-      if (oldDelta === delta && oldDeltaScroll === deltaScroll) {
-        return;
-      }
-      oldDelta = delta;
-      oldDeltaScroll = deltaScroll;
-
-      self.setTimeout(() => {
-        this.updateRule('__scollBarFix', `
-          ${this.hashedId} > header {
-            margin-right: ${-delta}px;
-          }
-        `, false);
-        this.updateRule('__scollBarFix2', `
-          ${this.hashedId} > header > :last-child {
-            border-right: ${deltaScroll}px solid transparent;
-          }`);
-      }, 0);
     });
   }
 
@@ -173,4 +152,21 @@ export default class GridStyleManager extends StyleManager {
       this.deleteRule(`${prefix}${i}`, false);
     }
   }
+}
+/**
+ * based on Slick grid implementation
+ * @param doc
+ */
+function measureScrollbar(root: HTMLElement) {
+  root.insertAdjacentHTML('beforeend', `
+    <div class="lineup-engine-scrollbar-tester"><div></div></div>
+  `);
+  const elem = <HTMLElement>root.lastElementChild!;
+
+  const width = elem.offsetWidth - elem.clientWidth;
+  const height = elem.offsetHeight - elem.clientHeight;
+
+  elem.remove();
+
+  return { width, height };
 }
