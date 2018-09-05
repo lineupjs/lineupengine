@@ -1,4 +1,3 @@
-/// <reference types="jasmine" />
 import abortAble, {ABORTED, isAbortAble} from '../src/abortAble';
 
 
