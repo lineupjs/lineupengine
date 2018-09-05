@@ -100,7 +100,7 @@
     }
   }
 
-  .#{$engine_css_prefix}-scrollbar-tester {
+  #{$engine_selector}-scrollbar-tester {
     position: absolute;
     top: -10000px;
     left: -10000px;
