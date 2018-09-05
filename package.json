@@ -19,7 +19,7 @@
   "jsnext:main": "build/lineupengine.js",
   "module": "build/lineupengine.js",
   "unpkg": "build/lineupengine.js",
-  "types": "build/src/index.d.ts",
+  "types": "src/index.d.ts",
   "sideEffects": [
     "*.scss",
     "*.css"
