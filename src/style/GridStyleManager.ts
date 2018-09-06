@@ -74,7 +74,7 @@ export default class GridStyleManager extends StyleManager {
     // async since style needs to be added to dom first
     self.setTimeout(() => {
       const {width} = measureScrollbar(root);
-      this.updateRule('__scollBarFix2', `#header-${this.id} > :last-child`, {
+      this.updateRule('__scollBarFix2', `#header-${this.id} > article:last-of-type`, {
         borderRight: `${width}px solid transparent`
       });
     }, 20);
