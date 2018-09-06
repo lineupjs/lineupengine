@@ -76,6 +76,14 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
     return this.context.column.totalHeight;
   }
 
+  protected get visibleColumns() {
+    return this.cell.visibleColumns;
+  }
+
+  protected get visibleFirstColumnPos() {
+    return this.cell.visibleFirstColumnPos;
+  }
+
   get height() {
     return this.context.totalHeight;
   }
@@ -85,8 +93,12 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
   }
 
   protected updateSizer(firstRowPos: number) {
-    setTransform(this.body, this.cell.leftShift().toFixed(0), firstRowPos.toFixed(0));
+    this.updateShifts(firstRowPos, this.cell.leftShift());
     // no sizer update since centrally managed
+  }
+
+  protected updateShifts(top: number, left: number) {
+    setTransform(this.body, left.toFixed(0), top.toFixed(0));
   }
 
   set hidden(value: boolean) {
@@ -141,7 +153,9 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
   }
 
   protected onScrolledHorizontally(scrollLeft: number, clientWidth: number, isGoingRight: boolean) {
-    return this.cell.onScrolledHorizontally(scrollLeft, clientWidth, isGoingRight);
+    const r = this.cell.onScrolledHorizontally(scrollLeft, clientWidth, isGoingRight);
+    this.updateSizer(this.visibleFirstRowPos);
+    return r;
   }
 
   /**

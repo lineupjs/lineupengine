@@ -1,4 +1,3 @@
-/// <reference types="jasmine" />
 import {
   uniformContext, nonUniformContext, range, randomContext, IRowHeightException,
   IRowHeightExceptionLookup, IVisibleRange
@@ -6,16 +5,16 @@ import {
 
 describe('logic', () => {
   function expectException(ex: IRowHeightException, index: number, y: number, height: number) {
-    expect(ex.index).toBe(index, 'index failed');
-    expect(ex.y).toBe(y, 'y failed');
-    expect(ex.height).toBe(height, 'height failed');
-    expect(ex.y2).toBe(y + height, 'y2 failed');
+    expect(ex.index).toBe(index);
+    expect(ex.y).toBe(y);
+    expect(ex.height).toBe(height);
+    expect(ex.y2).toBe(y + height);
   }
 
   function expectExceptionLookup(ex: IRowHeightExceptionLookup, index: number, height: number) {
-    expect(ex.has(index)).toBe(true, 'has failed');
-    expect(ex.get(index)).toBe(height, 'height failed');
-    expect(ex.size).toBeGreaterThanOrEqual(1, 'size failed');
+    expect(ex.has(index)).toBe(true);
+    expect(ex.get(index)).toBe(height);
+    expect(ex.size).toBeGreaterThanOrEqual(1);
   }
 
   function expectExceptionLookups(ex: IRowHeightExceptionLookup, ...indexAndHeight: number[]) {
@@ -31,7 +30,7 @@ describe('logic', () => {
       return acc;
     }, <{ index: number, height: number }[]>[]);
 
-    expect(ex.size).toBe(checks.length, 'total size failed');
+    expect(ex.size).toBe(checks.length);
 
     for (const check of checks) {
       expectExceptionLookup(ex, check.index, check.height);
@@ -102,10 +101,10 @@ describe('logic', () => {
   });
 
   function expectRange(r: IVisibleRange, first: number, last: number, firstRowPos: number, endPos: number) {
-    expect(r.first).toBe(first, 'first failed');
-    expect(r.last).toBe(last, 'last failed');
-    expect(r.firstRowPos).toBe(firstRowPos, 'firstRowsPos failed');
-    expect(r.endPos).toBe(endPos, 'endPos failed');
+    expect(r.first).toBe(first);
+    expect(r.last).toBe(last);
+    expect(r.firstRowPos).toBe(firstRowPos);
+    expect(r.endPos).toBe(endPos);
   }
 
   describe('range', () => {

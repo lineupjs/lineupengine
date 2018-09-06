@@ -87,7 +87,6 @@ export default class GridStyleManager extends StyleManager {
       if (old !== newValue) {
         old = headerScroller.scrollLeft = newValue;
       }
-
       root.classList.toggle(cssClass('shifted'), act.left > 0);
     });
   }
@@ -171,16 +170,16 @@ export default class GridStyleManager extends StyleManager {
     rules.forEach((d) => this.deleteRule(d));
   }
 }
-
 /**
  * based on Slick grid implementation
  * @param doc
  */
 function measureScrollbar(root: HTMLElement) {
-  root.insertAdjacentHTML('beforeend', `
+  const body = root.ownerDocument.body;
+  body.insertAdjacentHTML('beforeend', `
     <div class="${cssClass('scrollbar-tester')}"><div></div></div>
   `);
-  const elem = <HTMLElement>root.lastElementChild!;
+  const elem = <HTMLElement>body.lastElementChild!;
 
   const width = elem.offsetWidth - elem.clientWidth;
   const height = elem.offsetHeight - elem.clientHeight;

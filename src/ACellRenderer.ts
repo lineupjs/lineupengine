@@ -88,6 +88,14 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
     return <HTMLElement>this.root.querySelector('header');
   }
 
+  protected get visibleColumns() {
+    return this.cell.visibleColumns;
+  }
+
+  protected get visibleFirstColumnPos() {
+    return this.cell.visibleFirstColumnPos;
+  }
+
   /**
    * add another column mixin
    * @param {IMixinClass} mixinClass mixing class to instantiate
@@ -194,8 +202,12 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
     const totalHeight = ctx.totalHeight;
     const totalWidth = ctx.column.totalHeight;
 
-    this.body.style.transform = `translate(${this.cell.leftShift().toFixed(0)}px, ${firstRowPos.toFixed(0)}px)`;
+    this.updateShifts(firstRowPos, this.cell.leftShift());
     this.bodySizer.style.transform = `translate(${Math.max(0, totalWidth - 1).toFixed(0)}px, ${Math.max(0, totalHeight - 1).toFixed(0)}px)`;
+  }
+
+  protected updateShifts(top: number, left: number) {
+    this.body.style.transform = `translate(${left.toFixed(0)}px, ${top.toFixed(0)}px)`;
   }
 
   /**

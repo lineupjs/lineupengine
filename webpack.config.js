@@ -86,7 +86,7 @@ module.exports = (env, options) => {
             {
               loader: 'ts-loader',
               options: {
-                //configFile: dev ? 'tsconfig_dev.json' : 'tsconfig.json',
+                configFile: dev ? 'tsconfig.dev.json' : 'tsconfig.json',
                 happyPackMode: true // IMPORTANT! use happyPackMode mode to speed-up  compilation and reduce errors reported to webpack
               }
             }
