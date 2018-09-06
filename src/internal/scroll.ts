@@ -11,95 +11,111 @@ export interface IScrollInfo {
   height: number;
 }
 
-class ScrollHandler {
-  private hasNumbers = false;
-  private readonly handlers = new Map<IDelayedMode, ((act: IScrollInfo)=>void)[]>();
-  private animationWaiting = false;
-  private immediateTimeout = -1;
-  private readonly timersWaiting = new Set<number>();
+interface IScrollHandler {
+  timer: number;
+  prev: IScrollInfo | null;
+  handler: ((act: IScrollInfo) => void)[];
+}
 
-  private readonly prevs = new Map<IDelayedMode, IScrollInfo>();
+function dummy(): IScrollHandler {
+  return {
+    handler: [],
+    prev: null,
+    timer: -1
+  };
+}
+
+class ScrollHandler {
+  private readonly sync = dummy();
+  private readonly animation = dummy();
+  private readonly immediate = dummy();
+  private readonly numbers = new Map<number, IScrollHandler>();
+
+  // current: IScrollInfo;
+  // private prev: IScrollInfo | null = null;
+
+  get current() {
+    return this.asInfo();
+  }
 
   constructor(private readonly node: HTMLElement) {
+    // this.current = this.asInfo();
+
     node.addEventListener('scroll', () => {
-      this.handle('sync');
+      // this.current = this.asInfo();
+
+      // if (this.prev && (Math.abs(this.current.left - this.prev.left) + Math.abs(this.current.top - this.prev.top)) < 4) {
+      //   return;
+      // }
+      // this.prev = this.current;
+
+      if (this.sync.handler.length > 0) {
+        this.handle(this.sync);
+      }
       this.handleAnimation();
       this.handleImmediate();
       this.handleTimeouts();
     }, {
-      passive: true
-    });
+        passive: true
+      });
   }
 
-  private has(mode: IDelayedMode) {
-    return this.handlers.has(mode) && this.handlers.get(mode)!.length > 0;
-  }
-
-  private handle(mode: IDelayedMode) {
-    const handlers = this.handlers.get(mode) || [];
-    if (!handlers || handlers.length <= 0) {
+  private handle(handler: IScrollHandler) {
+    const info = this.current;
+    if (handler.prev && (Math.abs(info.left - handler.prev.left) + Math.abs(info.top - handler.prev.top)) < 4) {
       return;
     }
-    const info = this.asInfo();
-    if (this.prevs.has(mode)) {
-      const prev = this.prevs.get(mode)!;
-      if ((Math.abs(info.left - prev.left) + Math.abs(info.top - prev.top)) < 4) {
-        return;
-      }
-    }
-    this.prevs.set(mode, info);
-    for (const s of handlers) {
+    handler.prev = info;
+    for (const s of handler.handler) {
       s(info);
     }
   }
 
   private handleAnimation() {
-    if (this.animationWaiting || !this.has('animation')) {
+    if (this.animation.timer !== -1 || this.animation.handler.length === 0) {
       return;
     }
-    this.animationWaiting = true;
+    this.animation.timer = 1;
     requestAnimationFrame(this.handleAnimationImpl);
   }
 
   private readonly handleAnimationImpl = () => {
-    if (!this.animationWaiting) {
+    if (this.animation.timer !== 1) {
       return;
     }
-    this.handle('animation');
-    this.animationWaiting = false;
+    this.handle(this.animation);
+    this.animation.timer = -1;
   };
 
   private handleImmediate() {
-    if (this.immediateTimeout >= 0 || !this.has('immediate')) {
+    if (this.immediate.timer >= 0 || this.immediate.handler.length === 0) {
       return;
     }
-    this.immediateTimeout = self.setImmediate(this.handleImmediateImpl);
+    this.immediate.timer = self.setImmediate(this.handleImmediateImpl);
   }
 
   private readonly handleImmediateImpl = () => {
-    if (this.immediateTimeout < 0) {
+    if (this.immediate.timer < 0) {
       return;
     }
-    this.handle('immediate');
-    this.immediateTimeout = -1;
+    this.handle(this.immediate);
+    this.immediate.timer = -1;
   };
 
   private handleTimeouts() {
-    if (!this.hasNumbers) {
+    if (this.numbers.size === 0) {
       return;
     }
 
-    const numbers = <number[]>Array.from(this.handlers.keys()).filter((d) => typeof d === 'number' && !this.timersWaiting.has(d));
-    if (numbers.length === 0) {
-      return;
-    }
-    for(const n of numbers) {
-      this.timersWaiting.add(n);
-      self.setTimeout(() => {
-        this.timersWaiting.delete(n);
-        this.handle(n);
+    this.numbers.forEach((handler, n) => {
+      if (handler.handler.length === 0) {
+        return;
+      }
+      handler.timer = self.setTimeout(() => {
+        this.handle(handler);
+        handler.timer = -1;
       }, n);
-    }
+    });
   }
 
   asInfo(): IScrollInfo {
@@ -111,41 +127,55 @@ class ScrollHandler {
     };
   }
 
-  push(mode: IDelayedMode, handler: (act: IScrollInfo)=>void) {
+  push(mode: IDelayedMode, handler: (act: IScrollInfo) => void) {
     // convert mode
     if (mode === 'immediate' && typeof (self.setImmediate) !== 'function') {
       mode = 0;
     }
+
     if (typeof mode === 'number') {
-      this.hasNumbers = true;
+      if (!this.numbers.has(mode)) {
+        this.numbers.set(mode, dummy());
+      }
+      this.numbers.get(mode)!.handler.push(handler);
     }
-    if (this.handlers.has(mode)) {
-      this.handlers.get(mode)!.push(handler);
-    } else {
-      this.handlers.set(mode, [handler]);
+
+    switch (mode) {
+      case 'sync':
+        this.sync.handler.push(handler);
+        break;
+      case 'immediate':
+        this.immediate.handler.push(handler);
+        break;
+      case 'animation':
+        this.animation.handler.push(handler);
+        break;
     }
   }
 
-  remove(handler: (act: IScrollInfo)=>void) {
-    return Array.from(this.handlers.values()).some((d) => {
-      const index = d.indexOf(handler);
+
+  remove(handler: (act: IScrollInfo) => void) {
+    const test = [this.sync, this.animation, this.immediate].concat(Array.from(this.numbers.values()));
+
+    return test.some((d) => {
+      const index = d.handler.indexOf(handler);
       if (index >= 0) {
-        d.splice(index, 1);
+        d.handler.splice(index, 1);
       }
       return index >= 0;
     });
   }
 
   isWaiting(mode: IDelayedMode) {
-    switch(mode) {
-    case 'immediate':
-      return this.immediateTimeout > 0;
-    case 'animation':
-      return this.animationWaiting;
-    case 'sync':
-      return false;
-    default:
-      return this.handlers.has(mode);
+    switch (mode) {
+      case 'immediate':
+        return this.immediate.timer >= 0;
+      case 'animation':
+        return this.animation.timer >= 0;
+      case 'sync':
+        return false;
+      default:
+        return this.numbers.has(mode) && this.numbers.get(mode)!.timer >= 0;
     }
   }
 }
@@ -153,7 +183,7 @@ class ScrollHandler {
 /**
  * @internal
  */
-export function addScroll(scroller: HTMLElement, mode: IDelayedMode, handler: (act: IScrollInfo)=>void) {
+export function addScroll(scroller: HTMLElement, mode: IDelayedMode, handler: (act: IScrollInfo) => void) {
   // hide in element to have just one real listener
   if (!(<any>scroller).__le_scroller__) {
     (<any>scroller).__le_scroller__ = new ScrollHandler(scroller);
@@ -177,7 +207,7 @@ export function isScrollEventWaiting(scroller: HTMLElement, mode: IDelayedMode) 
 /**
  * @internal
  */
-export function removeScroll(scroller: HTMLElement, handler: (act: IScrollInfo)=>void) {
+export function removeScroll(scroller: HTMLElement, handler: (act: IScrollInfo) => void) {
   if ((<any>scroller).__le_scroller__) {
     (<ScrollHandler>(<any>scroller).__le_scroller__).remove(handler);
   }

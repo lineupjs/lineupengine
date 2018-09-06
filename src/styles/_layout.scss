@@ -31,13 +31,6 @@
     flex: 1 1 auto;
     overflow: auto;
     position: relative;
-
-    &.#{$engine_css_prefix}scrolling > article > .#{$engine_css_prefix}-tr {
-      &:hover,
-      &.#{$engine_css_prefix}-highlighted {
-        box-shadow: unset !important;
-      }
-    }
   }
 
   .#{$engine_css_prefix}-header,
@@ -74,8 +67,10 @@
     position: absolute;
     left: 0;
     top: 0;
-    height: 0;
-    overflow: visible;
+
+    &.#{$engine_css_prefix}scrolling > .#{$engine_css_prefix}-tr {
+      box-shadow: unset !important;
+    }
   }
 
   .#{$engine_css_prefix}-td,
