@@ -314,13 +314,14 @@ export abstract class ARowRenderer {
 
   private removeAll(perform = true) {
     const b = this.body;
+    if (!perform) {
+      return <HTMLElement[]>Array.from(b.children);
+    }
     const torecycle: HTMLElement[] = [];
-    while (b.lastChild) {
-      const i = <HTMLElement>b.lastChild;
-      if (perform) {
-        b.removeChild(i);
-        this.recycle(i);
-      }
+    while (b.lastElementChild) {
+      const i = <HTMLElement>b.lastElementChild;
+      b.removeChild(i);
+      this.recycle(i);
       torecycle.push(i);
     }
     return torecycle;
