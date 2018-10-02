@@ -2,7 +2,7 @@
 @import './import_once';
 
 @include exports('lineupengine/animation') {
-  .#{$engine_css_prefix}loading {
+  .#{$engine_css_prefix}-loading {
     background: $engine_loading_static_image center contain repeat no-repeat;
     background-blend-mode: overlay;
 
@@ -19,7 +19,7 @@
         opacity: 1;
       }
 
-      .#{$engine_css_prefix}loading {
+      .#{$engine_css_prefix}-loading {
         background-image: $engine_loading_image;
       }
     }
