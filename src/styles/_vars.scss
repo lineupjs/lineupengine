@@ -6,10 +6,7 @@ $engine_loading_static_image: url('#{$engine_assets}/loading_s.svg') !default;
 $engine_row_outline_color: #ffa500 !default;
 $engine_row_outline_width: 2px !default;
 
-/**
- see also animation/index.ts MAX_ANIMATION_TIME
- */
-
+// see also animation/index.ts MAX_ANIMATION_TIME
 $engine_animation_update_duration: 0.5s;
 $engine_animation_show_duration: 0.25s;
 $engine_animation_hide_duration: 0.25s;

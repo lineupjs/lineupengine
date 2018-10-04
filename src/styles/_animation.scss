@@ -2,7 +2,7 @@
 @import './import_once';
 
 @include exports('lineupengine/animation') {
-  .#{$engine_css_prefix}loading {
+  .#{$engine_css_prefix}-loading {
     background: $engine_loading_static_image center contain repeat no-repeat;
     background-blend-mode: overlay;
 
@@ -19,7 +19,7 @@
         opacity: 1;
       }
 
-      .#{$engine_css_prefix}loading {
+      .#{$engine_css_prefix}-loading {
         background-image: $engine_loading_image;
       }
     }
@@ -34,10 +34,7 @@
 
   article.#{$engine_css_prefix}-row-animation {
     > .#{$engine_css_prefix}-tr {
-      /**
-      defaults
-      */
-      overflow: hidden !important;
+      overflow: hidden !important;  // defaults
       transition: all $engine_animation_update_duration $engine_animation_ease;
       will-change: transform, opacity, height;
 
@@ -55,9 +52,8 @@
     }
 
     &.#{$engine_css_prefix}-hide-animation > .#{$engine_css_prefix}-tr {
-      /**
-      in case of hiding shift update and show
-      */
+
+      // in case of hiding shift update and show
       transition: all $engine_animation_update_duration $engine_animation_ease $engine_animation_hide_duration + $engine_animation_pause;
 
       &[data-animation=hide] { // since order
@@ -71,18 +67,16 @@
 
     &.#{$engine_css_prefix}-update-animation > .#{$engine_css_prefix}-tr {
       &[data-animation=show] {
-        /**
-        in case of update shift show
-        */
+
+        // in case of update shift show
         transition: all $engine_animation_show_duration $engine_animation_ease $engine_animation_update_duration + $engine_animation_pause;
       }
     }
 
     &.#{$engine_css_prefix}-update-animation.#{$engine_css_prefix}-hide-animation > .#{$engine_css_prefix}-tr {
       &[data-animation=show] {
-        /**
-        in case of both update and hide shift show twice
-        */
+
+        // in case of both update and hide shift show twice
         transition: all $engine_animation_show_duration $engine_animation_ease $engine_animation_hide_duration + $engine_animation_pause + $engine_animation_update_duration + $engine_animation_pause;
       }
     }
