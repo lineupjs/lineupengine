@@ -73,7 +73,7 @@ class ScrollHandler {
     if (this.immediateTimeout >= 0 || !this.has('immediate')) {
       return;
     }
-    this.immediateTimeout = self.setImmediate(() => {
+    this.immediateTimeout = (<any>self).setImmediate(() => {
       if (this.immediateTimeout < 0) {
         return;
       }
@@ -107,7 +107,7 @@ class ScrollHandler {
 
   push(mode: IDelayedMode, handler: (act: IScrollInfo)=>void) {
     // convert mode
-    if (mode === 'immediate' && typeof (self.setImmediate) !== 'function') {
+    if (mode === 'immediate' && typeof ((<any>self).setImmediate) !== 'function') {
       mode = 0;
     }
     if (this.handlers.has(mode)) {

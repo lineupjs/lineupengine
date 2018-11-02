@@ -12,7 +12,7 @@ export default class StyleManager {
    * @param {HTMLElement} root
    */
   constructor(root: HTMLElement) {
-    this.node = root.ownerDocument.createElement('style');
+    this.node = root.ownerDocument!.createElement('style');
     root.appendChild(this.node);
   }
 

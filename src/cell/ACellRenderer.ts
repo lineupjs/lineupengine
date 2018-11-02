@@ -33,7 +33,7 @@ export abstract class ACellRenderer {
   protected abstract get context(): ICellContext;
 
   private get doc() {
-    return this.root.ownerDocument;
+    return this.root.ownerDocument!;
   }
 
   private get body(): HTMLElement {

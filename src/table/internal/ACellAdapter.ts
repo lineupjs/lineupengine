@@ -39,7 +39,7 @@ export abstract class ACellAdapter<T extends IColumn> {
     this.columnAdapter = this.createColumnAdapter();
     this.columnMixins = mixinClasses.map((mixinClass) => new mixinClass(this.columnAdapter));
 
-    this.columnFragment = header.ownerDocument.createDocumentFragment();
+    this.columnFragment = header.ownerDocument!.createDocumentFragment();
   }
 
   leftShift() {
@@ -216,7 +216,7 @@ export abstract class ACellAdapter<T extends IColumn> {
       }
       return r ? r : item;
     }
-    const r = this.createCell(this.header.ownerDocument, row, columnObj);
+    const r = this.createCell(this.header.ownerDocument!, row, columnObj);
     setColumn(r, columnObj);
     return r;
   }
@@ -314,7 +314,7 @@ export abstract class ACellAdapter<T extends IColumn> {
     //create all header columns
     {
       const fragment = this.columnFragment;
-      const document = fragment.ownerDocument;
+      const document = fragment.ownerDocument!;
       this.header.innerHTML = '';
       context.columns.forEach((col) => {
         const n = this.createHeader(document, col);

@@ -158,7 +158,7 @@ export default class GridStyleManager extends StyleManager {
  * @param doc
  */
 function measureScrollbar(root: HTMLElement) {
-  const body = root.ownerDocument.body;
+  const body = root.ownerDocument!.body;
   body.insertAdjacentHTML('beforeend', `
     <div class="lineup-engine-scrollbar-tester"><div></div></div>
   `);
