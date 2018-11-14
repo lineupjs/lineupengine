@@ -97,8 +97,8 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
     // no sizer update since centrally managed
   }
 
-  protected updateShifts(top: number, left: number) {
-    setTransform(this.body, left.toFixed(0), top.toFixed(0));
+  protected updateShifts(top: number, _left: number) {
+    setTransform(this.body, 0 /*left.toFixed(0)*/, top.toFixed(0));
   }
 
   set hidden(value: boolean) {
@@ -108,6 +108,8 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
     }
     this.header.classList.toggle(cssClass('loading'), value);
     this.body.classList.toggle(cssClass('loading'), value);
+    this.header.classList.toggle(cssClass('hidden'), value);
+    this.body.classList.toggle(cssClass('hidden'), value);
     this.onVisibilityChanged(!value);
   }
 

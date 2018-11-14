@@ -7,11 +7,11 @@ export class TestRenderer extends ACellTableSection<Column<number>> {
   protected _context: ICellRenderContext<Column<number>>;
   id: string;
 
-  build(id: string, numberOfColumns = 10, numberOfRows = 1000, defaultRowHeight = 20) {
+  build(id: string, numberOfColumns = 15, numberOfRows = 1000, defaultRowHeight = 20) {
     this.id = id;
     const columns: Column<number>[] = [];
     for (let i = 0; i < numberOfColumns; ++i) {
-      columns.push(new Column(i, i.toString(36), i === 0));
+      columns.push(new Column(i, `${id}${i.toString(36)}`, false)); //i === 0));
     }
     this._context = Object.assign({
       columns,
