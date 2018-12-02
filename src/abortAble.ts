@@ -27,19 +27,37 @@ export default function abortAble<T>(loader: Promise<T>) {
         return Promise.resolve(onfulfilled(r)).then((r) => isAborted() ? ABORTED : r);
       });
       const p = Promise.race<TResult1 | symbol>([aborter, fullfiller]);
-      return {
+      return Object.assign(p, {
         abort: (): void => {
           if (aborted !== null) {
             aborted(ABORTED);
             aborted = null;
           }
-        },
-        then: p.then.bind(p),
-        catch: p.catch.bind(p),
-        [Symbol.toStringTag]: p[Symbol.toStringTag]
-      };
+        }
+      });
     }
   };
+}
+
+export function allAbortAble<T>(values: IAbortAblePromise<T>[]): IAbortAblePromise<(symbol | T)[]> {
+  let aborted: ((v: symbol) => void) | null = null;
+  const isAborted = () => aborted === null;
+  const aborter = new Promise<symbol>((resolve) => aborted = resolve);
+  const fullfiller = Promise.all(values).then((r) => {
+    if (isAborted()) {
+      return ABORTED;
+    }
+    return r;
+  });
+  const p = Promise.race<(T | symbol)[] | symbol>([aborter, fullfiller]);
+  return Object.assign(p, {
+    abort: (): void => {
+      if (aborted !== null) {
+        aborted(ABORTED);
+        aborted = null;
+      }
+    }
+  });
 }
 
 /**
