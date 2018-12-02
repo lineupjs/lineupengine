@@ -28,13 +28,13 @@ export abstract class ACellRenderer {
   constructor(private readonly root: HTMLElement) {
     root.innerHTML = template;
     root.classList.add('lineup-cell-engine');
-    // this.fragment = root.ownerDocument.createDocumentFragment();
+    // this.fragment = root.ownerDocument!.createDocumentFragment();
   }
 
   protected abstract get context(): ICellContext;
 
   private get doc() {
-    return this.root.ownerDocument;
+    return this.root.ownerDocument!;
   }
 
   private get body(): HTMLElement {

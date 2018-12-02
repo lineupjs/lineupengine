@@ -102,7 +102,7 @@ export abstract class ARowRenderer {
     Object.assign(this.options, options);
     this.mixins = this.options.mixins.map((mixinClass) => new mixinClass(this.adapter));
 
-    this.fragment = body.ownerDocument.createDocumentFragment();
+    this.fragment = body.ownerDocument!.createDocumentFragment();
   }
 
   protected abstract get idPrefix(): string;
@@ -161,7 +161,7 @@ export abstract class ARowRenderer {
     if (sizer) {
       return sizer;
     }
-    const s = parent.ownerDocument.createElement('footer');
+    const s = parent.ownerDocument!.createElement('footer');
     s.classList.add(cssClass('footer'), cssClass(`footer-${this.idPrefix}`));
     parent.insertBefore(s, parent.firstChild);
     return s;
@@ -238,7 +238,7 @@ export abstract class ARowRenderer {
       item.classList.remove(cssClass('loading'));
       result = this.createRow(item, index);
     } else {
-      item = this.body.ownerDocument.createElement('div');
+      item = this.body.ownerDocument!.createElement('div');
       item.classList.add(cssClass('tr'), cssClass(`tr-${this.idPrefix}`));
       result = this.createRow(item, index);
     }
@@ -254,7 +254,7 @@ export abstract class ARowRenderer {
     if (this.loadingPool.length > 0) {
       proxy = this.loadingPool.pop()!;
     } else {
-      proxy = this.body.ownerDocument.createElement('div');
+      proxy = this.body.ownerDocument!.createElement('div');
       proxy.classList.add(cssClass('loading'), cssClass('tr'), cssClass(`tr-${this.idPrefix}`));
     }
     return proxy;

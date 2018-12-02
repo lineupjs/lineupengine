@@ -44,8 +44,8 @@ export default class StyleManager {
    * @param {HTMLElement} root
    */
   constructor(root: HTMLElement) {
-    this.node = root.ownerDocument.createElement('style');
-    this.node.appendChild(root.ownerDocument.createTextNode('')); // for webkit?
+    this.node = root.ownerDocument!.createElement('style');
+    this.node.appendChild(root.ownerDocument!.createTextNode('')); // for webkit?
     root.appendChild(this.node);
   }
 

@@ -143,7 +143,7 @@ export default class MultiTableRowRenderer {
   }
 
   private get doc() {
-    return this.node.ownerDocument;
+    return this.node.ownerDocument!;
   }
 
   private get header() {
