@@ -60,7 +60,7 @@ export interface IRowRendererOptions {
 export abstract class ARowRenderer {
   private readonly pool: HTMLElement[] = [];
   private readonly loadingPool: HTMLElement[] = [];
-  private readonly loading = new Map<HTMLElement, IAbortAblePromise<void>>();
+  private readonly loading = new WeakMap<HTMLElement, IAbortAblePromise<void>>();
 
   private readonly fragment: DocumentFragment;
 

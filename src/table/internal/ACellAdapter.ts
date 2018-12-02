@@ -23,7 +23,7 @@ export abstract class ACellAdapter<T extends IColumn> {
    * @type {Array}
    */
   private readonly cellPool: HTMLElement[][] = [];
-  private readonly loading = new Map<HTMLElement, IAbortAblePromise<void>>();
+  private readonly loading = new WeakMap<HTMLElement, IAbortAblePromise<void>>();
 
 
   readonly visibleColumns = {
@@ -250,19 +250,19 @@ export abstract class ACellAdapter<T extends IColumn> {
     return {item, ready};
   }
 
-  private handleCellReady(item: HTMLElement, ready: IAbortAblePromise<void>, column: number) {
+  private handleCellReady(item: HTMLElement, ready: IAbortAblePromise<void>, column: number = -1) {
     item.classList.add(cssClass('loading'));
     const abort = ready;
     //lazy loading
 
     this.loading.set(item, abort);
     abort.then((result) => {
+      this.loading.delete(item);
       item.classList.remove(cssClass('loading'));
       if (result === ABORTED && column >= 0) {
         //aborted can recycle the real one
         this.cellPool[column].push(item);
       }
-      this.loading.delete(item);
     });
     return item;
   }
@@ -284,7 +284,7 @@ export abstract class ACellAdapter<T extends IColumn> {
     if (this.loading.has(item)) {
       const abort = this.loading.get(item)!;
       abort.abort();
-    } else {
+    } else if (!item.classList.contains(cssClass('loading'))) {
       this.cellPool[column].push(item);
     }
   }
@@ -514,6 +514,7 @@ export abstract class ACellAdapter<T extends IColumn> {
         node.appendChild(cell);
         return;
       }
+      ids.delete(col.id);
       const r = this.updateCell(existing, rowIndex, col) || existing;
       let cell: HTMLElement;
       if (isAsyncUpdate(r)) {
@@ -535,6 +536,19 @@ export abstract class ACellAdapter<T extends IColumn> {
     for (let i = visible.first; i <= visible.last; ++i) {
       updateImpl(i);
     }
+
+    if (ids.size === 0) {
+      return;
+    }
+
+    // recycle
+    const byId = new Map(columns.map((d, i) => <[string, number]>[d.id, i]));
+    ids.forEach((node, key) => {
+      const index = byId.get(key);
+      if (index != null && index >= 0) {
+        this.recycleCell(node, index);
+      }
+    });
   }
 
   private updateShiftedStates() {
