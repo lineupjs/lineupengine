@@ -5,7 +5,7 @@ import {GridStyleManager, IColumn, setTemplate} from './style';
 import ACellAdapter, {ICellAdapterRenderContext} from './table/internal/ACellAdapter';
 import {addScroll} from './internal';
 import {cssClass} from './styles';
-import {IAbortAblePromise, IAsyncUpdate} from './abortAble';
+import {IAsyncUpdate} from './abortAble';
 
 
 export declare type ICellRenderContext<T extends IColumn> = ICellAdapterRenderContext<T>;

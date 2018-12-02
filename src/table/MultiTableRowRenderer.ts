@@ -1,5 +1,5 @@
 import {GridStyleManager, tableIds, tableCSSClasses} from '../style';
-import {addScroll, defaultMode} from '../internal';
+import {addScroll, defaultMode, IDelayedMode} from '../internal';
 import {cssClass} from '../styles';
 import {setTransform} from '../ARowRenderer';
 
@@ -45,12 +45,11 @@ export interface IMultiTableRowRendererOptions {
   /**
    * async update on scrolling
    * animation -> use requestAnimationFrame
-   * immediate -> use setImmediate if available
    * sync -> execute within scroll listener
    * {number} -> execute within this delay using setTimeout
    * @default is chrome ? animation else 0
    */
-  async: number | 'animation' | 'sync' | 'immediate';
+  async: IDelayedMode;
 
   /**
    * minimal number of pixel the scrollbars has to move

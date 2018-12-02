@@ -1,6 +1,6 @@
 
 
-export declare type IDelayedMode = number | 'animation' | 'sync' | 'immediate';
+export declare type IDelayedMode = number | 'animation' | 'sync';
 
 export const defaultMode: IDelayedMode = 'animation'; // Boolean((<any>window).chrome) ? 'animation' : 0, // animation frame on chrome;
 
@@ -28,7 +28,6 @@ function dummy(): IScrollHandler {
 class ScrollHandler {
   private readonly sync = dummy();
   private readonly animation = dummy();
-  private readonly immediate = dummy();
   private readonly numbers = new Map<number, IScrollHandler>();
 
   // current: IScrollInfo;
@@ -53,7 +52,6 @@ class ScrollHandler {
         this.handle(this.sync);
       }
       this.handleAnimation();
-      this.handleImmediate();
       this.handleTimeouts();
     }, {
         passive: true
@@ -87,21 +85,6 @@ class ScrollHandler {
     this.animation.timer = -1;
   };
 
-  private handleImmediate() {
-    if (this.immediate.timer >= 0 || this.immediate.handler.length === 0) {
-      return;
-    }
-    this.immediate.timer = self.setImmediate(this.handleImmediateImpl);
-  }
-
-  private readonly handleImmediateImpl = () => {
-    if (this.immediate.timer < 0) {
-      return;
-    }
-    this.handle(this.immediate);
-    this.immediate.timer = -1;
-  };
-
   private handleTimeouts() {
     if (this.numbers.size === 0) {
       return;
@@ -128,11 +111,6 @@ class ScrollHandler {
   }
 
   push(mode: IDelayedMode, handler: (act: IScrollInfo) => void) {
-    // convert mode
-    if (mode === 'immediate' && typeof (self.setImmediate) !== 'function') {
-      mode = 0;
-    }
-
     if (typeof mode === 'number') {
       if (!this.numbers.has(mode)) {
         this.numbers.set(mode, dummy());
@@ -144,9 +122,6 @@ class ScrollHandler {
       case 'sync':
         this.sync.handler.push(handler);
         break;
-      case 'immediate':
-        this.immediate.handler.push(handler);
-        break;
       case 'animation':
         this.animation.handler.push(handler);
         break;
@@ -155,7 +130,7 @@ class ScrollHandler {
 
 
   remove(handler: (act: IScrollInfo) => void) {
-    const test = [this.sync, this.animation, this.immediate].concat(Array.from(this.numbers.values()));
+    const test = [this.sync, this.animation].concat(Array.from(this.numbers.values()));
 
     return test.some((d) => {
       const index = d.handler.indexOf(handler);
@@ -168,8 +143,6 @@ class ScrollHandler {
 
   isWaiting(mode: IDelayedMode) {
     switch (mode) {
-      case 'immediate':
-        return this.immediate.timer >= 0;
       case 'animation':
         return this.animation.timer >= 0;
       case 'sync':

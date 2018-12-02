@@ -14,7 +14,6 @@ export interface IRowRendererOptions {
   /**
    * async update on scrolling
    * animation -> use requestAnimationFrame
-   * immediate -> use setImmediate if available
    * sync -> execute within scroll listener
    * {number} -> execute within this delay using setTimeout
    * @default is chrome ? animation else 0
