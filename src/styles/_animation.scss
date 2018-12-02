@@ -3,11 +3,19 @@
 
 @include exports('lineupengine/animation') {
   .#{$engine_css_prefix}-loading {
-    background: $engine_loading_static_image center contain repeat no-repeat;
-    background-blend-mode: overlay;
+    background-image: $engine_loading_static_image !important;
+    background-repeat: repeat-x !important;
+    background-position: center !important;
+    background-size: contain !important;
+    background-blend-mode: overlay !important;
+    color: transparent !important;
 
     > * {
-      opacity: 0;
+      opacity: 0 !important;
+    }
+
+    &.#{$engine_css_prefix}-td {
+      background-repeat: no-repeat !important;
     }
   }
 
