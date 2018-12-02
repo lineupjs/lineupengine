@@ -5,6 +5,7 @@ import {IColumn} from '../../style';
 import {cssClass} from '../../styles';
 import {IScrollInfo, clear} from '../../internal';
 import {isScrollEventWaiting} from '../../internal/scroll';
+import {IAbortAblePromise, IAsyncUpdate, isAbortAble, isAsyncUpdate, ABORTED} from '../../abortAble';
 
 const debug = false;
 
@@ -22,6 +23,8 @@ export abstract class ACellAdapter<T extends IColumn> {
    * @type {Array}
    */
   private readonly cellPool: HTMLElement[][] = [];
+  private readonly loading = new Map<HTMLElement, IAbortAblePromise<void>>();
+
 
   readonly visibleColumns = {
     frozen: <number[]>[], // column indices that are visible even tho they would be out of range
@@ -121,13 +124,13 @@ export abstract class ACellAdapter<T extends IColumn> {
 
   protected abstract get lastScrollInfo(): IScrollInfo | null;
 
-  protected abstract createHeader(document: Document, column: T): HTMLElement;
+  protected abstract createHeader(document: Document, column: T): HTMLElement | IAsyncUpdate<HTMLElement>;
 
-  protected abstract updateHeader(node: HTMLElement, column: T): HTMLElement | void;
+  protected abstract updateHeader(node: HTMLElement, column: T): HTMLElement | IAsyncUpdate<HTMLElement> | void;
 
-  protected abstract createCell(document: Document, index: number, column: T): HTMLElement;
+  protected abstract createCell(document: Document, index: number, column: T): HTMLElement | IAsyncUpdate<HTMLElement>;
 
-  protected abstract updateCell(node: HTMLElement, index: number, column: T): HTMLElement | void;
+  protected abstract updateCell(node: HTMLElement, index: number, column: T): HTMLElement | IAsyncUpdate<HTMLElement> | void;
 
   protected abstract forEachRow(callback: (row: HTMLElement, rowIndex: number) => void): void;
 
@@ -224,24 +227,52 @@ export abstract class ACellAdapter<T extends IColumn> {
     }
   }
 
-  private selectCell(row: number, column: number, columns: T[]): HTMLElement {
+  private selectProxyCell(row: number, column: number, columns: T[]):  {item: HTMLElement, ready: IAbortAblePromise<void> | void} {
     const pool = this.cellPool[column];
     const columnObj = columns[column];
-    if (pool.length > 0) {
-      const item = pool.pop()!;
-      const r = this.updateCell(item, row, columnObj) || item;
-      if (r && r !== item) {
-        r.dataset.id = columnObj.id;
-        r.classList.add(cssClass('td'), this.style.cssClasses.td, cssClass(`td-${this.tableId}`));
-      }
-      this.updateShiftedState(r, columnObj);
-      return r;
+
+    let item: HTMLElement;
+    let ready: IAbortAblePromise<void> | void;
+    const pooled = pool.pop();
+
+    const r = pooled ? this.updateCell(pooled, row, columnObj) || pooled : this.createCell(this.header.ownerDocument!, row, columnObj);
+    if (isAsyncUpdate(r)) {
+      item = r.item;
+      ready = r.ready;
+    } else {
+      item = r;
     }
-    const r = this.createCell(this.header.ownerDocument!, row, columnObj);
-    r.classList.add(cssClass('td'), this.style.cssClasses.td, cssClass(`td-${this.tableId}`));
-    r.dataset.id = columnObj.id;
-    this.updateShiftedState(r, columnObj);
-    return r;
+    if (item !== pooled) {
+      item.dataset.id = columnObj.id;
+      item.classList.add(cssClass('td'), this.style.cssClasses.td, cssClass(`td-${this.tableId}`));
+    }
+    this.updateShiftedState(item, columnObj);
+    return {item, ready};
+  }
+
+  private handleCellReady(item: HTMLElement, ready: IAbortAblePromise<void>, column: number) {
+    item.classList.add(cssClass('loading'));
+    const abort = ready;
+    //lazy loading
+
+    this.loading.set(item, abort);
+    abort.then((result) => {
+      item.classList.remove(cssClass('loading'));
+      if (result === ABORTED && column >= 0) {
+        //aborted can recycle the real one
+        this.cellPool[column].push(item);
+      }
+      this.loading.delete(item);
+    });
+    return item;
+  }
+
+  private selectCell(row: number, column: number, columns: T[]): HTMLElement {
+    const {item, ready} = this.selectProxyCell(row, column, columns);
+    if (!isAbortAble(ready)) {
+      return item;
+    }
+    return this.handleCellReady(item, ready, column);
   }
 
   protected updateShiftedState(node: HTMLElement, col: IColumn) {
@@ -249,7 +280,13 @@ export abstract class ACellAdapter<T extends IColumn> {
   }
 
   private recycleCell(item: HTMLElement, column: number) {
-    this.cellPool[column].push(item);
+    // check if the dom element is still being manipulated
+    if (this.loading.has(item)) {
+      const abort = this.loading.get(item)!;
+      abort.abort();
+    } else {
+      this.cellPool[column].push(item);
+    }
   }
 
   private addColumnAtStart(from: number, to: number, frozenShift: number = this.visibleColumns.frozen.length) {
@@ -322,7 +359,21 @@ export abstract class ACellAdapter<T extends IColumn> {
   updateHeaders() {
     const {columns} = this.context;
     Array.from(this.header.children).forEach((node: Element, i) => {
-      this.updateHeader(<HTMLElement>node, columns[i]);
+      const base = <HTMLElement>node;
+      const col = columns[i];
+      const r = this.updateHeader(base, col);
+      let n: HTMLElement;
+      if (isAsyncUpdate(r)) {
+        n = this.handleCellReady(r.item, r.ready, -1);
+      } else {
+        n = r || base;
+      }
+      if (n === base) {
+        return;
+      }
+      n.dataset.id = col.id;
+      n.classList.add(cssClass('th'), this.style.cssClasses.th, cssClass(`th-${this.tableId}`));
+      this.header.replaceChild(base, n);
     });
   }
 
@@ -342,11 +393,28 @@ export abstract class ACellAdapter<T extends IColumn> {
     {
       const fragment = this.columnFragment;
       const document = fragment.ownerDocument!;
-      clear(this.header);
+
+      // create lookup cache to reuse headers
+      const ids = new Map<string, HTMLElement>();
+      while (this.header.lastChild) {
+        const c = <HTMLElement>this.header.lastChild;
+        this.header.removeChild(c);
+        ids.set(c.dataset.id!, c);
+      }
+
       context.columns.forEach((col) => {
-        const n = this.createHeader(document, col);
-        n.dataset.id = col.id;
-        n.classList.add(cssClass('th'), this.style.cssClasses.th, cssClass(`th-${this.tableId}`));
+        const existing = ids.get(col.id);
+        const r = existing ? this.updateHeader(existing, col) || existing : this.createHeader(document, col);
+        let n: HTMLElement;
+        if (isAsyncUpdate(r)) {
+          n = this.handleCellReady(r.item, r.ready, -1);
+        } else {
+          n = r;
+        }
+        if (n !== existing) {
+          n.dataset.id = col.id;
+          n.classList.add(cssClass('th'), this.style.cssClasses.th, cssClass(`th-${this.tableId}`));
+        }
         fragment.appendChild(n);
       });
       this.header.appendChild(fragment);
@@ -446,7 +514,13 @@ export abstract class ACellAdapter<T extends IColumn> {
         node.appendChild(cell);
         return;
       }
-      const cell = this.updateCell(existing, rowIndex, col) || existing;
+      const r = this.updateCell(existing, rowIndex, col) || existing;
+      let cell: HTMLElement;
+      if (isAsyncUpdate(r)) {
+        cell = this.handleCellReady(r.item, r.ready, i);
+      } else {
+        cell = r;
+      }
       if (cell && cell !== existing) {
         cell.dataset.id = col.id;
         cell.classList.add(cssClass('td'), this.style.cssClasses.td, cssClass(`td-${this.tableId}`));

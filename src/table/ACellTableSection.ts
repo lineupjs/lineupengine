@@ -6,6 +6,7 @@ import {IColumn} from '../style';
 import ACellAdapter, {ICellAdapterRenderContext} from './internal/ACellAdapter';
 import {ITableSection} from './MultiTableRowRenderer';
 import {cssClass} from '../styles';
+import {IAsyncUpdate} from '../abortAble';
 
 export declare type ICellRenderContext<T extends IColumn> = ICellAdapterRenderContext<T>;
 
@@ -172,7 +173,7 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
    * @param {T} column the column to create the header for
    * @returns {HTMLElement} the node representing the header
    */
-  protected abstract createHeader(document: Document, column: T): HTMLElement;
+  protected abstract createHeader(document: Document, column: T): HTMLElement | IAsyncUpdate<HTMLElement>;
 
   /**
    * updates the given header node with the given column
@@ -180,7 +181,7 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
    * @param {T} column the column to represents
    * @returns {HTMLElement | void} an optional new replacement node for the header
    */
-  protected abstract updateHeader(node: HTMLElement, column: T): HTMLElement | void;
+  protected abstract updateHeader(node: HTMLElement, column: T): HTMLElement | IAsyncUpdate<HTMLElement> | void;
 
   /**
    * create a new cell node fo the given row index and column
@@ -189,7 +190,7 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
    * @param {T} column the current column
    * @returns {HTMLElement} the node representing the cell
    */
-  protected abstract createCell(document: Document, index: number, column: T): HTMLElement;
+  protected abstract createCell(document: Document, index: number, column: T): HTMLElement| IAsyncUpdate<HTMLElement>;
 
   /**
    * updates the given cell node with the given row index and column
@@ -198,7 +199,7 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
    * @param {T} column column to use
    * @returns {HTMLElement | void} an optional new replacement node for the header
    */
-  protected abstract updateCell(node: HTMLElement, index: number, column: T): HTMLElement | void;
+  protected abstract updateCell(node: HTMLElement, index: number, column: T): HTMLElement | IAsyncUpdate<HTMLElement> | void;
 
 
   /**

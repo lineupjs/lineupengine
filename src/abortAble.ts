@@ -2,6 +2,11 @@ export interface IAbortAblePromise<T> extends Promise<T | symbol> {
   abort(): void;
 }
 
+export interface IAsyncUpdate<T> {
+  item: T;
+  ready: IAbortAblePromise<void>;
+}
+
 export const ABORTED = Symbol('aborted');
 
 /**
@@ -44,4 +49,9 @@ export default function abortAble<T>(loader: Promise<T>) {
  */
 export function isAbortAble(abortAble: IAbortAblePromise<any> | void | undefined | null): abortAble is IAbortAblePromise<any> {
   return abortAble !== undefined && abortAble !== null && abortAble && typeof abortAble.then === 'function' && typeof abortAble.abort === 'function';
+}
+
+
+export function isAsyncUpdate<T>(update: T | void | undefined | null | IAsyncUpdate<T>): update is IAsyncUpdate<T> {
+  return update !== undefined && update !== null && update && isAbortAble((<IAsyncUpdate<T>>update).ready);
 }
