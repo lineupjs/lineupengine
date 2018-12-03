@@ -6,6 +6,7 @@ import {cssClass} from '../../styles';
 import {IScrollInfo, clear} from '../../internal';
 import {isScrollEventWaiting} from '../../internal/scroll';
 import {IAbortAblePromise, IAsyncUpdate, isAbortAble, isAsyncUpdate, ABORTED} from '../../abortAble';
+import {isLoadingCell} from '../../ARowRenderer';
 
 const debug = false;
 
@@ -279,12 +280,12 @@ export abstract class ACellAdapter<T extends IColumn> {
     node.classList.toggle(cssClass('shifted'), col.frozen && this.horizontallyShifted);
   }
 
-  private recycleCell(item: HTMLElement, column: number) {
+  recycleCell(item: HTMLElement, column: number = -1) {
     // check if the dom element is still being manipulated
     if (this.loading.has(item)) {
       const abort = this.loading.get(item)!;
       abort.abort();
-    } else if (!item.classList.contains(cssClass('loading'))) {
+    } else if (!isLoadingCell(item) && column >= 0) {
       this.cellPool[column].push(item);
     }
   }

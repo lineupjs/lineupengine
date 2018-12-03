@@ -8,6 +8,7 @@ import {ITableSection} from './MultiTableRowRenderer';
 import {cssClass} from '../styles';
 import {IAsyncUpdate, IAbortAblePromise} from '../abortAble';
 
+export {isLoadingCell} from '../ARowRenderer';
 export declare type ICellRenderContext<T extends IColumn> = ICellAdapterRenderContext<T>;
 
 /**
@@ -211,6 +212,10 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
 
   protected handleCellReady(item: HTMLElement, ready: IAbortAblePromise<void>, column: number = -1) {
     return this.cell.handleCellReady(item, ready, column);
+  }
+
+  protected recycleCell(item: HTMLElement, column: number = -1) {
+    this.cell.recycleCell(item, column);
   }
 
   /**

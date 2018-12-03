@@ -10,6 +10,10 @@ import {isScrollEventWaiting} from './internal/scroll';
 
 export declare type IRowRenderContext = IExceptionContext;
 
+export function isLoadingCell(node: HTMLElement) {
+  return node.classList.contains(cssClass('loading'));
+}
+
 export interface IRowRendererOptions {
   /**
    * async update on scrolling
@@ -360,7 +364,7 @@ export abstract class ARowRenderer {
       clear(this.body);
     }
     rows.forEach((row: HTMLElement, index) => {
-      if (!row.classList.contains(cssClass('loading')) && row.dataset.animation !== 'update_remove' && row.dataset.animation !== 'hide') {
+      if (!isLoadingCell(row) && row.dataset.animation !== 'update_remove' && row.dataset.animation !== 'hide') {
         //skip loading ones and temporary ones
         callback(row, index + this.visible.first);
       }
