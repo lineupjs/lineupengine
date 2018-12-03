@@ -250,7 +250,7 @@ export abstract class ACellAdapter<T extends IColumn> {
     return {item, ready};
   }
 
-  private handleCellReady(item: HTMLElement, ready: IAbortAblePromise<void>, column: number = -1) {
+  handleCellReady(item: HTMLElement, ready: IAbortAblePromise<void>, column: number = -1) {
     item.classList.add(cssClass('loading'));
     const abort = ready;
     //lazy loading

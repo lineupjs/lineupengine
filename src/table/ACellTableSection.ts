@@ -6,7 +6,7 @@ import {IColumn} from '../style';
 import ACellAdapter, {ICellAdapterRenderContext} from './internal/ACellAdapter';
 import {ITableSection} from './MultiTableRowRenderer';
 import {cssClass} from '../styles';
-import {IAsyncUpdate} from '../abortAble';
+import {IAsyncUpdate, IAbortAblePromise} from '../abortAble';
 
 export declare type ICellRenderContext<T extends IColumn> = ICellAdapterRenderContext<T>;
 
@@ -207,6 +207,10 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
    */
   protected updateHeaders() {
     this.cell.updateHeaders();
+  }
+
+  protected handleCellReady(item: HTMLElement, ready: IAbortAblePromise<void>, column: number = -1) {
+    return this.cell.handleCellReady(item, ready, column);
   }
 
   /**
