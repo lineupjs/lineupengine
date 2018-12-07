@@ -1,6 +1,15 @@
-export interface IAbortAblePromise<T> extends Promise<T | symbol> {
+export function isPromiseLike(p: PromiseLike<any> | any): p is PromiseLike<any> {
+  return p != null && p && typeof p.then === 'function';
+}
+
+interface IAbortAblePromiseBase<T> extends PromiseLike<T> {
+  then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): IAbortAblePromiseBase<TResult1 | TResult2>;
   abort(): void;
 }
+
+export declare type IAbortAblePromise<T> = IAbortAblePromiseBase<T | symbol>;
+export declare type IAAP<T> = IAbortAblePromise<T>;
+
 
 export interface IAsyncUpdate<T> {
   item: T;
@@ -9,64 +18,92 @@ export interface IAsyncUpdate<T> {
 
 export const ABORTED = Symbol('aborted');
 
+
+
+function thenFactory<T>(loader: PromiseLike<T>, isAborted: () => boolean, aborter: PromiseLike<symbol>, abort: () => void) {
+  function then<TResult1 = T | symbol>(onfulfilled?: ((value: T | symbol) => TResult1 | PromiseLike<TResult1>) | undefined | null): IAbortAblePromiseBase<TResult1> {
+    const fullfiller = loader.then((loaded) => {
+      if (isAborted()) {
+        return ABORTED;
+      }
+      const res = onfulfilled ? onfulfilled(loaded): <any>loaded;
+      if (isPromiseLike(res)) {
+        return res.then((r) => isAborted() ? ABORTED : r);
+      }
+      return isAborted() ? ABORTED : res;
+    });
+    const p = Promise.race<TResult1 | symbol>([aborter, fullfiller]);
+    return {
+      then: <any>thenFactory(p, isAborted, aborter, abort),
+      abort
+    };
+  }
+  return then;
+}
+
 /**
  * abort able Promise wrapper, returns a promise which can be aborted, and trying to avoid executing therefore the wrapped promise
  * @param {Promise<T>} loader
  * @returns {any}
  */
-export default function abortAble<T>(loader: Promise<T>) {
-  return {
-    then<TResult1>(onfulfilled: ((value: T) => TResult1 | PromiseLike<TResult1>)): IAbortAblePromise<TResult1> {
-      let aborted: ((v: symbol) => void) | null = null;
-      const isAborted = () => aborted === null;
-      const aborter = new Promise<symbol>((resolve) => aborted = resolve);
-      const fullfiller = loader.then((r) => {
-        if (isAborted()) {
-          return ABORTED;
-        }
-        return Promise.resolve(onfulfilled(r)).then((r) => isAborted() ? ABORTED : r);
-      });
-      const p = Promise.race<TResult1 | symbol>([aborter, fullfiller]);
-      return Object.assign(p, {
-        abort: (): void => {
-          if (aborted !== null) {
-            aborted(ABORTED);
-            aborted = null;
-          }
-        }
-      });
-    }
-  };
-}
-
-export function allAbortAble<T>(values: IAbortAblePromise<T>[]): IAbortAblePromise<(symbol | T)[]> {
+export default function abortAble<T>(loader: PromiseLike<T>): IAAP<T> {
   let aborted: ((v: symbol) => void) | null = null;
   const isAborted = () => aborted === null;
   const aborter = new Promise<symbol>((resolve) => aborted = resolve);
-  const fullfiller = Promise.all(values).then((r) => {
-    if (isAborted()) {
-      return ABORTED;
+  const abort = () => {
+    if (aborted !== null) {
+      aborted(ABORTED);
+      aborted = null;
     }
-    return r;
-  });
-  const p = Promise.race<(T | symbol)[] | symbol>([aborter, fullfiller]);
-  return Object.assign(p, {
-    abort: (): void => {
-      if (aborted !== null) {
-        aborted(ABORTED);
-        aborted = null;
+  };
+
+  return {
+    then: thenFactory(loader, isAborted, aborter, abort),
+    abort
+  };
+}
+
+export function abortAbleAll<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(values: [T1 | IAAP<T1>, T2 | IAAP<T2>, T3 | IAAP<T3>, T4 | IAAP <T4>, T5 | IAAP<T5>, T6 | IAAP<T6>, T7 | IAAP<T7>, T8 | IAAP<T8>, T9 | IAAP<T9>, T10 | IAAP<T10>]): IAAP<[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10]>;
+export function abortAbleAll<T1, T2, T3, T4, T5, T6, T7, T8, T9>(values: [T1 | IAAP<T1>, T2 | IAAP<T2>, T3 | IAAP<T3>, T4 | IAAP <T4>, T5 | IAAP<T5>, T6 | IAAP<T6>, T7 | IAAP<T7>, T8 | IAAP<T8>, T9 | IAAP<T9>]): IAAP<[T1, T2, T3, T4, T5, T6, T7, T8, T9]>;
+export function abortAbleAll<T1, T2, T3, T4, T5, T6, T7, T8>(values: [T1 | IAAP<T1>, T2 | IAAP<T2>, T3 | IAAP<T3>, T4 | IAAP <T4>, T5 | IAAP<T5>, T6 | IAAP<T6>, T7 | IAAP<T7>, T8 | IAAP<T8>]): IAAP<[T1, T2, T3, T4, T5, T6, T7, T8]>;
+export function abortAbleAll<T1, T2, T3, T4, T5, T6, T7>(values: [T1 | IAAP<T1>, T2 | IAAP<T2>, T3 | IAAP<T3>, T4 | IAAP <T4>, T5 | IAAP<T5>, T6 | IAAP<T6>, T7 | IAAP<T7>]): IAAP<[T1, T2, T3, T4, T5, T6, T7]>;
+export function abortAbleAll<T1, T2, T3, T4, T5, T6>(values: [T1 | IAAP<T1>, T2 | IAAP<T2>, T3 | IAAP<T3>, T4 | IAAP <T4>, T5 | IAAP<T5>, T6 | IAAP<T6>]): IAAP<[T1, T2, T3, T4, T5, T6]>;
+export function abortAbleAll<T1, T2, T3, T4, T5>(values: [T1 | IAAP<T1>, T2 | IAAP<T2>, T3 | IAAP<T3>, T4 | IAAP <T4>, T5 | IAAP<T5>]): IAAP<[T1, T2, T3, T4, T5]>;
+export function abortAbleAll<T1, T2, T3, T4>(values: [T1 | IAAP<T1>, T2 | IAAP<T2>, T3 | IAAP<T3>, T4 | IAAP <T4>]): IAAP<[T1, T2, T3, T4]>;
+export function abortAbleAll<T1, T2, T3>(values: [T1 | IAAP<T1>, T2 | IAAP<T2>, T3 | IAAP<T3>]): IAAP<[T1, T2, T3]>;
+export function abortAbleAll<T1, T2>(values: [T1 | IAAP<T1>, T2 | IAAP<T2>]): IAAP<[T1, T2]>;
+export function abortAbleAll<T>(values: (T | IAAP<T>)[]): IAAP<T[]>;
+
+export function abortAbleAll(values: any[]): IAAP<any[]> {
+  const loader = Promise.all(values);
+  let aborted: ((v: symbol) => void) | null = null;
+  const isAborted = () => aborted === null;
+  const aborter = new Promise<symbol>((resolve) => aborted = resolve);
+  const abort = () => {
+    if (aborted == null) {
+      return;
+    }
+    aborted(ABORTED);
+    for (const v of values) {
+      if (isAbortAble(v)) {
+        v.abort();
       }
     }
-  });
+    aborted = null;
+  };
+  return {
+    then: thenFactory(loader, isAborted, aborter, abort),
+    abort
+  };
 }
 
 /**
  * checked whether the given argument is an abortable Promise
- * @param {IAbortAblePromise<any> | void | null | undefined} abortAble
+ * @param {IAbortAblePromise<any> | any} abortAble
  * @returns {boolean}
  */
-export function isAbortAble(abortAble: IAbortAblePromise<any> | void | undefined | null): abortAble is IAbortAblePromise<any> {
-  return abortAble !== undefined && abortAble !== null && abortAble && typeof abortAble.then === 'function' && typeof abortAble.abort === 'function';
+export function isAbortAble(abortAble: IAbortAblePromise<any> | any): abortAble is IAbortAblePromise<any> {
+  return abortAble != null && abortAble && typeof abortAble.then === 'function' && typeof abortAble.abort === 'function';
 }
 
 
