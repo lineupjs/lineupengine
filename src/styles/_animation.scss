@@ -3,10 +3,7 @@
 
 @include exports('lineupengine/animation') {
   .#{$engine_css_prefix}-loading {
-    background-image: $engine_loading_static_image !important;
-    background-repeat: repeat-x !important;
-    background-position: center !important;
-    background-size: contain !important;
+    background: $engine_loading_static_image repeat-x center/contain !important;
     background-blend-mode: overlay !important;
     color: transparent !important;
 
