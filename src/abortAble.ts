@@ -2,7 +2,7 @@ export function isPromiseLike(p: PromiseLike<any> | any): p is PromiseLike<any> 
   return p != null && p && typeof p.then === 'function';
 }
 
-interface IAbortAblePromiseBase<T> extends PromiseLike<T> {
+export interface IAbortAblePromiseBase<T> extends PromiseLike<T> {
   then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): IAbortAblePromiseBase<TResult1 | TResult2>;
   abort(): void;
 }
@@ -21,7 +21,7 @@ export const ABORTED = Symbol('aborted');
 
 
 function thenFactory<T>(loader: PromiseLike<T>, isAborted: () => boolean, aborter: PromiseLike<symbol>, abort: () => void) {
-  function then<TResult1 = T | symbol>(onfulfilled?: ((value: T | symbol) => TResult1 | PromiseLike<TResult1>) | undefined | null): IAbortAblePromiseBase<TResult1> {
+  function then<TResult1 = T | symbol, TResult2 = never>(onfulfilled?: ((value: T | symbol) => TResult1 | PromiseLike<TResult1>) | undefined | null, _onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): IAbortAblePromiseBase<TResult1 | TResult2> {
     const fullfiller = loader.then((loaded) => {
       if (isAborted()) {
         return ABORTED;
@@ -109,4 +109,24 @@ export function isAbortAble(abortAble: IAbortAblePromise<any> | any): abortAble 
 
 export function isAsyncUpdate<T>(update: T | void | undefined | null | IAsyncUpdate<T>): update is IAsyncUpdate<T> {
   return update !== undefined && update !== null && update && isAbortAble((<IAsyncUpdate<T>>update).ready);
+}
+
+export function abortAbleResolveNow<T>(value: T) {
+  function then<TResult1 = T | symbol, TResult2 = never>(onfulfilled?: ((value: T | symbol) => TResult1 | PromiseLike<TResult1>) | undefined | null, _onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): IAbortAblePromiseBase<TResult1 | TResult2> {
+    const res = onfulfilled ? onfulfilled(value): <any>value;
+    if (isAbortAble(res)) {
+      return res;
+    }
+    if (isPromiseLike(res)) {
+      return abortAble(res);
+    }
+    return {
+      then: <any>abortAbleResolveNow(<TResult1>res),
+      abort: () => undefined
+    };
+  }
+  return {
+    then,
+    abort: () => undefined
+  };
 }
