@@ -1,6 +1,6 @@
 import {IColumn} from '../src';
 import '../src/style.scss';
-import {cssClass} from '../src/styles';
+import {cssClass, CSS_CLASS_FROZEN} from '../src/styles';
 
 /** @internal */
 export class Column<T> implements IColumn {

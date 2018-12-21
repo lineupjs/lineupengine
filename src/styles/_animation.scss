@@ -39,7 +39,7 @@
 
   article.#{$engine_css_prefix}-row-animation {
     > .#{$engine_css_prefix}-tr {
-      overflow: hidden !important;  // defaults
+      overflow: hidden !important; // defaults
       transition: all $engine_animation_update_duration $engine_animation_ease;
       will-change: transform, opacity, height;
 
@@ -61,7 +61,9 @@
       // in case of hiding shift update and show
       transition: all $engine_animation_update_duration $engine_animation_ease $engine_animation_hide_duration + $engine_animation_pause;
 
-      &[data-animation=hide] { // since order
+      &[data-animation=hide] {
+
+        // since order
         transition: all $engine_animation_hide_duration $engine_animation_ease;
       }
 
