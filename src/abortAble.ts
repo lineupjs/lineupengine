@@ -26,7 +26,7 @@ function thenFactory<T>(loader: PromiseLike<T>, isAborted: () => boolean, aborte
       if (isAborted()) {
         return ABORTED;
       }
-      const res = onfulfilled ? onfulfilled(loaded): <any>loaded;
+      const res = onfulfilled ? onfulfilled(loaded) : <any>loaded;
       if (isPromiseLike(res)) {
         return res.then((r) => isAborted() ? ABORTED : r);
       }
@@ -63,13 +63,13 @@ export default function abortAble<T>(loader: PromiseLike<T>): IAAP<T> {
   };
 }
 
-export function abortAbleAll<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(values: [T1 | IAAP<T1>, T2 | IAAP<T2>, T3 | IAAP<T3>, T4 | IAAP <T4>, T5 | IAAP<T5>, T6 | IAAP<T6>, T7 | IAAP<T7>, T8 | IAAP<T8>, T9 | IAAP<T9>, T10 | IAAP<T10>]): IAAP<[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10]>;
-export function abortAbleAll<T1, T2, T3, T4, T5, T6, T7, T8, T9>(values: [T1 | IAAP<T1>, T2 | IAAP<T2>, T3 | IAAP<T3>, T4 | IAAP <T4>, T5 | IAAP<T5>, T6 | IAAP<T6>, T7 | IAAP<T7>, T8 | IAAP<T8>, T9 | IAAP<T9>]): IAAP<[T1, T2, T3, T4, T5, T6, T7, T8, T9]>;
-export function abortAbleAll<T1, T2, T3, T4, T5, T6, T7, T8>(values: [T1 | IAAP<T1>, T2 | IAAP<T2>, T3 | IAAP<T3>, T4 | IAAP <T4>, T5 | IAAP<T5>, T6 | IAAP<T6>, T7 | IAAP<T7>, T8 | IAAP<T8>]): IAAP<[T1, T2, T3, T4, T5, T6, T7, T8]>;
-export function abortAbleAll<T1, T2, T3, T4, T5, T6, T7>(values: [T1 | IAAP<T1>, T2 | IAAP<T2>, T3 | IAAP<T3>, T4 | IAAP <T4>, T5 | IAAP<T5>, T6 | IAAP<T6>, T7 | IAAP<T7>]): IAAP<[T1, T2, T3, T4, T5, T6, T7]>;
-export function abortAbleAll<T1, T2, T3, T4, T5, T6>(values: [T1 | IAAP<T1>, T2 | IAAP<T2>, T3 | IAAP<T3>, T4 | IAAP <T4>, T5 | IAAP<T5>, T6 | IAAP<T6>]): IAAP<[T1, T2, T3, T4, T5, T6]>;
-export function abortAbleAll<T1, T2, T3, T4, T5>(values: [T1 | IAAP<T1>, T2 | IAAP<T2>, T3 | IAAP<T3>, T4 | IAAP <T4>, T5 | IAAP<T5>]): IAAP<[T1, T2, T3, T4, T5]>;
-export function abortAbleAll<T1, T2, T3, T4>(values: [T1 | IAAP<T1>, T2 | IAAP<T2>, T3 | IAAP<T3>, T4 | IAAP <T4>]): IAAP<[T1, T2, T3, T4]>;
+export function abortAbleAll<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(values: [T1 | IAAP<T1>, T2 | IAAP<T2>, T3 | IAAP<T3>, T4 | IAAP<T4>, T5 | IAAP<T5>, T6 | IAAP<T6>, T7 | IAAP<T7>, T8 | IAAP<T8>, T9 | IAAP<T9>, T10 | IAAP<T10>]): IAAP<[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10]>;
+export function abortAbleAll<T1, T2, T3, T4, T5, T6, T7, T8, T9>(values: [T1 | IAAP<T1>, T2 | IAAP<T2>, T3 | IAAP<T3>, T4 | IAAP<T4>, T5 | IAAP<T5>, T6 | IAAP<T6>, T7 | IAAP<T7>, T8 | IAAP<T8>, T9 | IAAP<T9>]): IAAP<[T1, T2, T3, T4, T5, T6, T7, T8, T9]>;
+export function abortAbleAll<T1, T2, T3, T4, T5, T6, T7, T8>(values: [T1 | IAAP<T1>, T2 | IAAP<T2>, T3 | IAAP<T3>, T4 | IAAP<T4>, T5 | IAAP<T5>, T6 | IAAP<T6>, T7 | IAAP<T7>, T8 | IAAP<T8>]): IAAP<[T1, T2, T3, T4, T5, T6, T7, T8]>;
+export function abortAbleAll<T1, T2, T3, T4, T5, T6, T7>(values: [T1 | IAAP<T1>, T2 | IAAP<T2>, T3 | IAAP<T3>, T4 | IAAP<T4>, T5 | IAAP<T5>, T6 | IAAP<T6>, T7 | IAAP<T7>]): IAAP<[T1, T2, T3, T4, T5, T6, T7]>;
+export function abortAbleAll<T1, T2, T3, T4, T5, T6>(values: [T1 | IAAP<T1>, T2 | IAAP<T2>, T3 | IAAP<T3>, T4 | IAAP<T4>, T5 | IAAP<T5>, T6 | IAAP<T6>]): IAAP<[T1, T2, T3, T4, T5, T6]>;
+export function abortAbleAll<T1, T2, T3, T4, T5>(values: [T1 | IAAP<T1>, T2 | IAAP<T2>, T3 | IAAP<T3>, T4 | IAAP<T4>, T5 | IAAP<T5>]): IAAP<[T1, T2, T3, T4, T5]>;
+export function abortAbleAll<T1, T2, T3, T4>(values: [T1 | IAAP<T1>, T2 | IAAP<T2>, T3 | IAAP<T3>, T4 | IAAP<T4>]): IAAP<[T1, T2, T3, T4]>;
 export function abortAbleAll<T1, T2, T3>(values: [T1 | IAAP<T1>, T2 | IAAP<T2>, T3 | IAAP<T3>]): IAAP<[T1, T2, T3]>;
 export function abortAbleAll<T1, T2>(values: [T1 | IAAP<T1>, T2 | IAAP<T2>]): IAAP<[T1, T2]>;
 export function abortAbleAll<T>(values: (T | IAAP<T>)[]): IAAP<T[]>;
@@ -113,7 +113,7 @@ export function isAsyncUpdate<T>(update: T | void | undefined | null | IAsyncUpd
 
 export function abortAbleResolveNow<T>(value: T) {
   function then<TResult1 = T | symbol, TResult2 = never>(onfulfilled?: ((value: T | symbol) => TResult1 | PromiseLike<TResult1>) | undefined | null, _onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): IAbortAblePromiseBase<TResult1 | TResult2> {
-    const res = onfulfilled ? onfulfilled(value): <any>value;
+    const res = onfulfilled ? onfulfilled(value) : <any>value;
     if (isAbortAble(res)) {
       return res;
     }

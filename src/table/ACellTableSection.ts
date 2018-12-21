@@ -1,12 +1,12 @@
+import {IAbortAblePromise, IAsyncUpdate} from '../abortAble';
 import {IAnimationContext} from '../animation';
 import ARowRenderer, {IRowRendererOptions, setTransform} from '../ARowRenderer';
 import {EScrollResult, IMixinClass} from '../mixin';
-import GridStyleManager from '../style/GridStyleManager';
 import {IColumn} from '../style';
+import GridStyleManager from '../style/GridStyleManager';
+import {CSS_CLASS_HIDDEN, CSS_CLASS_LOADING} from '../styles';
 import ACellAdapter, {ICellAdapterRenderContext} from './internal/ACellAdapter';
 import {ITableSection} from './MultiTableRowRenderer';
-import {CSS_CLASS_LOADING, CSS_CLASS_HIDDEN} from '../styles';
-import {IAsyncUpdate, IAbortAblePromise} from '../abortAble';
 
 export {isLoadingCell} from '../ARowRenderer';
 export declare type ICellRenderContext<T extends IColumn> = ICellAdapterRenderContext<T>;
@@ -191,7 +191,7 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
    * @param {T} column the current column
    * @returns {HTMLElement} the node representing the cell
    */
-  protected abstract createCell(document: Document, index: number, column: T): HTMLElement| IAsyncUpdate<HTMLElement>;
+  protected abstract createCell(document: Document, index: number, column: T): HTMLElement | IAsyncUpdate<HTMLElement>;
 
   /**
    * updates the given cell node with the given row index and column

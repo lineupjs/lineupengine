@@ -1,11 +1,11 @@
+import {addScroll} from '../internal';
+import {cssClass, CSS_CLASS_BODY, CSS_CLASS_FOOTER, CSS_CLASS_HEADER, CSS_CLASS_SCROLLBAR_TESTER, CSS_CLASS_SHIFTED, CSS_CLASS_TBODY, CSS_CLASS_THEAD} from '../styles';
 import {IColumn} from './IColumn';
 import StyleManager from './StyleManager';
-import {addScroll} from '../internal';
-import {cssClass, CSS_CLASS_HEADER, CSS_CLASS_THEAD, CSS_CLASS_FOOTER, CSS_CLASS_TBODY, CSS_CLASS_BODY, CSS_CLASS_SHIFTED, CSS_CLASS_SCROLLBAR_TESTER} from '../styles';
 
 export function setTemplate(root: HTMLElement, id: string) {
   id = id.startsWith('#') ? id.slice(1) : id;
-  root.innerHTML =  `
+  root.innerHTML = `
   <header id="header-${id}" class="${CSS_CLASS_HEADER} ${cssClass(`header-${id}`)}">
     <article class="${CSS_CLASS_THEAD} ${cssClass(`thead-${id}`)}"></article>
   </header>
@@ -31,24 +31,24 @@ interface ISelectors {
  * @return {ISelectors} the table ids used for header and body
  */
 export function tableIds(tableId: string) {
- return {
-   thead: `thead-${tableId}`,
-   tbody: `tbody-${tableId}`,
-   tr: `tr-${tableId}`,
-   th: `th-${tableId}`,
-   td: `td-${tableId}`
- };
+  return {
+    thead: `thead-${tableId}`,
+    tbody: `tbody-${tableId}`,
+    tr: `tr-${tableId}`,
+    th: `th-${tableId}`,
+    td: `td-${tableId}`
+  };
 }
 
 export function tableCSSClasses(tableId: string) {
- const ids = tableIds(tableId);
- return {
-   thead: cssClass(ids.thead),
-   tbody: cssClass(ids.tbody),
-   tr: cssClass(ids.tr),
-   th: cssClass(ids.th),
-   td: cssClass(ids.td)
- };
+  const ids = tableIds(tableId);
+  return {
+    thead: cssClass(ids.thead),
+    tbody: cssClass(ids.tbody),
+    tr: cssClass(ids.tr),
+    th: cssClass(ids.th),
+    td: cssClass(ids.td)
+  };
 }
 
 /**
@@ -99,7 +99,7 @@ export default class GridStyleManager extends StyleManager {
    * @param {string} tableId optional tableId in case of multiple tables within the same engine
    * @param {string} unit
    */
-  update(defaultRowHeight: number, columns: IColumn[], padding: (index: number)=>number, frozenShift: number, tableId: string, unit: string = 'px') {
+  update(defaultRowHeight: number, columns: IColumn[], padding: (index: number) => number, frozenShift: number, tableId: string, unit: string = 'px') {
     const ids = tableIds(tableId);
     const selectors = tableCSSClasses(tableId);
 
@@ -134,7 +134,7 @@ export default class GridStyleManager extends StyleManager {
     }
   }
 
-  private updateColumns(columns: IColumn[], padding: (index: number)=>number, cssSelectors: ISelectors, frozenShift: number, unit: string = 'px') {
+  private updateColumns(columns: IColumn[], padding: (index: number) => number, cssSelectors: ISelectors, frozenShift: number, unit: string = 'px') {
     const prefix = `__col${cssSelectors.td}_`;
     const rules = new Set(this.ruleNames.filter((d) => d.startsWith(prefix)));
 
@@ -186,5 +186,5 @@ function measureScrollbar(root: HTMLElement) {
 
   elem.remove();
 
-  return { width, height };
+  return {width, height};
 }

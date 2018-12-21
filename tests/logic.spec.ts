@@ -1,7 +1,4 @@
-import {
-  uniformContext, nonUniformContext, range, randomContext, IRowHeightException,
-  IRowHeightExceptionLookup, IVisibleRange
-} from '../src/logic';
+import {IRowHeightException, IRowHeightExceptionLookup, IVisibleRange, nonUniformContext, randomContext, range, uniformContext} from '../src/logic';
 
 describe('logic', () => {
   function expectException(ex: IRowHeightException, index: number, y: number, height: number) {
@@ -28,7 +25,7 @@ describe('logic', () => {
         acc[acc.length - 1].height = indexOrHeight;
       }
       return acc;
-    }, <{ index: number, height: number }[]>[]);
+    }, <{index: number, height: number}[]>[]);
 
     expect(ex.size).toBe(checks.length);
 
@@ -186,7 +183,7 @@ describe('logic', () => {
         const ex7Middle = exceptions[1].y + 1;
 
         it('betweenOutOut', () => {
-          expectRange(range(ex3Middle - 3,(ex7Middle - 3) - (ex3Middle - 3), rowHeight, exceptions, numberOfRows), 2, 6, 2 * rowHeight, 7 * rowHeight + 1);
+          expectRange(range(ex3Middle - 3, (ex7Middle - 3) - (ex3Middle - 3), rowHeight, exceptions, numberOfRows), 2, 6, 2 * rowHeight, 7 * rowHeight + 1);
         });
 
         it('betweenInOut', () => {

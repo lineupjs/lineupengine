@@ -1,12 +1,12 @@
+import {ABORTED, IAbortAblePromise, IAsyncUpdate, isAbortAble, isAsyncUpdate} from '../../abortAble';
+import {isLoadingCell} from '../../ARowRenderer';
+import {clear, IScrollInfo} from '../../internal';
+import {isScrollEventWaiting} from '../../internal/scroll';
 import {IExceptionContext, range, updateFrozen} from '../../logic';
 import {EScrollResult, IMixin, IMixinAdapter, IMixinClass} from '../../mixin';
-import GridStyleManager from '../../style/GridStyleManager';
 import {IColumn} from '../../style';
-import {cssClass, CSS_CLASS_TD, CSS_CLASS_LOADING, CSS_CLASS_SHIFTED, CSS_CLASS_TH, CSS_CLASS_FROZEN} from '../../styles';
-import {IScrollInfo, clear} from '../../internal';
-import {isScrollEventWaiting} from '../../internal/scroll';
-import {IAbortAblePromise, IAsyncUpdate, isAbortAble, isAsyncUpdate, ABORTED} from '../../abortAble';
-import {isLoadingCell} from '../../ARowRenderer';
+import GridStyleManager from '../../style/GridStyleManager';
+import {cssClass, CSS_CLASS_FROZEN, CSS_CLASS_LOADING, CSS_CLASS_SHIFTED, CSS_CLASS_TD, CSS_CLASS_TH} from '../../styles';
 
 const debug = false;
 
@@ -228,7 +228,7 @@ export abstract class ACellAdapter<T extends IColumn> {
     }
   }
 
-  private selectProxyCell(row: number, column: number, columns: T[]):  {item: HTMLElement, ready: IAbortAblePromise<void> | void} {
+  private selectProxyCell(row: number, column: number, columns: T[]): {item: HTMLElement, ready: IAbortAblePromise<void> | void} {
     const pool = this.cellPool[column];
     const columnObj = columns[column];
 

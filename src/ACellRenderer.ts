@@ -1,11 +1,11 @@
+import {IAbortAblePromise, IAsyncUpdate} from './abortAble';
 import {IAnimationContext} from './animation';
 import {ARowRenderer, IRowRendererOptions} from './ARowRenderer';
+import {addScroll} from './internal';
 import {EScrollResult, IMixinClass} from './mixin';
 import {GridStyleManager, IColumn, setTemplate} from './style';
-import ACellAdapter, {ICellAdapterRenderContext} from './table/internal/ACellAdapter';
-import {addScroll} from './internal';
 import {cssClass} from './styles';
-import {IAsyncUpdate, IAbortAblePromise} from './abortAble';
+import ACellAdapter, {ICellAdapterRenderContext} from './table/internal/ACellAdapter';
 
 export {isLoadingCell} from './ARowRenderer';
 export declare type ICellRenderContext<T extends IColumn> = ICellAdapterRenderContext<T>;

@@ -1,12 +1,11 @@
 import {ABORTED, IAbortAblePromise, isAbortAble} from './abortAble';
 import {defaultPhases, EAnimationMode, IAnimationContext, IAnimationItem, IPhase, noAnimationChange} from './animation';
 import KeyFinder from './animation/KeyFinder';
+import {addScroll, clear, defaultMode, IDelayedMode, IScrollInfo, removeScroll} from './internal';
+import {isScrollEventWaiting} from './internal/scroll';
 import {IExceptionContext, range} from './logic';
 import {EScrollResult, IMixin, IMixinAdapter, IMixinClass} from './mixin';
-import {addScroll, removeScroll, IScrollInfo, IDelayedMode, defaultMode} from './internal';
-import {cssClass, CSS_CLASS_FOOTER, CSS_CLASS_LOADING, CSS_CLASS_TR, CSS_CLASS_EVEN, CSS_CLASS_ROW_ANIMATION, CSS_CLASS_SCROLLING} from './styles';
-import {clear} from './internal';
-import {isScrollEventWaiting} from './internal/scroll';
+import {cssClass, CSS_CLASS_EVEN, CSS_CLASS_FOOTER, CSS_CLASS_LOADING, CSS_CLASS_ROW_ANIMATION, CSS_CLASS_SCROLLING, CSS_CLASS_TR} from './styles';
 
 export declare type IRowRenderContext = IExceptionContext;
 
@@ -86,7 +85,7 @@ export abstract class ARowRenderer {
   private readonly adapter: IMixinAdapter;
   private readonly mixins: IMixin[];
   private scrollListener: ((act: IScrollInfo) => void) | null = null;
-  protected lastScrollInfo: IScrollInfo|null = null;
+  protected lastScrollInfo: IScrollInfo | null = null;
 
   private abortAnimation: () => void = () => undefined;
 
@@ -772,7 +771,7 @@ export abstract class ARowRenderer {
 
     const {exceptionsLookup, defaultRowHeight} = this.context;
     let firstRowPos = currentFirstRow;
-    for(let i = first; i < current; ++i) {
+    for (let i = first; i < current; ++i) {
       if (exceptionsLookup.has(i)) {
         firstRowPos -= exceptionsLookup.get(i)!;
       } else {
@@ -797,8 +796,8 @@ export abstract class ARowRenderer {
 
     let r: EScrollResult = EScrollResult.SOME;
 
-    let torecycle: HTMLElement[]|undefined;
-    let toadd: DocumentFragment|undefined;
+    let torecycle: HTMLElement[] | undefined;
+    let toadd: DocumentFragment | undefined;
     let toaddBottom = false;
 
     if (first > visible.last || last < visible.first) {
@@ -852,9 +851,9 @@ export abstract class ARowRenderer {
     return r;
   }
 
-  private manipulate(toRecycle: HTMLElement[]|undefined, toAdd: DocumentFragment|undefined, bottom: boolean) {
+  private manipulate(toRecycle: HTMLElement[] | undefined, toAdd: DocumentFragment | undefined, bottom: boolean) {
     if (toRecycle) {
-      for(const item of toRecycle) {
+      for (const item of toRecycle) {
         item.remove();
         this.recycle(item);
       }
@@ -873,7 +872,7 @@ export abstract class ARowRenderer {
 export default ARowRenderer;
 
 
-export function setTransform(elem: HTMLElement, x: number|string, y: number|string) {
+export function setTransform(elem: HTMLElement, x: number | string, y: number | string) {
   const text = `translate(${x}px, ${y}px)`;
   const anyelem = <any>elem;
   if (anyelem.__transform__ === text) {

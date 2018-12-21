@@ -1,12 +1,12 @@
-export * from './ACellRenderer';
-export * from './ARowRenderer';
-export * from './logic';
 export * from './abortAble';
 export {default as abortAble} from './abortAble';
-export * from './style';
-export * from './mixin';
-export * from './table';
+export * from './ACellRenderer';
 export * from './animation';
+export * from './ARowRenderer';
+export * from './logic';
+export * from './mixin';
+export * from './style';
+export * from './table';
 
 declare const __VERSION__: string;
 export const version = __VERSION__;

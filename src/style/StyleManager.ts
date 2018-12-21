@@ -89,7 +89,7 @@ export default class StyleManager {
   }
 
   private get sheet() {
-    return (<CSSStyleSheet|null>this.node.sheet);
+    return (<CSSStyleSheet | null>this.node.sheet);
   }
 
   private getSheetRule(index: number) {

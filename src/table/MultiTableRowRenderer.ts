@@ -1,7 +1,7 @@
-import {GridStyleManager, tableIds, tableCSSClasses} from '../style';
-import {addScroll, defaultMode, IDelayedMode} from '../internal';
-import {cssClass, CSS_CLASS_HEADER, CSS_CLASS_FOOTER, CSS_CLASS_BODY, CSS_CLASS_MULTI, CSS_CLASS_THEAD, CSS_CLASS_TBODY} from '../styles';
 import {setTransform} from '../ARowRenderer';
+import {addScroll, defaultMode, IDelayedMode} from '../internal';
+import {GridStyleManager, tableCSSClasses, tableIds} from '../style';
+import {cssClass, CSS_CLASS_BODY, CSS_CLASS_FOOTER, CSS_CLASS_HEADER, CSS_CLASS_MULTI, CSS_CLASS_TBODY, CSS_CLASS_THEAD} from '../styles';
 
 /**
  * basic interface of a table section
