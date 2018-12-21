@@ -4,14 +4,14 @@ import KeyFinder from './animation/KeyFinder';
 import {IExceptionContext, range} from './logic';
 import {EScrollResult, IMixin, IMixinAdapter, IMixinClass} from './mixin';
 import {addScroll, removeScroll, IScrollInfo, IDelayedMode, defaultMode} from './internal';
-import {cssClass} from './styles';
+import {cssClass, CSS_CLASS_FOOTER, CSS_CLASS_LOADING, CSS_CLASS_TR, CSS_CLASS_EVEN, CSS_CLASS_ROW_ANIMATION, CSS_CLASS_SCROLLING} from './styles';
 import {clear} from './internal';
 import {isScrollEventWaiting} from './internal/scroll';
 
 export declare type IRowRenderContext = IExceptionContext;
 
 export function isLoadingCell(node: HTMLElement) {
-  return node.classList.contains(cssClass('loading'));
+  return node.classList.contains(CSS_CLASS_LOADING);
 }
 
 export interface IRowRendererOptions {
@@ -165,7 +165,7 @@ export abstract class ARowRenderer {
       return sizer;
     }
     const s = parent.ownerDocument!.createElement('footer');
-    s.classList.add(cssClass('footer'), cssClass(`footer-${this.idPrefix}`));
+    s.classList.add(CSS_CLASS_FOOTER, cssClass(`footer-${this.idPrefix}`));
     parent.insertBefore(s, parent.firstChild);
     return s;
   }
@@ -208,11 +208,11 @@ export abstract class ARowRenderer {
       old = act;
       this.onScrolledVertically(act.top, act.height, isGoingDown);
       if (this.options.scrollingHint) {
-        this.body.classList.remove(cssClass('scrolling'));
+        this.body.classList.remove(CSS_CLASS_SCROLLING);
       }
     });
     if (this.options.scrollingHint) {
-      addScroll(scroller, 'animation', () => this.body.classList.add(cssClass('scrolling')));
+      addScroll(scroller, 'animation', () => this.body.classList.add(CSS_CLASS_SCROLLING));
     }
     this.recreate();
   }
@@ -238,16 +238,16 @@ export abstract class ARowRenderer {
       result = this.updateRow(item, index);
     } else if (this.loadingPool.length > 0) {
       item = this.loadingPool.pop()!;
-      item.classList.remove(cssClass('loading'));
+      item.classList.remove(CSS_CLASS_LOADING);
       result = this.createRow(item, index);
     } else {
       item = this.body.ownerDocument!.createElement('div');
-      item.classList.add(cssClass('tr'), cssClass(`tr-${this.idPrefix}`));
+      item.classList.add(CSS_CLASS_TR, cssClass(`tr-${this.idPrefix}`));
       result = this.createRow(item, index);
     }
     item.dataset.index = String(index);
     if (this.options.striped) {
-      item.classList.toggle(cssClass('even'), index % 2 === 0);
+      item.classList.toggle(CSS_CLASS_EVEN, index % 2 === 0);
     }
     return {item, result};
   }
@@ -258,7 +258,7 @@ export abstract class ARowRenderer {
       proxy = this.loadingPool.pop()!;
     } else {
       proxy = this.body.ownerDocument!.createElement('div');
-      proxy.classList.add(cssClass('loading'), cssClass('tr'), cssClass(`tr-${this.idPrefix}`));
+      proxy.classList.add(CSS_CLASS_LOADING, CSS_CLASS_TR, cssClass(`tr-${this.idPrefix}`));
     }
     return proxy;
   }
@@ -696,7 +696,7 @@ export abstract class ARowRenderer {
       return;
     }
 
-    body.classList.add(cssClass('row-animation'));
+    body.classList.add(CSS_CLASS_ROW_ANIMATION);
     (new Set(animation.map((d) => d.mode))).forEach((mode) => {
       // add class but map to UPDATE only
       body.classList.add(cssClass(`${EAnimationMode[mode].toLowerCase().split('_')[0]}-animation`));

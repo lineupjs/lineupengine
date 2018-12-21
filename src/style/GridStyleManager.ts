@@ -1,17 +1,17 @@
 import {IColumn} from './IColumn';
 import StyleManager from './StyleManager';
 import {addScroll} from '../internal';
-import {cssClass} from '../styles';
+import {cssClass, CSS_CLASS_HEADER, CSS_CLASS_THEAD, CSS_CLASS_FOOTER, CSS_CLASS_TBODY, CSS_CLASS_BODY, CSS_CLASS_SHIFTED, CSS_CLASS_SCROLLBAR_TESTER} from '../styles';
 
 export function setTemplate(root: HTMLElement, id: string) {
   id = id.startsWith('#') ? id.slice(1) : id;
   root.innerHTML =  `
-  <header id="header-${id}" class="${cssClass('header')} ${cssClass(`header-${id}`)}">
-    <article class="${cssClass('thead')} ${cssClass(`thead-${id}`)}"></article>
+  <header id="header-${id}" class="${CSS_CLASS_HEADER} ${cssClass(`header-${id}`)}">
+    <article class="${CSS_CLASS_THEAD} ${cssClass(`thead-${id}`)}"></article>
   </header>
-  <main id="body-${id}" class="${cssClass('body')} ${cssClass(`body-${id}`)}">
-    <footer class="${cssClass('footer')}">&nbsp;</footer>
-    <article class="${cssClass('tbody')} ${cssClass(`tbody-${id}`)}"></article>
+  <main id="body-${id}" class="${CSS_CLASS_BODY} ${cssClass(`body-${id}`)}">
+    <footer class="${CSS_CLASS_FOOTER}">&nbsp;</footer>
+    <article class="${CSS_CLASS_TBODY} ${cssClass(`tbody-${id}`)}"></article>
   </main>`;
   return root;
 }
@@ -87,7 +87,7 @@ export default class GridStyleManager extends StyleManager {
       if (old !== newValue) {
         old = headerScroller.scrollLeft = newValue;
       }
-      root.classList.toggle(cssClass('shifted'), act.left > 0);
+      root.classList.toggle(CSS_CLASS_SHIFTED, act.left > 0);
     });
   }
 
@@ -153,7 +153,7 @@ export default class GridStyleManager extends StyleManager {
       if (c.frozen) {
         thStyles.left = `${acc}px`;
 
-        this.updateRule(`${prefix}${td}F`, `.${cssSelectors.td}.${cssClass('shifted')}[data-id="${c.id}"]`, {
+        this.updateRule(`${prefix}${td}F`, `.${cssSelectors.td}.${CSS_CLASS_SHIFTED}[data-id="${c.id}"]`, {
           transform: `translateX(0)`,
           left: `${acc + frozenShift}${unit}`
         });
@@ -177,7 +177,7 @@ export default class GridStyleManager extends StyleManager {
 function measureScrollbar(root: HTMLElement) {
   const body = root.ownerDocument!.body;
   body.insertAdjacentHTML('beforeend', `
-    <div class="${cssClass('scrollbar-tester')}"><div></div></div>
+    <div class="${CSS_CLASS_SCROLLBAR_TESTER}"><div></div></div>
   `);
   const elem = <HTMLElement>body.lastElementChild!;
 

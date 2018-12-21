@@ -1,6 +1,6 @@
 import {GridStyleManager, tableIds, tableCSSClasses} from '../style';
 import {addScroll, defaultMode, IDelayedMode} from '../internal';
-import {cssClass} from '../styles';
+import {cssClass, CSS_CLASS_HEADER, CSS_CLASS_FOOTER, CSS_CLASS_BODY, CSS_CLASS_MULTI, CSS_CLASS_THEAD, CSS_CLASS_TBODY} from '../styles';
 import {setTransform} from '../ARowRenderer';
 
 /**
@@ -78,13 +78,13 @@ export default class MultiTableRowRenderer {
     Object.assign(this.options, options);
     htmlId = htmlId.startsWith('#') ? htmlId.slice(1) : htmlId;
     node.id = htmlId;
-    node.innerHTML = `<header id="header-${htmlId}" class="${cssClass('header')} ${cssClass(`header-${htmlId}`)}">
-      <footer class="${cssClass('footer')} ${cssClass(`footer-${htmlId}`)}">&nbsp;</footer>
+    node.innerHTML = `<header id="header-${htmlId}" class="${CSS_CLASS_HEADER} ${cssClass(`header-${htmlId}`)}">
+      <footer class="${CSS_CLASS_FOOTER} ${cssClass(`footer-${htmlId}`)}">&nbsp;</footer>
     </header>
-    <main id="body-${htmlId}" class="${cssClass('body')} ${cssClass(`body-${htmlId}`)}">
-      <footer class="${cssClass('footer')}">&nbsp;</footer>
+    <main id="body-${htmlId}" class="${CSS_CLASS_BODY} ${cssClass(`body-${htmlId}`)}">
+      <footer class="${CSS_CLASS_FOOTER}">&nbsp;</footer>
     </main>`;
-    node.classList.add(cssClass(), cssClass('multi'), 'lineup-engine');
+    node.classList.add(cssClass(), CSS_CLASS_MULTI, 'lineup-engine');
 
     this.style = new GridStyleManager(this.node, htmlId);
 
@@ -168,9 +168,9 @@ export default class MultiTableRowRenderer {
     const cssClasses = tableCSSClasses(tableId);
 
     header.id = ids.thead;
-    header.classList.add(cssClass('thead'), cssClasses.thead);
+    header.classList.add(CSS_CLASS_THEAD, cssClasses.thead);
     body.id = ids.tbody;
-    body.classList.add(cssClass('tbody'), cssClasses.tbody);
+    body.classList.add(CSS_CLASS_TBODY, cssClasses.tbody);
     this.header.insertBefore(header, this.header.lastElementChild); //before the footer
     this.main.appendChild(body);
 

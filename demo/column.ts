@@ -15,7 +15,7 @@ export class Column<T> implements IColumn {
   common(document: Document) {
     const d = document.createElement('div');
     if (this.frozen) {
-      d.classList.add(cssClass('frozen'));
+      d.classList.add(CSS_CLASS_FROZEN);
     }
     d.dataset.id = this.id;
     return d;

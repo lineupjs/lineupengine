@@ -5,7 +5,7 @@ import GridStyleManager from '../style/GridStyleManager';
 import {IColumn} from '../style';
 import ACellAdapter, {ICellAdapterRenderContext} from './internal/ACellAdapter';
 import {ITableSection} from './MultiTableRowRenderer';
-import {cssClass} from '../styles';
+import {CSS_CLASS_LOADING, CSS_CLASS_HIDDEN} from '../styles';
 import {IAsyncUpdate, IAbortAblePromise} from '../abortAble';
 
 export {isLoadingCell} from '../ARowRenderer';
@@ -91,7 +91,7 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
   }
 
   get hidden() {
-    return this.header.classList.contains(cssClass('loading'));
+    return this.header.classList.contains(CSS_CLASS_LOADING);
   }
 
   protected updateSizer(firstRowPos: number) {
@@ -108,10 +108,10 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
     if (old === value) {
       return;
     }
-    this.header.classList.toggle(cssClass('loading'), value);
-    this.body.classList.toggle(cssClass('loading'), value);
-    this.header.classList.toggle(cssClass('hidden'), value);
-    this.body.classList.toggle(cssClass('hidden'), value);
+    this.header.classList.toggle(CSS_CLASS_LOADING, value);
+    this.body.classList.toggle(CSS_CLASS_LOADING, value);
+    this.header.classList.toggle(CSS_CLASS_HIDDEN, value);
+    this.body.classList.toggle(CSS_CLASS_HIDDEN, value);
     this.onVisibilityChanged(!value);
   }
 

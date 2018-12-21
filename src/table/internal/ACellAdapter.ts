@@ -2,7 +2,7 @@ import {IExceptionContext, range, updateFrozen} from '../../logic';
 import {EScrollResult, IMixin, IMixinAdapter, IMixinClass} from '../../mixin';
 import GridStyleManager from '../../style/GridStyleManager';
 import {IColumn} from '../../style';
-import {cssClass} from '../../styles';
+import {cssClass, CSS_CLASS_TD, CSS_CLASS_LOADING, CSS_CLASS_SHIFTED, CSS_CLASS_TH, CSS_CLASS_FROZEN} from '../../styles';
 import {IScrollInfo, clear} from '../../internal';
 import {isScrollEventWaiting} from '../../internal/scroll';
 import {IAbortAblePromise, IAsyncUpdate, isAbortAble, isAsyncUpdate, ABORTED} from '../../abortAble';
@@ -245,21 +245,21 @@ export abstract class ACellAdapter<T extends IColumn> {
     }
     if (item !== pooled) {
       item.dataset.id = columnObj.id;
-      item.classList.add(cssClass('td'), this.style.cssClasses.td, cssClass(`td-${this.tableId}`));
+      item.classList.add(CSS_CLASS_TD, this.style.cssClasses.td, cssClass(`td-${this.tableId}`));
     }
     this.updateShiftedState(item, columnObj);
     return {item, ready};
   }
 
   handleCellReady(item: HTMLElement, ready: IAbortAblePromise<void>, column: number = -1) {
-    item.classList.add(cssClass('loading'));
+    item.classList.add(CSS_CLASS_LOADING);
     const abort = ready;
     //lazy loading
 
     this.loading.set(item, abort);
     abort.then((result) => {
       this.loading.delete(item);
-      item.classList.remove(cssClass('loading'));
+      item.classList.remove(CSS_CLASS_LOADING);
       if (result === ABORTED && column >= 0) {
         //aborted can recycle the real one
         this.cellPool[column].push(item);
@@ -277,7 +277,7 @@ export abstract class ACellAdapter<T extends IColumn> {
   }
 
   protected updateShiftedState(node: HTMLElement, col: IColumn) {
-    node.classList.toggle(cssClass('shifted'), col.frozen && this.horizontallyShifted);
+    node.classList.toggle(CSS_CLASS_SHIFTED, col.frozen && this.horizontallyShifted);
   }
 
   recycleCell(item: HTMLElement, column: number = -1) {
@@ -373,7 +373,7 @@ export abstract class ACellAdapter<T extends IColumn> {
         return;
       }
       n.dataset.id = col.id;
-      n.classList.add(cssClass('th'), this.style.cssClasses.th, cssClass(`th-${this.tableId}`));
+      n.classList.add(CSS_CLASS_TH, this.style.cssClasses.th, cssClass(`th-${this.tableId}`));
       this.header.replaceChild(base, n);
     });
   }
@@ -414,7 +414,7 @@ export abstract class ACellAdapter<T extends IColumn> {
         }
         if (n !== existing) {
           n.dataset.id = col.id;
-          n.classList.add(cssClass('th'), this.style.cssClasses.th, cssClass(`th-${this.tableId}`));
+          n.classList.add(CSS_CLASS_TH, this.style.cssClasses.th, cssClass(`th-${this.tableId}`));
         }
         fragment.appendChild(n);
       });
@@ -525,7 +525,7 @@ export abstract class ACellAdapter<T extends IColumn> {
       }
       if (cell && cell !== existing) {
         cell.dataset.id = col.id;
-        cell.classList.add(cssClass('td'), this.style.cssClasses.td, cssClass(`td-${this.tableId}`));
+        cell.classList.add(CSS_CLASS_TD, this.style.cssClasses.td, cssClass(`td-${this.tableId}`));
       }
       this.updateShiftedState(cell, col);
       node.appendChild(cell);
@@ -557,10 +557,10 @@ export abstract class ACellAdapter<T extends IColumn> {
       return;
     }
     const shifted = this.horizontallyShifted;
-    const clazz = cssClass('shifted');
+    const clazz = CSS_CLASS_SHIFTED;
     if (shifted) {
-      const headers = Array.from(this.header.querySelectorAll(`.${cssClass('frozen')}:not(.${clazz})`));
-      const bodies = Array.from(this.body.querySelectorAll(`.${cssClass('frozen')}:not(.${clazz})`));
+      const headers = Array.from(this.header.querySelectorAll(`.${CSS_CLASS_FROZEN}:not(.${clazz})`));
+      const bodies = Array.from(this.body.querySelectorAll(`.${CSS_CLASS_FROZEN}:not(.${clazz})`));
       for (const item of headers) {
         item.classList.add(clazz);
       }
@@ -568,8 +568,8 @@ export abstract class ACellAdapter<T extends IColumn> {
         item.classList.add(clazz);
       }
     } else {
-      const headers = Array.from(this.header.querySelectorAll(`.${cssClass('frozen')}.${clazz}`));
-      const bodies = Array.from(this.body.querySelectorAll(`.${cssClass('frozen')}.${clazz}`));
+      const headers = Array.from(this.header.querySelectorAll(`.${CSS_CLASS_FROZEN}.${clazz}`));
+      const bodies = Array.from(this.body.querySelectorAll(`.${CSS_CLASS_FROZEN}.${clazz}`));
       for (const item of headers) {
         item.classList.remove(clazz);
       }
