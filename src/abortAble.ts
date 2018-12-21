@@ -18,23 +18,21 @@ export interface IAsyncUpdate<T> {
 
 export const ABORTED = Symbol('aborted');
 
-
-
-function thenFactory<T>(loader: PromiseLike<T>, isAborted: () => boolean, aborter: PromiseLike<symbol>, abort: () => void) {
+function thenFactory<T>(loader: PromiseLike<T | symbol>, isAborted: () => boolean, abort: () => void) {
   function then<TResult1 = T | symbol, TResult2 = never>(onfulfilled?: ((value: T | symbol) => TResult1 | PromiseLike<TResult1>) | undefined | null, _onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): IAbortAblePromiseBase<TResult1 | TResult2> {
     const fullfiller = loader.then((loaded) => {
-      if (isAborted()) {
-        return ABORTED;
-      }
-      const res = onfulfilled ? onfulfilled(loaded) : <any>loaded;
+      const loadedOrAborted = isAborted() ? ABORTED : loaded;
+      const res = onfulfilled ? onfulfilled(loadedOrAborted) : <any>loadedOrAborted;
+
       if (isPromiseLike(res)) {
-        return res.then((r) => isAborted() ? ABORTED : r);
+        return res.then((r) => {
+          return isAborted() ? ABORTED : r;
+        });
       }
       return isAborted() ? ABORTED : res;
     });
-    const p = Promise.race<TResult1 | symbol>([aborter, fullfiller]);
     return {
-      then: <any>thenFactory(p, isAborted, aborter, abort),
+      then: thenFactory(fullfiller, isAborted, abort),
       abort
     };
   }
@@ -51,14 +49,17 @@ export default function abortAble<T>(loader: PromiseLike<T>): IAAP<T> {
   const isAborted = () => aborted === null;
   const aborter = new Promise<symbol>((resolve) => aborted = resolve);
   const abort = () => {
-    if (aborted !== null) {
-      aborted(ABORTED);
-      aborted = null;
+    if (aborted == null) {
+      return;
     }
+    aborted(ABORTED);
+    aborted = null;
   };
 
+  const race = Promise.race<T | symbol>([aborter, loader]);
+
   return {
-    then: thenFactory(loader, isAborted, aborter, abort),
+    then: thenFactory(race, isAborted, abort),
     abort
   };
 }
@@ -91,8 +92,10 @@ export function abortAbleAll(values: any[]): IAAP<any[]> {
     }
     aborted = null;
   };
+  const race = Promise.race<any | symbol>([aborter, loader]);
+
   return {
-    then: thenFactory(loader, isAborted, aborter, abort),
+    then: thenFactory(race, isAborted, abort),
     abort
   };
 }

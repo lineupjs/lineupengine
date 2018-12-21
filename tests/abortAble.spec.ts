@@ -12,28 +12,50 @@ describe('utils', () => {
     it('default', () => {
       expect(typeof abortAble).toEqual('function');
     });
-    it('good', () => {
-      const a = abortAble(Promise.resolve(1)).then((v) => v * 10);
-      return a.then((r) => expect(r).toBe(10));
+    it('simple', () => {
+      const a = abortAble(Promise.resolve(1));
+      return a.then((r) => expect(r).toBe(1));
     });
-    it('aborted afterwards', () => {
-      const a = abortAble(Promise.resolve(1)).then((v) => v * 10);
+    it('resolve simple', () => {
+      const a = abortAble(resolveIn(10, 1));
+      return a.then((r) => expect(r).toBe(1));
+    });
+    it('simple abort', () => {
+      const a = abortAble(Promise.resolve(1));
       a.abort();
       return a.then((r) => expect(r).toBe(ABORTED));
     });
-    it('aborted before', () => {
-      const a = abortAble(resolveIn(100, 1)).then((v) => v * 10);
+    it('resolve abort', () => {
+      const a = abortAble(resolveIn(10, 1));
       a.abort();
       return a.then((r) => expect(r).toBe(ABORTED));
     });
-    it('good async', () => {
-      const a = abortAble(resolveIn(100, 1)).then((v) => v * 10);
-      return a.then((r) => expect(r).toBe(10));
-    });
-    it('aborted before not called', () => {
-      const a = abortAble(resolveIn(100, 1)).then(() => Promise.reject('should not be called'));
-      resolveIn(10).then(() => a.abort());
+    it('resolve abort lazy', () => {
+      const a = abortAble(resolveIn(10, 1));
+      resolveIn(1).then(() => a.abort());
       return a.then((r) => expect(r).toBe(ABORTED));
+    });
+    it('resolve abort lazy to late', () => {
+      const a = abortAble(resolveIn(10, 1));
+      resolveIn(100).then(() => a.abort());
+      return a.then((r) => expect(r).toBe(1));
+    });
+    it('resolve chain', () => {
+      const a = abortAble(resolveIn(10, 1));
+      const b = a.then((v) => typeof v === 'symbol' ? v : v * 10);
+      return b.then((r) => expect(r).toBe(10));
+    });
+    it('resolve chain abort', () => {
+      const a = abortAble(resolveIn(10, 1));
+      a.abort();
+      const b = a.then((v) => typeof v === 'symbol' ? v : v * 10);
+      return b.then((r) => expect(r).toBe(ABORTED));
+    });
+    it('resolve chain abort2', () => {
+      const a = abortAble(resolveIn(10, 1));
+      const b = a.then((v) => typeof v === 'symbol' ? v : v * 10);
+      b.abort();
+      return b.then((r) => expect(r).toBe(ABORTED));
     });
   });
 
