@@ -7,6 +7,3 @@ export * from './logic';
 export * from './mixin';
 export * from './style';
 export * from './table';
-
-declare const __VERSION__: string;
-export const version = __VERSION__;
