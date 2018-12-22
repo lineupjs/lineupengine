@@ -5,7 +5,7 @@
     "outDir": "build/src"
   },
   "typedocOptions": {
-    "name": "LineUpJS",
+    "name": "Lineupengine",
     "mode": "modules",
     "modules": "umd",
     "target": "es6",
@@ -24,7 +24,6 @@
     "excludeProtected": true,
     "excludeExternals": true,
     "excludeNotExported": true,
-    "listInvalidSymbolLinks": true,
-    "plugin": ["typedoc-plugin-as-member-of"]
+    "listInvalidSymbolLinks": true
   }
 }
