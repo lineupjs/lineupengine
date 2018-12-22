@@ -14,7 +14,7 @@
       "es2017.object"
     ],
     "declaration": true,
-    "removeComments": true,
+    "removeComments": false,
     "noImplicitAny": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
@@ -22,11 +22,8 @@
     "noUnusedLocals": true,
     "noImplicitThis": true,
     "noUnusedParameters": true,
-    "strictNullChecks": true,
+    "strict": true,
     "stripInternal": true,
-    "strictFunctionTypes": true,
-    "strictPropertyInitialization": true,
-    "skipLibCheck": true,
     "esModuleInterop": true
   },
   "compileOnSave": false,
@@ -36,6 +33,6 @@
     "tsd.d.ts"
   ],
   "exclude": [
-    "node_modules"
+    "src/**/*.d.ts"
   ]
 }

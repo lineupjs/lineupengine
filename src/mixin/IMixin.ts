@@ -40,7 +40,8 @@ export interface IMixinAdapter {
   readonly visibleFirstRowPos: number;
 
   readonly context: IExceptionContext;
-  readonly scroller: HTMLElement;
+  readonly scrollOffset: number;
+  readonly scrollTotal: number;
 
   addAtBeginning(from: number, to: number, frozenShift: number): void;
 
@@ -58,6 +59,8 @@ export interface IMixinAdapter {
    * @return {number} frozenShift
    */
   syncFrozen?(first: number): number;
+
+  isScrollEventWaiting(): boolean;
 }
 
 export interface IMixin {

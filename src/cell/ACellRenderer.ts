@@ -1,4 +1,5 @@
 import {IExceptionContext, range} from '../logic';
+import {clear} from '../internal/index';
 import QuadTreeNode, {
   BOTTOM_LEFT, BOTTOM_RIGHT, QuadTreeInnerNode, QuadTreeLeafNode, TOP_LEFT,
   TOP_RIGHT
@@ -27,7 +28,7 @@ export abstract class ACellRenderer {
   constructor(private readonly root: HTMLElement) {
     root.innerHTML = template;
     root.classList.add('lineup-cell-engine');
-    // this.fragment = root.ownerDocument.createDocumentFragment();
+    // this.fragment = root.ownerDocument!.createDocumentFragment();
   }
 
   protected abstract get context(): ICellContext;
@@ -164,7 +165,7 @@ export abstract class ACellRenderer {
     const children = <HTMLElement[]>Array.from(parent.children);
     parent.dataset.leafCols = String(leaf.colCount);
     if (children.length > 0) {
-      parent.innerHTML = '';
+      clear(parent);
     }
     for (let row = leaf.rowFirst; row <= leaf.rowLast; ++row) {
       for (let col = leaf.colFirst; col <= leaf.colLast; ++col) {
@@ -291,10 +292,10 @@ export abstract class ACellRenderer {
     const leaves = <HTMLElement[]>Array.from(node.querySelectorAll('[data-node=leaf]'));
     //recycle all inner nodes
     const inner = <HTMLElement[]>Array.from(node.querySelectorAll('[data-node=inner], [data-node=placeholder'));
-    node.innerHTML = '';
+    clear(node);
     leaves.forEach((node) => this.recycleLeaf(node));
     inner.forEach((node) => {
-      node.innerHTML = '';
+      clear(node);
       this.poolInner.push(ACellRenderer.cleanUp(node));
     });
     this.poolInner.push(ACellRenderer.cleanUp(node));

@@ -1,11 +1,13 @@
+import {IAbortAblePromise, IAsyncUpdate} from './abortAble';
 import {IAnimationContext} from './animation';
 import {ARowRenderer, IRowRendererOptions} from './ARowRenderer';
+import {addScroll} from './internal';
 import {EScrollResult, IMixinClass} from './mixin';
 import {GridStyleManager, IColumn, setTemplate} from './style';
+import {cssClass} from './styles';
 import ACellAdapter, {ICellAdapterRenderContext} from './table/internal/ACellAdapter';
-import {addScroll} from './internal';
 
-
+export {isLoadingCell} from './ARowRenderer';
 export declare type ICellRenderContext<T extends IColumn> = ICellAdapterRenderContext<T>;
 
 /**
@@ -18,8 +20,8 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
   private readonly cell: ACellAdapter<T>;
 
   constructor(protected readonly root: HTMLElement, htmlId: string, options: Partial<IRowRendererOptions> = {}) {
-    super(<HTMLElement>setTemplate(root).querySelector('main > article'), options);
-    root.classList.add('lineup-engine');
+    super(<HTMLElement>setTemplate(root, htmlId).querySelector('main > article'), options);
+    root.classList.add(cssClass(), 'lineup-engine');
 
     this.style = new GridStyleManager(this.root, htmlId);
 
@@ -28,6 +30,14 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
     class LocalCell extends ACellAdapter<T> {
       protected get context(): ICellAdapterRenderContext<T> {
         return that.context;
+      }
+
+      protected get body() {
+        return that.body;
+      }
+
+      protected get lastScrollInfo() {
+        return that.lastScrollInfo;
       }
 
       protected createHeader(document: Document, column: T) {
@@ -56,7 +66,11 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
       }
     }
 
-    this.cell = new LocalCell(this.header, this.style, undefined, ... (options.mixins || []));
+    this.cell = new LocalCell(this.header, this.style, this.style.id, ... (options.mixins || []));
+  }
+
+  protected get idPrefix() {
+    return this.style.id;
   }
 
   /**
@@ -141,7 +155,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
    * @param {T} column the column to create the header for
    * @returns {HTMLElement} the node representing the header
    */
-  protected abstract createHeader(document: Document, column: T): HTMLElement;
+  protected abstract createHeader(document: Document, column: T): HTMLElement | IAsyncUpdate<HTMLElement>;
 
   /**
    * updates the given header node with the given column
@@ -149,7 +163,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
    * @param {T} column the column to represents
    * @returns {HTMLElement | void} an optional new replacement node for the header
    */
-  protected abstract updateHeader(node: HTMLElement, column: T): HTMLElement | void;
+  protected abstract updateHeader(node: HTMLElement, column: T): HTMLElement | IAsyncUpdate<HTMLElement> | void;
 
   /**
    * create a new cell node fo the given row index and column
@@ -158,7 +172,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
    * @param {T} column the current column
    * @returns {HTMLElement} the node representing the cell
    */
-  protected abstract createCell(document: Document, index: number, column: T): HTMLElement;
+  protected abstract createCell(document: Document, index: number, column: T): HTMLElement | IAsyncUpdate<HTMLElement>;
 
   /**
    * updates the given cell node with the given row index and column
@@ -167,7 +181,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
    * @param {T} column column to use
    * @returns {HTMLElement | void} an optional new replacement node for the header
    */
-  protected abstract updateCell(node: HTMLElement, index: number, column: T): HTMLElement | void;
+  protected abstract updateCell(node: HTMLElement, index: number, column: T): HTMLElement | IAsyncUpdate<HTMLElement> | void;
 
   /**
    * trigger to update all headers
@@ -176,12 +190,20 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
     this.cell.updateHeaders();
   }
 
+  protected handleCellReady(item: HTMLElement, ready: IAbortAblePromise<void>, column: number = -1) {
+    return this.cell.handleCellReady(item, ready, column);
+  }
+
+  protected recycleCell(item: HTMLElement, column: number = -1) {
+    this.cell.recycleCell(item, column);
+  }
+
   /**
    * triggers to update all column widths
    */
   protected updateColumnWidths() {
     const context = this.context;
-    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, -this.cell.leftShift());
+    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, context.column.padding, -this.cell.leftShift(), this.idPrefix);
   }
 
   protected updateSizer(firstRowPos: number) {

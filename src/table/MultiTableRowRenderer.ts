@@ -1,5 +1,7 @@
-import {GridStyleManager} from '../style/index';
-import {addScroll, defaultMode} from '../internal';
+import {setTransform} from '../ARowRenderer';
+import {addScroll, defaultMode, IDelayedMode} from '../internal';
+import {GridStyleManager, tableCSSClasses, tableIds} from '../style';
+import {cssClass, CSS_CLASS_BODY, CSS_CLASS_FOOTER, CSS_CLASS_HEADER, CSS_CLASS_MULTI, CSS_CLASS_TBODY, CSS_CLASS_THEAD} from '../styles';
 
 /**
  * basic interface of a table section
@@ -43,12 +45,11 @@ export interface IMultiTableRowRendererOptions {
   /**
    * async update on scrolling
    * animation -> use requestAnimationFrame
-   * immediate -> use setImmediate if available
    * sync -> execute within scroll listener
    * {number} -> execute within this delay using setTimeout
    * @default is chrome ? animation else 0
    */
-  async: number | 'animation' | 'sync' | 'immediate';
+  async: IDelayedMode;
 
   /**
    * minimal number of pixel the scrollbars has to move
@@ -75,9 +76,15 @@ export default class MultiTableRowRenderer {
 
   constructor(public readonly node: HTMLElement, htmlId: string, options: Partial<IMultiTableRowRendererOptions> = {}) {
     Object.assign(this.options, options);
-    node.id = htmlId.startsWith('#') ? htmlId.slice(1) : htmlId;
-    node.innerHTML = `<header><footer>&nbsp;</footer></header><main><footer>&nbsp;</footer></main>`;
-    node.classList.add('lineup-engine', 'lineup-multi-engine');
+    htmlId = htmlId.startsWith('#') ? htmlId.slice(1) : htmlId;
+    node.id = htmlId;
+    node.innerHTML = `<header id="header-${htmlId}" class="${CSS_CLASS_HEADER} ${cssClass(`header-${htmlId}`)}">
+      <footer class="${CSS_CLASS_FOOTER} ${cssClass(`footer-${htmlId}`)}">&nbsp;</footer>
+    </header>
+    <main id="body-${htmlId}" class="${CSS_CLASS_BODY} ${cssClass(`body-${htmlId}`)}">
+      <footer class="${CSS_CLASS_FOOTER}">&nbsp;</footer>
+    </main>`;
+    node.classList.add(cssClass(), CSS_CLASS_MULTI, 'lineup-engine');
 
     this.style = new GridStyleManager(this.node, htmlId);
 
@@ -124,8 +131,9 @@ export default class MultiTableRowRenderer {
 
     const maxHeight = Math.max(0, ...this.sections.map((d) => d.height));
     const total = this.sections.reduce((a, c) => a + c.width + this.options.columnPadding, 0);
-    headerFooter.style.transform = `translate(${total}px,0)`;
-    bodyFooter.style.transform = `translate(${total}px, ${maxHeight}px)`;
+
+    setTransform(headerFooter, total, 0);
+    setTransform(bodyFooter, total, maxHeight);
   }
 
   destroy() {
@@ -154,10 +162,15 @@ export default class MultiTableRowRenderer {
   pushTable<T extends ITableSection>(factory: ITableFactory<T>, ...extras: any[]) {
     const header = this.doc.createElement('article');
     const body = this.doc.createElement('article');
-    const tableId = `T${this.tableId++}`;
-    const ids = this.style.tableIds(tableId);
-    header.id = ids.header;
-    body.id = ids.body;
+
+    const tableId = `${this.node.id}T${this.tableId++}`;
+    const ids = tableIds(tableId);
+    const cssClasses = tableCSSClasses(tableId);
+
+    header.id = ids.thead;
+    header.classList.add(CSS_CLASS_THEAD, cssClasses.thead);
+    body.id = ids.tbody;
+    body.classList.add(CSS_CLASS_TBODY, cssClasses.tbody);
     this.header.insertBefore(header, this.header.lastElementChild); //before the footer
     this.main.appendChild(body);
 
@@ -177,6 +190,8 @@ export default class MultiTableRowRenderer {
   pushSeparator<T extends ITableSection>(factory: ISeparatorFactory<T>, ...extras: any[]) {
     const header = this.doc.createElement('section');
     const body = this.doc.createElement('section');
+    header.classList.add(cssClass('header-separator'));
+    body.classList.add(cssClass('separator'));
     this.header.insertBefore(header, this.header.lastElementChild); //before the footer
     this.main.appendChild(body);
 

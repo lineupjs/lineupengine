@@ -84,5 +84,5 @@ edge:    3.033.917px height
 [npm-url]: https://npmjs.org/package/lineupengine
 [mit-image]: https://img.shields.io/badge/License-MIT-yellow.svg
 [mit-url]: https://opensource.org/licenses/MIT
-[ci-image]: https://circleci.com/gh/sgratzl/lineupengine.svg?style=shield
-[ci-url]: https://circleci.com/gh/sgratzl/lineupengine
+[ci-image]: https://circleci.com/gh/lineupjs/lineupengine.svg?style=shield
+[ci-url]: https://circleci.com/gh/lineupjs/lineupengine

@@ -1,11 +1,14 @@
+import {IAbortAblePromise, IAsyncUpdate} from '../abortAble';
 import {IAnimationContext} from '../animation';
-import ARowRenderer, {IRowRendererOptions} from '../ARowRenderer';
+import ARowRenderer, {IRowRendererOptions, setTransform} from '../ARowRenderer';
 import {EScrollResult, IMixinClass} from '../mixin';
-import GridStyleManager from '../style/GridStyleManager';
 import {IColumn} from '../style';
+import GridStyleManager from '../style/GridStyleManager';
+import {CSS_CLASS_HIDDEN, CSS_CLASS_LOADING} from '../styles';
 import ACellAdapter, {ICellAdapterRenderContext} from './internal/ACellAdapter';
 import {ITableSection} from './MultiTableRowRenderer';
 
+export {isLoadingCell} from '../ARowRenderer';
 export declare type ICellRenderContext<T extends IColumn> = ICellAdapterRenderContext<T>;
 
 /**
@@ -22,6 +25,14 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
     class LocalCell extends ACellAdapter<T> {
       protected get context(): ICellAdapterRenderContext<T> {
         return that.context;
+      }
+
+      protected get body() {
+        return that.body;
+      }
+
+      protected get lastScrollInfo() {
+        return that.lastScrollInfo;
       }
 
       protected createHeader(document: Document, column: T) {
@@ -57,6 +68,10 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
     this.cell.addColumnMixin(mixinClass, options);
   }
 
+  protected get idPrefix() {
+    return this.tableId;
+  }
+
   abstract get id(): string;
 
   get width() {
@@ -76,7 +91,7 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
   }
 
   get hidden() {
-    return this.header.classList.contains('loading');
+    return this.header.classList.contains(CSS_CLASS_LOADING);
   }
 
   protected updateSizer(firstRowPos: number) {
@@ -84,8 +99,8 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
     // no sizer update since centrally managed
   }
 
-  protected updateShifts(top: number, left: number) {
-    this.body.style.transform = `translate(${left.toFixed(0)}px, ${top.toFixed(0)}px)`;
+  protected updateShifts(top: number, _left: number) {
+    setTransform(this.body, 0 /*left.toFixed(0)*/, top.toFixed(0));
   }
 
   set hidden(value: boolean) {
@@ -93,8 +108,10 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
     if (old === value) {
       return;
     }
-    this.header.classList.toggle('loading', value);
-    this.body.classList.toggle('loading', value);
+    this.header.classList.toggle(CSS_CLASS_LOADING, value);
+    this.body.classList.toggle(CSS_CLASS_LOADING, value);
+    this.header.classList.toggle(CSS_CLASS_HIDDEN, value);
+    this.body.classList.toggle(CSS_CLASS_HIDDEN, value);
     this.onVisibilityChanged(!value);
   }
 
@@ -157,7 +174,7 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
    * @param {T} column the column to create the header for
    * @returns {HTMLElement} the node representing the header
    */
-  protected abstract createHeader(document: Document, column: T): HTMLElement;
+  protected abstract createHeader(document: Document, column: T): HTMLElement | IAsyncUpdate<HTMLElement>;
 
   /**
    * updates the given header node with the given column
@@ -165,7 +182,7 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
    * @param {T} column the column to represents
    * @returns {HTMLElement | void} an optional new replacement node for the header
    */
-  protected abstract updateHeader(node: HTMLElement, column: T): HTMLElement | void;
+  protected abstract updateHeader(node: HTMLElement, column: T): HTMLElement | IAsyncUpdate<HTMLElement> | void;
 
   /**
    * create a new cell node fo the given row index and column
@@ -174,7 +191,7 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
    * @param {T} column the current column
    * @returns {HTMLElement} the node representing the cell
    */
-  protected abstract createCell(document: Document, index: number, column: T): HTMLElement;
+  protected abstract createCell(document: Document, index: number, column: T): HTMLElement | IAsyncUpdate<HTMLElement>;
 
   /**
    * updates the given cell node with the given row index and column
@@ -183,7 +200,7 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
    * @param {T} column column to use
    * @returns {HTMLElement | void} an optional new replacement node for the header
    */
-  protected abstract updateCell(node: HTMLElement, index: number, column: T): HTMLElement | void;
+  protected abstract updateCell(node: HTMLElement, index: number, column: T): HTMLElement | IAsyncUpdate<HTMLElement> | void;
 
 
   /**
@@ -193,12 +210,20 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
     this.cell.updateHeaders();
   }
 
+  protected handleCellReady(item: HTMLElement, ready: IAbortAblePromise<void>, column: number = -1) {
+    return this.cell.handleCellReady(item, ready, column);
+  }
+
+  protected recycleCell(item: HTMLElement, column: number = -1) {
+    this.cell.recycleCell(item, column);
+  }
+
   /**
    * trigger an update all all column widths
    */
   protected updateColumnWidths() {
     const context = this.context;
-    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, - this.cell.leftShift(), this.tableId);
+    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, context.column.padding, -this.cell.leftShift(), this.tableId);
   }
 
   protected recreate(ctx?: IAnimationContext) {
@@ -218,6 +243,7 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
 
   protected createRow(node: HTMLElement, rowIndex: number): void {
     this.cell.createRow(node, rowIndex);
+    node.classList.add(this.style.cssClasses.tr);
   }
 
   protected updateRow(node: HTMLElement, rowIndex: number): void {

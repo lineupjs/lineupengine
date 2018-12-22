@@ -6,14 +6,14 @@ export default class TestRenderer extends ACellRenderer<Column<number>> {
   protected readonly _context: ICellRenderContext<Column<number>>;
 
   constructor(root: HTMLElement, id: string, numberOfRows = 1000, numberOfColumns = 20) {
-    super(root, `#${id}`, {mixins: [PrefetchMixin]});
+    super(root, `#${id}`, {mixins: [PrefetchMixin], striped: true});
     root.id = id;
 
     const defaultRowHeight = 20;
 
     const columns: Column<number>[] = [];
     for (let i = 0; i < numberOfColumns; ++i) {
-      columns.push(new Column(i, i.toString(36), i === 0));
+      columns.push(new Column(i, i.toString(36), i === 0 || i === 2));
     }
     this._context = Object.assign({
       columns,

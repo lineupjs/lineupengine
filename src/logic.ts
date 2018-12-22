@@ -104,7 +104,7 @@ export function uniformContext(numberOfRows: number, rowHeight: number, rowPaddi
  * @param {} values
  * @return {number}
  */
-function mostFrequentValue(values: { forEach: (callback: (height: number, index: number) => any) => any }): number {
+function mostFrequentValue(values: {forEach: (callback: (height: number, index: number) => any) => any}): number {
   const lookup = new Map<number, number>();
   values.forEach((value) => {
     lookup.set(value, (lookup.get(value) || 0) + 1);
@@ -133,7 +133,7 @@ function mostFrequentValue(values: { forEach: (callback: (height: number, index:
  * @param {number} rowPadding padding between rows
  * @return {IExceptionContext}
  */
-export function nonUniformContext(rowHeights: { forEach: (callback: (height: number, index: number) => any) => any }, defaultRowHeight: number = NaN, rowPadding: number | ((index: number) => number) = 0): IExceptionContext {
+export function nonUniformContext(rowHeights: {forEach: (callback: (height: number, index: number) => any) => any}, defaultRowHeight: number = NaN, rowPadding: number | ((index: number) => number) = 0): IExceptionContext {
   const exceptionsLookup = new Map<number, number>();
   const exceptions: IRowHeightException[] = [];
 
@@ -327,7 +327,7 @@ export function range(scrollTop: number, clientHeight: number, rowHeight: number
 }
 
 
-export function frozenDelta(current: number[], target: number[]): { added: number[], removed: number[], common: number } {
+export function frozenDelta(current: number[], target: number[]): {added: number[], removed: number[], common: number} {
   const clength = current.length;
   const tlength = target.length;
   if (clength === 0) {
@@ -344,7 +344,7 @@ export function frozenDelta(current: number[], target: number[]): { added: numbe
   return {added, removed, common: clength - removed.length};
 }
 
-export function updateFrozen(old: number[], columns: { frozen: boolean }[], first: number): { target: number[], added: number[], removed: number[] } {
+export function updateFrozen(old: number[], columns: {frozen: boolean}[], first: number): {target: number[], added: number[], removed: number[]} {
   const oldLast = old.length === 0 ? 0 : old[old.length - 1] + 1;
   const added: number[] = [];
   const removed: number[] = [];

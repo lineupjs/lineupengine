@@ -1,34 +1,54 @@
+import {addScroll} from '../internal';
+import {cssClass, CSS_CLASS_BODY, CSS_CLASS_FOOTER, CSS_CLASS_HEADER, CSS_CLASS_SCROLLBAR_TESTER, CSS_CLASS_SHIFTED, CSS_CLASS_TBODY, CSS_CLASS_THEAD} from '../styles';
 import {IColumn} from './IColumn';
 import StyleManager from './StyleManager';
-import {addScroll} from '../internal';
 
-export const TEMPLATE = `
-  <header>
-    <article></article>
+export function setTemplate(root: HTMLElement, id: string) {
+  id = id.startsWith('#') ? id.slice(1) : id;
+  root.innerHTML = `
+  <header id="header-${id}" class="${CSS_CLASS_HEADER} ${cssClass(`header-${id}`)}">
+    <article class="${CSS_CLASS_THEAD} ${cssClass(`thead-${id}`)}"></article>
   </header>
-  <main>
-    <footer>&nbsp;</footer>
-    <article></article>
+  <main id="body-${id}" class="${CSS_CLASS_BODY} ${cssClass(`body-${id}`)}">
+    <footer class="${CSS_CLASS_FOOTER}">&nbsp;</footer>
+    <article class="${CSS_CLASS_TBODY} ${cssClass(`tbody-${id}`)}"></article>
   </main>`;
-
-
-export function setTemplate(root: HTMLElement) {
-  root.innerHTML = TEMPLATE;
   return root;
 }
 
-/**
- * sets the needed grid columns settings such that the given node is aligned with the given column
- * @param {HTMLElement} node the column node
- * @param {{index: number; id: string}} column the column meta data
- */
-export function setColumn(node: HTMLElement, column: {index: number, id: string}) {
-  node.dataset.id = column.id;
+interface ISelectors {
+  thead: string;
+  tbody: string;
+  tr: string;
+  th: string;
+  td: string;
 }
 
-interface ISelectors {
-  header: string;
-  body: string;
+/**
+ * generates the HTML Ids used for the header and body article of a table
+ * @param {string} tableId base table id
+ * @param {boolean} asSelector flag whether to prepend with # for CSS selector
+ * @return {ISelectors} the table ids used for header and body
+ */
+export function tableIds(tableId: string) {
+  return {
+    thead: `thead-${tableId}`,
+    tbody: `tbody-${tableId}`,
+    tr: `tr-${tableId}`,
+    th: `th-${tableId}`,
+    td: `td-${tableId}`
+  };
+}
+
+export function tableCSSClasses(tableId: string) {
+  const ids = tableIds(tableId);
+  return {
+    thead: cssClass(ids.thead),
+    tbody: cssClass(ids.tbody),
+    tr: cssClass(ids.tr),
+    th: cssClass(ids.th),
+    td: cssClass(ids.td)
+  };
 }
 
 /**
@@ -36,8 +56,17 @@ interface ISelectors {
  */
 export default class GridStyleManager extends StyleManager {
 
-  constructor(root: HTMLElement, public readonly id: string) {
+  readonly id: string;
+
+  readonly ids: ISelectors;
+  readonly cssClasses: ISelectors;
+
+  constructor(root: HTMLElement, id: string) {
     super(root);
+    this.id = id.startsWith('#') ? id.slice(1) : id;
+
+    this.ids = tableIds(this.id);
+    this.cssClasses = tableCSSClasses(this.id);
 
     const headerScroller = <HTMLElement>root.querySelector('header');
     const bodyScroller = <HTMLElement>root.querySelector('main');
@@ -45,24 +74,21 @@ export default class GridStyleManager extends StyleManager {
     // async since style needs to be added to dom first
     self.setTimeout(() => {
       const {width} = measureScrollbar(root);
-      this.updateRule('__scollBarFix2', `${this.hashedId} > header > article:last-of-type {
-        border-right: ${width}px solid transparent;
-      }`);
+      this.updateRule('__scollBarFix2', `#header-${this.id} > article:last-of-type`, {
+        borderRight: `${width}px solid transparent`
+      });
     }, 20);
+
+    let old = headerScroller.scrollLeft;
 
     // update frozen and sync header with body
     addScroll(bodyScroller, 'animation', (act) => {
-      const old = headerScroller.scrollLeft;
       const newValue = act.left;
       if (old !== newValue) {
-        headerScroller.scrollLeft = newValue;
+        old = headerScroller.scrollLeft = newValue;
       }
-      root.classList.toggle('le-shifted', act.left > 0);
+      root.classList.toggle(CSS_CLASS_SHIFTED, act.left > 0);
     });
-  }
-
-  get hashedId() {
-    return this.id.startsWith('#') ? this.id : `#${this.id}`;
   }
 
   /**
@@ -73,18 +99,22 @@ export default class GridStyleManager extends StyleManager {
    * @param {string} tableId optional tableId in case of multiple tables within the same engine
    * @param {string} unit
    */
-  update(defaultRowHeight: number, columns: IColumn[], frozenShift: number, tableId?: string, unit: string = 'px') {
-    const selectors = tableId !== undefined ? this.tableIds(tableId, true) : {
-      header: `${this.id} > header > article`,
-      body: `${this.id} > main > article`
-    };
+  update(defaultRowHeight: number, columns: IColumn[], padding: (index: number) => number, frozenShift: number, tableId: string, unit: string = 'px') {
+    const ids = tableIds(tableId);
+    const selectors = tableCSSClasses(tableId);
 
-    this.updateRule(`__heightsRule${selectors.body}`, `${selectors.body} > div {
-      height: ${defaultRowHeight}px;
-    }`, false);
+    const total = `${columns.reduce((a, b, i) => a + b.width + padding(i), 0)}${unit}`;
 
-    this.updateColumns(columns, selectors, frozenShift, unit);
-    this.updateRules();
+    this.updateRule(`__heightsRule${selectors.tr}`, `.${selectors.tr}`, {
+      height: `${defaultRowHeight}px`,
+      width: total
+    });
+
+    this.updateRule(`__heightsRule${selectors.tbody}`, `#${ids.tbody}`, {
+      width: total
+    });
+
+    this.updateColumns(columns, padding, selectors, frozenShift, unit);
   }
 
   /**
@@ -92,65 +122,52 @@ export default class GridStyleManager extends StyleManager {
    * @param {string} tableId tableId to remove
    */
   remove(tableId: string) {
-    const selectors = this.tableIds(tableId, true);
-    this.deleteRule(`__heightsRule${selectors.body}`, false);
-    this.deleteRule(`__widthRule${selectors.body}`, false);
+    const selectors = tableCSSClasses(tableId);
+    this.deleteRule(`__heightsRule${selectors.tr}`);
+    this.deleteRule(`__heightsRule${selectors.tbody}`);
 
-    const prefix = `__col${selectors.body}_`;
+    const prefix = `__col${selectors.td}_`;
     const rules = this.ruleNames.reduce((a, b) => a + (b.startsWith(prefix) ? 1 : 0), 0);
     // reset
     for (let i = 0; i < rules; ++i) {
-      this.deleteRule(`${prefix}${i}`, false);
+      this.deleteRule(`${prefix}${i}`);
     }
-    this.updateRules();
   }
 
-  /**
-   * generates the HTML Ids used for the header and body article of a table
-   * @param {string} tableId base table id
-   * @param {boolean} asSelector flag whether to prepend with # for CSS selector
-   * @return {{header: string; body: string}} the table ids used for header and body
-   */
-  tableIds(tableId: string, asSelector: boolean = false) {
-    const cleanId = this.id.startsWith('#') ? this.id.slice(1) : this.id;
-    return {
-      header: `${asSelector ? '#' : ''}${cleanId}_H${tableId}`,
-      body: `${asSelector ? '#' : ''}${cleanId}_B${tableId}`
-    };
-  }
+  private updateColumns(columns: IColumn[], padding: (index: number) => number, cssSelectors: ISelectors, frozenShift: number, unit: string = 'px') {
+    const prefix = `__col${cssSelectors.td}_`;
+    const rules = new Set(this.ruleNames.filter((d) => d.startsWith(prefix)));
 
-  private updateColumns(columns: IColumn[], selectors: ISelectors, frozenShift: number, unit: string = 'px') {
-    const prefix = `__col${selectors.body}_`;
-    const rules = this.ruleNames.reduce((a, b) => a + (b.startsWith(prefix) ? 1 : 0), 0);
+    let acc = 0;
+    columns.forEach((c, i) => {
+      const th = `.${cssSelectors.th}[data-id="${c.id}"]`;
+      const thStyles: Partial<CSSStyleDeclaration> = {
+        width: `${c.width}${unit}`
+      };
+      const td = `.${cssSelectors.td}[data-id="${c.id}"]`;
+      const tdStyles: Partial<CSSStyleDeclaration> = {
+        transform: `translateX(${acc}${unit})`,
+        width: `${c.width}${unit}`
+      };
 
-
-    let frozen = 0;
-    let ruleCounter = 0;
-    columns.forEach((c) => {
-      let rule = `${selectors.body} > div > [data-id="${c.id}"], ${selectors.header} [data-id="${c.id}"] {
-        width: ${c.width}${unit};
-        ${c.frozen ? `left: ${frozen}px;`: ''}
-      }`;
-      if (frozenShift !== 0 && c.frozen) {
-        // shift just for the body
-        const shiftRule = `${selectors.body} > div > [data-id="${c.id}"] {
-          width: ${c.width}${unit};
-          left: ${frozen + frozenShift}px;
-        }`;
-        rule = `${selectors.header} [data-id="${c.id}"] {
-          width: ${c.width}${unit};
-          left: ${frozen}px;
-        }`;
-        this.updateRule(`${prefix}${ruleCounter++}`, shiftRule, false);
-      }
       if (c.frozen) {
-        frozen += c.width; // ignore padding since it causes problems regarding white background + padding(i);
+        thStyles.left = `${acc}px`;
+
+        this.updateRule(`${prefix}${td}F`, `.${cssSelectors.td}.${CSS_CLASS_SHIFTED}[data-id="${c.id}"]`, {
+          transform: `translateX(0)`,
+          left: `${acc + frozenShift}${unit}`
+        });
+        rules.delete(`${prefix}${td}F`);
       }
-      this.updateRule(`${prefix}${ruleCounter++}`, rule, false);
+
+      this.updateRule(`${prefix}${th}`, th, thStyles);
+      rules.delete(`${prefix}${th}`);
+      this.updateRule(`${prefix}${td}`, td, tdStyles);
+      rules.delete(`${prefix}${td}`);
+      acc += c.width + padding(i);
     });
-    for (let i = ruleCounter - 1; i < rules; ++i) {
-      this.deleteRule(`${prefix}${i}`, false);
-    }
+
+    rules.forEach((d) => this.deleteRule(d));
   }
 }
 /**
@@ -160,7 +177,7 @@ export default class GridStyleManager extends StyleManager {
 function measureScrollbar(root: HTMLElement) {
   const body = root.ownerDocument!.body;
   body.insertAdjacentHTML('beforeend', `
-    <div class="lineup-engine-scrollbar-tester"><div></div></div>
+    <div class="${CSS_CLASS_SCROLLBAR_TESTER}"><div></div></div>
   `);
   const elem = <HTMLElement>body.lastElementChild!;
 
@@ -169,5 +186,5 @@ function measureScrollbar(root: HTMLElement) {
 
   elem.remove();
 
-  return { width, height };
+  return {width, height};
 }

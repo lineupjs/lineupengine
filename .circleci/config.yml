@@ -24,13 +24,13 @@ jobs:
           name: update api
           command: |
             if [ "${CIRCLE_BRANCH}" == "develop" ] || [ "${CIRCLE_BRANCH}" == "master" ] ; then
-                git clone git@github.com:sgratzl/lineupengine_docs.git
-                cd lineupengine_docs
+                git clone git@github.com:lineupjs/lineupengine.js.org.git
+                cd lineupengine.js.org
                 rm -rf "${CIRCLE_BRANCH}/"
                 rm README.md
                 cp ../README.md README.md
                 mv ../build "${CIRCLE_BRANCH}"
-                git config user.email "samuel_gratzl@gmx.at"
+                git config user.email "sam@sgratzl.com"
                 git config user.name "Samuel Gratzl"
                 git add -A
                 git commit -m "auto updating ${CIRCLE_BRANCH}" -m "trigger: ${CIRCLE_BUILD_URL}"
