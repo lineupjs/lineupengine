@@ -1,6 +1,5 @@
 import {addScroll} from '../internal';
 import {cssClass, CSS_CLASS_BODY, CSS_CLASS_FOOTER, CSS_CLASS_HEADER, CSS_CLASS_SCROLLBAR_TESTER, CSS_CLASS_SHIFTED, CSS_CLASS_TBODY, CSS_CLASS_THEAD} from '../styles';
-import {IColumn} from './IColumn';
 import StyleManager from './StyleManager';
 
 export function setTemplate(root: HTMLElement, id: string) {
@@ -14,6 +13,19 @@ export function setTemplate(root: HTMLElement, id: string) {
     <article class="${CSS_CLASS_TBODY} ${cssClass(`tbody-${id}`)}"></article>
   </main>`;
   return root;
+}
+
+/**
+ * column base interface
+ */
+export interface IColumn {
+  readonly index: number;
+  readonly id: string;
+  readonly width: number;
+  /**
+   * boolean flag whether when scrolling the column should be sticky
+   */
+  readonly frozen: boolean;
 }
 
 interface ISelectors {
