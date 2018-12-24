@@ -1,3 +1,4 @@
-export {ACellTableSection, ICellRenderContext as ITableCellRenderContext} from './ACellTableSection';
-export {default as MultiTableRowRenderer, IMultiTableRowRendererOptions, ISeparatorFactory, ITableFactory, ITableSection} from './MultiTableRowRenderer';
+export * from './ACellTableSection';
+export {default as MultiTableRowRenderer} from './MultiTableRowRenderer';
+export * from './MultiTableRowRenderer';
 

@@ -8,8 +8,7 @@ import {CSS_CLASS_HIDDEN, CSS_CLASS_LOADING} from '../styles';
 import ACellAdapter, {ICellAdapterRenderContext} from './internal/ACellAdapter';
 import {ITableSection} from './MultiTableRowRenderer';
 
-export {isLoadingCell} from '../ARowRenderer';
-export declare type ICellRenderContext<T extends IColumn> = ICellAdapterRenderContext<T>;
+export declare type ITableCellRenderContext<T extends IColumn> = ICellAdapterRenderContext<T>;
 
 /**
  * base class for a cell renderer as table section
@@ -164,9 +163,9 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
 
   /**
    * the current render context, upon change `recreate` the whole table
-   * @returns {ICellRenderContext}
+   * @returns {ITableCellRenderContext}
    */
-  protected abstract get context(): ICellRenderContext<T>;
+  protected abstract get context(): ITableCellRenderContext<T>;
 
   /**
    * create a new header node for the given column
@@ -250,3 +249,5 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
     this.cell.updateRow(node, rowIndex);
   }
 }
+
+export default ACellTableSection;

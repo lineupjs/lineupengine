@@ -5,8 +5,9 @@ export * from './scroll';
  * @param node
  * @internal
  */
-export function clear(node: Node) {
+export function clear<T extends Node>(node: T) {
   while (node.lastChild) {
     node.removeChild(node.lastChild);
   }
+  return node;
 }
