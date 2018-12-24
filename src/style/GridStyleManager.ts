@@ -80,8 +80,8 @@ export default class GridStyleManager extends StyleManager {
     this.ids = tableIds(this.id);
     this.cssClasses = tableCSSClasses(this.id);
 
-    const headerScroller = <HTMLElement>root.querySelector('header');
-    const bodyScroller = <HTMLElement>root.querySelector('main');
+    const headerScroller = <HTMLElement>root.getElementsByTagName('header')[0];
+    const bodyScroller = <HTMLElement>root.getElementsByTagName('main')[0];
 
     // async since style needs to be added to dom first
     self.setTimeout(() => {

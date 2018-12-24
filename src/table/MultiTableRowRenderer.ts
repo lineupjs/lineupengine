@@ -126,8 +126,8 @@ export default class MultiTableRowRenderer {
   }
 
   private updateOffset() {
-    const headerFooter = this.header.querySelector('footer')!;
-    const bodyFooter = this.main.querySelector('footer')!;
+    const headerFooter = this.header.getElementsByTagName('footer')[0]!;
+    const bodyFooter = this.main.getElementsByTagName('footer')[0]!;
 
     const maxHeight = Math.max(0, ...this.sections.map((d) => d.height));
     const total = this.sections.reduce((a, c) => a + c.width + this.options.columnPadding, 0);
@@ -146,11 +146,11 @@ export default class MultiTableRowRenderer {
   }
 
   private get header() {
-    return <HTMLElement>this.node.querySelector('header');
+    return <HTMLElement>this.node.getElementsByTagName('header')[0];
   }
 
   private get main() {
-    return <HTMLElement>this.node.querySelector('main');
+    return <HTMLElement>this.node.getElementsByTagName('main')[0];
   }
 
   /**

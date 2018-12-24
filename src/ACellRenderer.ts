@@ -86,7 +86,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
    * @returns {HTMLElement}
    */
   protected get headerScroller() {
-    return <HTMLElement>this.root.querySelector('header');
+    return <HTMLElement>this.root.getElementsByTagName('header')[0];
   }
 
   protected get visibleColumns() {
