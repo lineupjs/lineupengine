@@ -5,6 +5,7 @@ export function isPromiseLike(p: PromiseLike<any> | any): p is PromiseLike<any> 
 export interface IAbortAblePromiseBase<T> extends PromiseLike<T> {
   then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): IAbortAblePromiseBase<TResult1 | TResult2>;
   abort(): void;
+  isAborted(): boolean;
 }
 
 export declare type IAbortAblePromise<T> = IAbortAblePromiseBase<T | symbol>;
@@ -33,7 +34,8 @@ function thenFactory<T>(loader: PromiseLike<T | symbol>, isAborted: () => boolea
     });
     return {
       then: thenFactory(fullfiller, isAborted, abort),
-      abort
+      abort,
+      isAborted
     };
   }
   return then;
@@ -60,7 +62,8 @@ export default function abortAble<T>(loader: PromiseLike<T>): IAAP<T> {
 
   return {
     then: thenFactory(race, isAborted, abort),
-    abort
+    abort,
+    isAborted
   };
 }
 
@@ -96,7 +99,8 @@ export function abortAbleAll(values: any[]): IAAP<any[]> {
 
   return {
     then: thenFactory(race, isAborted, abort),
-    abort
+    abort,
+    isAborted
   };
 }
 
@@ -125,11 +129,13 @@ export function abortAbleResolveNow<T>(value: T) {
     }
     return {
       then: <any>abortAbleResolveNow(<TResult1>res),
-      abort: () => undefined
+      abort: () => undefined,
+      isAborted: () => false
     };
   }
   return {
     then,
-    abort: () => undefined
+    abort: () => undefined,
+    isAborted: () => false
   };
 }
