@@ -84,6 +84,33 @@ export default function abortAble<T>(loader: PromiseLike<T>): IAAP<T> {
   };
 }
 
+
+export function abortAbleFetch(input: RequestInfo, init?: RequestInit): IAAP<Response> {
+  const controller = new AbortController();
+
+  const race = new Promise<Response | symbol>((resolve, reject) => {
+    const r = fetch(input, Object.assign({signal: controller.signal}, init || {}));
+    r.then(resolve);
+    r.catch((error) => {
+      if (error instanceof DOMException) {
+        resolve(ABORTED);
+      } else {
+        reject(error);
+      }
+    });
+  });
+
+  const abort = controller.abort.bind(controller);
+  const isAborted = () => controller.signal.aborted;
+
+  return {
+    then: thenFactory(race, isAborted, abort),
+    abort,
+    isAborted
+  };
+}
+
+
 export function abortAbleAll<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(values: [T1 | IAAP<T1>, T2 | IAAP<T2>, T3 | IAAP<T3>, T4 | IAAP<T4>, T5 | IAAP<T5>, T6 | IAAP<T6>, T7 | IAAP<T7>, T8 | IAAP<T8>, T9 | IAAP<T9>, T10 | IAAP<T10>]): IAAP<[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10]>;
 export function abortAbleAll<T1, T2, T3, T4, T5, T6, T7, T8, T9>(values: [T1 | IAAP<T1>, T2 | IAAP<T2>, T3 | IAAP<T3>, T4 | IAAP<T4>, T5 | IAAP<T5>, T6 | IAAP<T6>, T7 | IAAP<T7>, T8 | IAAP<T8>, T9 | IAAP<T9>]): IAAP<[T1, T2, T3, T4, T5, T6, T7, T8, T9]>;
 export function abortAbleAll<T1, T2, T3, T4, T5, T6, T7, T8>(values: [T1 | IAAP<T1>, T2 | IAAP<T2>, T3 | IAAP<T3>, T4 | IAAP<T4>, T5 | IAAP<T5>, T6 | IAAP<T6>, T7 | IAAP<T7>, T8 | IAAP<T8>]): IAAP<[T1, T2, T3, T4, T5, T6, T7, T8]>;
