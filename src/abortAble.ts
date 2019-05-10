@@ -2,21 +2,38 @@ export function isPromiseLike(p: PromiseLike<any> | any): p is PromiseLike<any> 
   return p != null && p && typeof p.then === 'function';
 }
 
+/**
+ * a promise like object that has an abort method
+ */
 export interface IAbortAblePromiseBase<T> extends PromiseLike<T> {
   then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): IAbortAblePromiseBase<TResult1 | TResult2>;
+  /**
+   * abort the promise when possible
+   */
   abort(): void;
+  /**
+   * whether this promise was aborted
+   */
   isAborted(): boolean;
 }
 
+/**
+ * a promise like object that has an abort method and return the ABORTED symbol in case it was
+ */
 export declare type IAbortAblePromise<T> = IAbortAblePromiseBase<T | symbol>;
 export declare type IAAP<T> = IAbortAblePromise<T>;
 
-
+/**
+ * an update result with an item and a promise when the update has been done
+ */
 export interface IAsyncUpdate<T> {
   item: T;
   ready: IAbortAblePromise<void>;
 }
 
+/**
+ * the symbol returned when the promise was aborted
+ */
 export const ABORTED = Symbol('aborted');
 
 function thenFactory<T>(loader: PromiseLike<T | symbol>, isAborted: () => boolean, abort: () => void) {
@@ -78,6 +95,9 @@ export function abortAbleAll<T1, T2, T3>(values: [T1 | IAAP<T1>, T2 | IAAP<T2>, 
 export function abortAbleAll<T1, T2>(values: [T1 | IAAP<T1>, T2 | IAAP<T2>]): IAAP<[T1, T2]>;
 export function abortAbleAll<T>(values: (T | IAAP<T>)[]): IAAP<T[]>;
 
+/**
+ * similar to Promise.all but for abortAble
+ */
 export function abortAbleAll(values: any[]): IAAP<any[]> {
   const loader = Promise.all(values);
   let aborted: ((v: symbol) => void) | null = null;
@@ -118,6 +138,9 @@ export function isAsyncUpdate<T>(update: T | void | undefined | null | IAsyncUpd
   return update !== undefined && update !== null && update && isAbortAble((<IAsyncUpdate<T>>update).ready);
 }
 
+/**
+ * similar to Promise.resolve
+ */
 export function abortAbleResolveNow<T>(value: T) {
   function then<TResult1 = T | symbol, TResult2 = never>(onfulfilled?: ((value: T | symbol) => TResult1 | PromiseLike<TResult1>) | undefined | null, _onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): IAbortAblePromiseBase<TResult1 | TResult2> {
     const res = onfulfilled ? onfulfilled(value) : <any>value;

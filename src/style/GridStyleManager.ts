@@ -183,8 +183,9 @@ export default class GridStyleManager extends StyleManager {
   }
 }
 /**
+ * measure the width and height of the scrollbars
  * based on Slick grid implementation
- * @param doc
+ * @param root
  */
 function measureScrollbar(root: HTMLElement) {
   const body = root.ownerDocument!.body;
