@@ -13,7 +13,9 @@
       "es2016.array.include",
       "es2017.object"
     ],
+    "composite": true,
     "declaration": true,
+    "declarationMap": true,
     "removeComments": false,
     "noImplicitAny": true,
     "forceConsistentCasingInFileNames": true,
