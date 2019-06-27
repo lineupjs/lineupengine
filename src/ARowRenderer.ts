@@ -299,6 +299,15 @@ export abstract class ARowRenderer {
       this.loading.delete(proxy);
       ARowRenderer.cleanUp(proxy);
       this.loadingPool.push(proxy);
+    }, () => {
+      // handle as aborted
+      //aborted can recycle the real one
+      ARowRenderer.cleanUp(real);
+      this.pool.push(real);
+
+      this.loading.delete(proxy);
+      ARowRenderer.cleanUp(proxy);
+      this.loadingPool.push(proxy);
     });
     return proxy;
   }

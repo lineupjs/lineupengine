@@ -7,7 +7,6 @@ const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const now = new Date();
 const prefix = (n) => n < 10 ? ('0' + n) : n.toString();
 const buildId = `${now.getUTCFullYear()}${prefix(now.getUTCMonth() + 1)}${prefix(now.getUTCDate())}-${prefix(now.getUTCHours())}${prefix(now.getUTCMinutes())}${prefix(now.getUTCSeconds())}`;
-pkg.version = pkg.version.replace('SNAPSHOT', buildId);
 
 const year = (new Date()).getFullYear();
 const banner = `/*! ${pkg.title || pkg.name} - v${pkg.version} - ${year}\n` +
@@ -28,7 +27,7 @@ module.exports = (_env, options) => {
         demo: './demo/index.ts',
         table: './demo/table.ts',
         cell: './demo/cell.ts'
-      },
+    },
     output: {
       path: resolve(__dirname, 'build'),
       filename: `[name].js`,
@@ -39,7 +38,7 @@ module.exports = (_env, options) => {
       umdNamedDefine: false //anonymous require module
     },
     resolve: {
-      extensions: ['.ts', '.tsx', '.js'],
+      extensions: ['.ts', '.tsx', '.mjs', '.js'],
       symlinks: false
     },
     plugins: [
