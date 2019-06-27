@@ -68,8 +68,8 @@
     "release:pre": "release-it --preRelease=alpha --npm.tag=next"
   },
   "devDependencies": {
-    "@types/jest": "^24.0.14",
-    "cache-loader": "^4.0.0",
+    "@types/jest": "^24.0.15",
+    "cache-loader": "^4.0.1",
     "css-loader": "^3.0.0",
     "extract-loader": "^3.1.0",
     "file-loader": "^4.0.0",
@@ -90,16 +90,16 @@
     "stylelint-scss": "^3.8.0",
     "thread-loader": "^2.1.2",
     "ts-jest": "^24.0.2",
-    "ts-loader": "^6.0.2",
-    "tslint": "^5.17.0",
+    "ts-loader": "^6.0.4",
+    "tslint": "^5.18.0",
     "tslint-consistent-codestyle": "^1.15.1",
     "tslint-eslint-rules": "^5.4.0",
     "typedoc": "^0.14.2",
     "typescript": "^3.5.2",
-    "url-loader": "^2.0.0",
-    "webpack": "^4.34.0",
-    "webpack-cli": "^3.3.4",
-    "webpack-dev-server": "^3.7.1"
+    "url-loader": "^2.0.1",
+    "webpack": "^4.35.0",
+    "webpack-cli": "^3.3.5",
+    "webpack-dev-server": "^3.7.2"
   },
   "dependencies": {}
 }
