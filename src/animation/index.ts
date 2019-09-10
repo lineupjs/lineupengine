@@ -115,7 +115,7 @@ export const defaultPhases = [
     delay: 10, // after some delay for the before phase have been applied visually
     apply({mode, current, nodeY, node}: Readonly<IAnimationItem>) {
       // null for added/update since already at the right position
-      node.style.transform = (mode === EAnimationMode.HIDE || mode === EAnimationMode.UPDATE_REMOVE) ? `translate(0, ${current.y - nodeY}px)` : null;
+      node.style.transform = (mode === EAnimationMode.HIDE || mode === EAnimationMode.UPDATE_REMOVE) ? `translate(0, ${current.y - nodeY}px)` : '';
       if (mode !== EAnimationMode.HIDE) { // keep height for removal
         node.style.height = current.height !== null ? `${current.height}px` : null;
       }
@@ -127,7 +127,7 @@ export const defaultPhases = [
     apply({node}: Readonly<IAnimationItem>) {
       delete node.dataset.animation;
       node.style.opacity = null;
-      node.style.transform = null;
+      node.style.transform = '';
     }
   }
 ];

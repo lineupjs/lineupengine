@@ -129,7 +129,7 @@ export default class MultiTableRowRenderer {
     const headerFooter = this.header.getElementsByTagName('footer')[0]!;
     const bodyFooter = this.main.getElementsByTagName('footer')[0]!;
 
-    const maxHeight = Math.max(0, ...this.sections.map((d) => d.height));
+    const maxHeight = this.sections.reduce((acc, d) => Math.max(acc, d.height), 0);
     const total = this.sections.reduce((a, c) => a + c.width + this.options.columnPadding, 0);
 
     setTransform(headerFooter, total, 0);
@@ -174,7 +174,7 @@ export default class MultiTableRowRenderer {
     this.header.insertBefore(header, this.header.lastElementChild); //before the footer
     this.main.appendChild(body);
 
-    const table = factory(header, body, tableId, this.style, ...extras);
+    const table = factory.apply(this, <[HTMLElement, HTMLElement, string, GridStyleManager, ...any[]]>[header, body, tableId, this.style].concat(extras));
     table.init();
     this.sections.push(table);
     this.update();
@@ -195,7 +195,7 @@ export default class MultiTableRowRenderer {
     this.header.insertBefore(header, this.header.lastElementChild); //before the footer
     this.main.appendChild(body);
 
-    const separator = factory(header, body, this.style, ...extras);
+    const separator = factory.apply(this, <[HTMLElement, HTMLElement, GridStyleManager, ...any[]]>[header, body, this.style].concat(extras));
     separator.init();
     this.sections.push(separator);
     this.update();

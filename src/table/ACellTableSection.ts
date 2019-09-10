@@ -60,7 +60,7 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
       }
     }
 
-    this.cell = new LocalCell(this.header, this.style, tableId, ...(options.mixins || []));
+    this.cell = new LocalCell(this.header, this.style, tableId, (options.mixins || []));
   }
 
   protected addColumnMixin(mixinClass: IMixinClass, options?: any) {

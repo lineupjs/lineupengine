@@ -66,7 +66,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
       }
     }
 
-    this.cell = new LocalCell(this.header, this.style, this.style.id, ... (options.mixins || []));
+    this.cell = new LocalCell(this.header, this.style, this.style.id, (options.mixins || []));
   }
 
   protected get idPrefix() {

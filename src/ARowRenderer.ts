@@ -671,7 +671,7 @@ export abstract class ARowRenderer {
           return;
         }
         node.remove();
-        node.style.transform = null;
+        node.style.transform = '';
         this.recycle(node);
       });
       this.abortAnimation = () => undefined;

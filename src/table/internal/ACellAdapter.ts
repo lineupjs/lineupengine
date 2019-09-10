@@ -42,7 +42,7 @@ export abstract class ACellAdapter<T extends IColumn> {
 
   private readonly columnFragment: DocumentFragment;
 
-  constructor(protected readonly header: HTMLElement, protected readonly style: GridStyleManager, private readonly tableId: string, ...mixinClasses: IMixinClass[]) {
+  constructor(protected readonly header: HTMLElement, protected readonly style: GridStyleManager, private readonly tableId: string, mixinClasses: IMixinClass[] = []) {
 
     this.columnAdapter = this.createColumnAdapter();
     this.columnMixins = mixinClasses.map((mixinClass) => new mixinClass(this.columnAdapter));
