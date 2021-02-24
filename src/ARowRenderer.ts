@@ -417,13 +417,13 @@ export abstract class ARowRenderer {
 
   private addAtBeginning(from: number, to: number, perform = true) {
     if (to < from) {
-      return;
+      return null;
     }
     // console.log('add', (to - from) + 1, this.body.childElementCount + ((to - from) + 1));
     const fragment = this.fragment;
     if (from === to && perform) {
       this.body.insertBefore(this.create(from), this.body.firstChild);
-      return;
+      return null;
     }
     for (let i = from; i <= to; ++i) {
       fragment.appendChild(this.create(i));

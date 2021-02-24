@@ -1,3 +1,5 @@
+/* eslint-env node */
+
 const resolve = require('path').resolve;
 const pkg = require('./package.json');
 const webpack = require('webpack');
@@ -33,7 +35,7 @@ module.exports = (_env, options) => {
       filename: `[name].js`,
       chunkFilename: '[chunkhash].js',
       publicPath: '', //no public path = relative
-      library: 'lineupengine',
+      library: pkg.global,
       libraryTarget: 'umd',
       umdNamedDefine: false //anonymous require module
     },
