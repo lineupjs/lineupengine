@@ -1,12 +1,12 @@
-import {IAbortAblePromise, IAsyncUpdate} from '../abortAble';
-import {IAnimationContext} from '../animation';
-import ARowRenderer, {IRowRendererOptions, setTransform} from '../ARowRenderer';
-import {EScrollResult, IMixinClass} from '../mixin';
-import {IColumn} from '../style';
+import { IAbortAblePromise, IAsyncUpdate } from '../abortAble';
+import { IAnimationContext } from '../animation';
+import ARowRenderer, { IRowRendererOptions, setTransform } from '../ARowRenderer';
+import { EScrollResult, IMixinClass } from '../mixin';
+import { IColumn } from '../style';
 import GridStyleManager from '../style/GridStyleManager';
-import {CSS_CLASS_HIDDEN, CSS_CLASS_LOADING} from '../styles';
-import ACellAdapter, {ICellAdapterRenderContext} from './internal/ACellAdapter';
-import {ITableSection} from './MultiTableRowRenderer';
+import { CSS_CLASS_HIDDEN, CSS_CLASS_LOADING } from '../styles';
+import ACellAdapter, { ICellAdapterRenderContext } from './internal/ACellAdapter';
+import { ITableSection } from './MultiTableRowRenderer';
 
 export declare type ITableCellRenderContext<T extends IColumn> = ICellAdapterRenderContext<T>;
 
@@ -16,7 +16,13 @@ export declare type ITableCellRenderContext<T extends IColumn> = ICellAdapterRen
 export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer implements ITableSection {
   private readonly cell: ACellAdapter<T>;
 
-  constructor(public readonly header: HTMLElement, public readonly body: HTMLElement, protected readonly tableId: string, protected readonly style: GridStyleManager, options: Partial<IRowRendererOptions> = {}) {
+  constructor(
+    public readonly header: HTMLElement,
+    public readonly body: HTMLElement,
+    protected readonly tableId: string,
+    protected readonly style: GridStyleManager,
+    options: Partial<IRowRendererOptions> = {}
+  ) {
     super(body, options);
 
     const that = this;
@@ -60,7 +66,7 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
       }
     }
 
-    this.cell = new LocalCell(this.header, this.style, tableId, (options.mixins || []));
+    this.cell = new LocalCell(this.header, this.style, tableId, options.mixins || []);
   }
 
   protected addColumnMixin(mixinClass: IMixinClass, options?: any) {
@@ -129,7 +135,8 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
   show(scrollLeft: number, clientWidth: number, isGoingRight: boolean) {
     const wasHidden = this.hidden;
     this.hidden = false;
-    if (wasHidden) { // full update
+    if (wasHidden) {
+      // full update
       this.revalidate();
     } else {
       this.onScrolledHorizontally(scrollLeft, clientWidth, isGoingRight);
@@ -199,8 +206,11 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
    * @param {T} column column to use
    * @returns {HTMLElement | void} an optional new replacement node for the header
    */
-  protected abstract updateCell(node: HTMLElement, index: number, column: T): HTMLElement | IAsyncUpdate<HTMLElement> | void;
-
+  protected abstract updateCell(
+    node: HTMLElement,
+    index: number,
+    column: T
+  ): HTMLElement | IAsyncUpdate<HTMLElement> | void;
 
   /**
    * triggers updating the header
@@ -209,11 +219,11 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
     this.cell.updateHeaders();
   }
 
-  protected handleCellReady(item: HTMLElement, ready: IAbortAblePromise<void>, column: number = -1) {
+  protected handleCellReady(item: HTMLElement, ready: IAbortAblePromise<void>, column = -1) {
     return this.cell.handleCellReady(item, ready, column);
   }
 
-  protected recycleCell(item: HTMLElement, column: number = -1) {
+  protected recycleCell(item: HTMLElement, column = -1) {
     this.cell.recycleCell(item, column);
   }
 
@@ -222,7 +232,13 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
    */
   protected updateColumnWidths() {
     const context = this.context;
-    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, context.column.padding, -this.cell.leftShift(), this.tableId);
+    this.style.update(
+      context.defaultRowHeight - context.padding(-1),
+      context.columns,
+      context.column.padding,
+      -this.cell.leftShift(),
+      this.tableId
+    );
   }
 
   protected recreate(ctx?: IAnimationContext) {

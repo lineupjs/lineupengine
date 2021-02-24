@@ -1,5 +1,5 @@
-import {ACellRenderer, ICellRenderContext, PrefetchMixin, uniformContext, ACellTableSection} from '../src';
-import {Column} from './column';
+import { ACellRenderer, ICellRenderContext, PrefetchMixin, uniformContext, ACellTableSection } from '../src';
+import { Column } from './column';
 import MultiTableRowRenderer from '../src/table/MultiTableRowRenderer';
 
 /** @internal */
@@ -13,10 +13,13 @@ export class TestRenderer extends ACellTableSection<Column<number>> {
     for (let i = 0; i < numberOfColumns; ++i) {
       columns.push(new Column(i, `${id}${i.toString(36)}`, false)); //i === 0));
     }
-    this._context = Object.assign({
-      columns,
-      column: uniformContext(columns.length, 100),
-    }, uniformContext(numberOfRows, defaultRowHeight));
+    this._context = Object.assign(
+      {
+        columns,
+        column: uniformContext(columns.length, 100),
+      },
+      uniformContext(numberOfRows, defaultRowHeight)
+    );
     return this;
   }
 
@@ -47,10 +50,8 @@ export class TestRenderer extends ACellTableSection<Column<number>> {
   }
 }
 
-
 export default function run(node: HTMLElement, id: string) {
   const table = new MultiTableRowRenderer(node, id);
-
 
   table.pushTable((header, body, id, style) => new TestRenderer(header, body, id, style).build('a'));
   table.pushTable((header, body, id, style) => new TestRenderer(header, body, id, style).build('b'));

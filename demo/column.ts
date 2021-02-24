@@ -1,12 +1,15 @@
-import {IColumn} from '../src';
+import { IColumn } from '../src';
 import '../src/style.scss';
-import {cssClass, CSS_CLASS_FROZEN} from '../src/styles';
+import { cssClass, CSS_CLASS_FROZEN } from '../src/styles';
 
 /** @internal */
 export class Column<T> implements IColumn {
-  constructor(public readonly index: number, public readonly name: string, public readonly frozen: boolean = false, public readonly width = 100) {
-
-  }
+  constructor(
+    public readonly index: number,
+    public readonly name: string,
+    public readonly frozen: boolean = false,
+    public readonly width = 100
+  ) {}
 
   get id() {
     return `col${this.index}`;
@@ -36,4 +39,3 @@ export class Column<T> implements IColumn {
     return node;
   }
 }
-

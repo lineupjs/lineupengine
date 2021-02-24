@@ -1,31 +1,29 @@
 <!DOCTYPE html>
 <html>
-<head lang="en">
-  <meta charset="UTF-8">
-  <title>Engine test</title>
+  <head lang="en">
+    <meta charset="UTF-8" />
+    <title>Engine test</title>
 
-  <link href="./table.css" rel="stylesheet">
+    <link href="./table.css" rel="stylesheet" />
 
-  <style>
-    .lineup-engine {
-      height: 90vh;
-      max-width: 100vw;
-    }
-    .le-tr {
-      margin-top: 2px;
-    }
+    <style>
+      .lineup-engine {
+        height: 90vh;
+        max-width: 100vw;
+      }
+      .le-tr {
+        margin-top: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <div></div>
+    <script src="./table.js"></script>
 
-  </style>
-</head>
-<body>
-<div></div>
-<script src="./table.js"></script>
-
-<script>
-  (function () {
-    lineupengine.default(document.querySelector('div'), 'asdf');
-  })();
-</script>
-
-</body>
+    <script>
+      (function () {
+        lineupengine.default(document.querySelector('div'), 'asdf');
+      })();
+    </script>
+  </body>
 </html>

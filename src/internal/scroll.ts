@@ -1,5 +1,3 @@
-
-
 export declare type IDelayedMode = number | 'animation' | 'sync';
 
 export const defaultMode: IDelayedMode = 'animation'; // Boolean((<any>window).chrome) ? 'animation' : 0, // animation frame on chrome;
@@ -21,7 +19,7 @@ function dummy(): IScrollHandler {
   return {
     handler: [],
     prev: null,
-    timer: -1
+    timer: -1,
   };
 }
 
@@ -40,27 +38,31 @@ class ScrollHandler {
   constructor(private readonly node: HTMLElement) {
     // this.current = this.asInfo();
 
-    node.addEventListener('scroll', () => {
-      // this.current = this.asInfo();
+    node.addEventListener(
+      'scroll',
+      () => {
+        // this.current = this.asInfo();
 
-      // if (this.prev && (Math.abs(this.current.left - this.prev.left) + Math.abs(this.current.top - this.prev.top)) < 4) {
-      //   return;
-      // }
-      // this.prev = this.current;
+        // if (this.prev && (Math.abs(this.current.left - this.prev.left) + Math.abs(this.current.top - this.prev.top)) < 4) {
+        //   return;
+        // }
+        // this.prev = this.current;
 
-      if (this.sync.handler.length > 0) {
-        this.handle(this.sync);
+        if (this.sync.handler.length > 0) {
+          this.handle(this.sync);
+        }
+        this.handleAnimation();
+        this.handleTimeouts();
+      },
+      {
+        passive: true,
       }
-      this.handleAnimation();
-      this.handleTimeouts();
-    }, {
-        passive: true
-      });
+    );
   }
 
   private handle(handler: IScrollHandler) {
     const info = this.current;
-    if (handler.prev && (Math.abs(info.left - handler.prev.left) + Math.abs(info.top - handler.prev.top)) < 4) {
+    if (handler.prev && Math.abs(info.left - handler.prev.left) + Math.abs(info.top - handler.prev.top) < 4) {
       return;
     }
     handler.prev = info;
@@ -106,7 +108,7 @@ class ScrollHandler {
       left: this.node.scrollLeft,
       top: this.node.scrollTop,
       width: this.node.clientWidth,
-      height: this.node.clientHeight
+      height: this.node.clientHeight,
     };
   }
 
@@ -127,7 +129,6 @@ class ScrollHandler {
         break;
     }
   }
-
 
   remove(handler: (act: IScrollInfo) => void) {
     const test = [this.sync, this.animation].concat(Array.from(this.numbers.values()));

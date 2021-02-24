@@ -1,14 +1,17 @@
-import {IExceptionContext, range} from '../logic';
-import {clear} from '../internal/index';
+import { IExceptionContext, range } from '../logic';
+import { clear } from '../internal/index';
 import QuadTreeNode, {
-  BOTTOM_LEFT, BOTTOM_RIGHT, QuadTreeInnerNode, QuadTreeLeafNode, TOP_LEFT,
-  TOP_RIGHT
+  BOTTOM_LEFT,
+  BOTTOM_RIGHT,
+  QuadTreeInnerNode,
+  QuadTreeLeafNode,
+  TOP_LEFT,
+  TOP_RIGHT,
 } from './internal/QuadTreeNode';
 
 const template = `<header></header>
 <aside></aside>
 <main><div></div></main><style></style>`;
-
 
 export interface ICellContext {
   row: IExceptionContext;
@@ -104,7 +107,15 @@ export abstract class ACellRenderer {
   }
 
   private buildTree(row: IExceptionContext, col: IExceptionContext) {
-    const build = (index: number, rowFirst: number, rowLast: number, colFirst: number, colLast: number, rowTotal: number, colTotal: number) => {
+    const build = (
+      index: number,
+      rowFirst: number,
+      rowLast: number,
+      colFirst: number,
+      colLast: number,
+      rowTotal: number,
+      colTotal: number
+    ) => {
       const rowCount = rowLast - rowFirst + 1;
       const colCount = colLast - colFirst + 1;
       if (rowCount <= leafCount && colCount <= leafCount) {
@@ -119,11 +130,17 @@ export abstract class ACellRenderer {
       const bottomSlice = rowTotal - topSlice;
 
       inner.children.push(build(TOP_LEFT, rowFirst, inner.rowMiddle, colFirst, inner.colMiddle, topSlice, leftSlice));
-      inner.children.push(build(TOP_RIGHT, rowFirst, inner.rowMiddle, inner.colMiddle + 1, colLast, topSlice, rightSlice));
-      inner.children.push(build(BOTTOM_LEFT, inner.rowMiddle + 1, rowLast, colFirst, inner.colMiddle, bottomSlice, leftSlice));
-      inner.children.push(build(BOTTOM_RIGHT, inner.rowMiddle + 1, rowLast, inner.colMiddle + 1, colLast, bottomSlice, rightSlice));
+      inner.children.push(
+        build(TOP_RIGHT, rowFirst, inner.rowMiddle, inner.colMiddle + 1, colLast, topSlice, rightSlice)
+      );
+      inner.children.push(
+        build(BOTTOM_LEFT, inner.rowMiddle + 1, rowLast, colFirst, inner.colMiddle, bottomSlice, leftSlice)
+      );
+      inner.children.push(
+        build(BOTTOM_RIGHT, inner.rowMiddle + 1, rowLast, inner.colMiddle + 1, colLast, bottomSlice, rightSlice)
+      );
 
-      inner.children.forEach((c) => c.parent = inner);
+      inner.children.forEach((c) => (c.parent = inner));
       return inner;
     };
 
@@ -140,8 +157,20 @@ export abstract class ACellRenderer {
     Array.from(root.children).forEach((c) => this.recycle(<HTMLElement>c));
     this.clearPool();
 
-    const col = range(body.scrollLeft, body.clientWidth, context.col.defaultRowHeight, context.col.exceptions, context.col.numberOfRows);
-    const row = range(body.scrollTop, body.clientHeight, context.row.defaultRowHeight, context.row.exceptions, context.row.numberOfRows);
+    const col = range(
+      body.scrollLeft,
+      body.clientWidth,
+      context.col.defaultRowHeight,
+      context.col.exceptions,
+      context.col.numberOfRows
+    );
+    const row = range(
+      body.scrollTop,
+      body.clientHeight,
+      context.row.defaultRowHeight,
+      context.row.exceptions,
+      context.row.numberOfRows
+    );
 
     root.dataset.node = this.tree.type;
     root.dataset.id = this.tree.id;
@@ -150,7 +179,14 @@ export abstract class ACellRenderer {
     this.render(this.tree, root, row.first, row.last, col.first, col.last);
   }
 
-  private onScroll(left: number, top: number, width: number, height: number, _isGoingDown: boolean, _isGoingRight: boolean) {
+  private onScroll(
+    left: number,
+    top: number,
+    width: number,
+    height: number,
+    _isGoingDown: boolean,
+    _isGoingRight: boolean
+  ) {
     const context = this.context;
 
     const col = range(left, width, context.col.defaultRowHeight, context.col.exceptions, context.col.numberOfRows);
@@ -189,7 +225,14 @@ export abstract class ACellRenderer {
     return parent;
   }
 
-  private render(node: QuadTreeNode, parent: HTMLElement, rowFirst: number, rowLast: number, colFirst: number, colLast: number) {
+  private render(
+    node: QuadTreeNode,
+    parent: HTMLElement,
+    rowFirst: number,
+    rowLast: number,
+    colFirst: number,
+    colLast: number
+  ) {
     if (node.type === 'leaf') {
       return this.renderLeaf(<QuadTreeLeafNode>node, parent);
     }
@@ -314,7 +357,6 @@ export abstract class ACellRenderer {
   private recycleLeaf(node: HTMLElement) {
     this.poolLeaves.push(ACellRenderer.cleanUp(node));
   }
-
 
   protected clearPool() {
     // clear pool

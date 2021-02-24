@@ -2,9 +2,15 @@
 abstract class AQuadTreeNode {
   parent: QuadTreeInnerNode | null = null;
 
-  constructor(public readonly index: number, public readonly rowFirst: number, public readonly rowLast: number, public readonly colFirst: number, public readonly colLast: number, public readonly rowTotal: number, public readonly colTotal: number) {
-
-  }
+  constructor(
+    public readonly index: number,
+    public readonly rowFirst: number,
+    public readonly rowLast: number,
+    public readonly colFirst: number,
+    public readonly colLast: number,
+    public readonly rowTotal: number,
+    public readonly colTotal: number
+  ) {}
 
   get rowCount() {
     //since inclusive
@@ -53,7 +59,6 @@ abstract class AQuadTreeNode {
     return id;
   }
 }
-
 
 /** @internal */
 export class QuadTreeLeafNode extends AQuadTreeNode {

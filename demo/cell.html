@@ -1,35 +1,33 @@
 <!DOCTYPE html>
 <html>
-<head lang="en">
-  <meta charset="UTF-8">
-  <title>Engine test</title>
+  <head lang="en">
+    <meta charset="UTF-8" />
+    <title>Engine test</title>
 
-  <link href="./cell.css" rel="stylesheet">
+    <link href="./cell.css" rel="stylesheet" />
 
-  <style>
-    .lineup-cell-engine {
-      height: 90vh;
-      max-width: 100vw;
-    }
-    [data-row][data-col] {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
+    <style>
+      .lineup-cell-engine {
+        height: 90vh;
+        max-width: 100vw;
+      }
+      [data-row][data-col] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div></div>
+    <script src="./cell.js"></script>
 
-  </style>
-</head>
-<body>
-<div></div>
-<script src="./cell.js"></script>
+    <script>
+      (function () {
+        const test = new lineupengine.default(document.querySelector('div'), 'asdf');
 
-<script>
-  (function () {
-    const test = new lineupengine.default(document.querySelector('div'), 'asdf');
-
-    test.run();
-  })();
-</script>
-
-</body>
+        test.run();
+      })();
+    </script>
+  </body>
 </html>

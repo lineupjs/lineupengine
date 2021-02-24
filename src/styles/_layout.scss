@@ -25,7 +25,6 @@
     transform: translate3d(0, 0, 2px);
 
     @supports (-moz-appearance: meterbar) {
-
       // firefox only
       overflow-y: hidden;
     }

@@ -21,9 +21,7 @@ export interface IRowHeightException {
 }
 
 class RowHeightException implements IRowHeightException {
-  constructor(public readonly index: number, public readonly y: number, public readonly height: number) {
-
-  }
+  constructor(public readonly index: number, public readonly y: number, public readonly height: number) {}
 
   get y2() {
     return this.y + this.height;
@@ -81,13 +79,13 @@ export interface IExceptionContext {
  * @param {number} rowPadding padding between rows
  * @return {IExceptionContext}
  */
-export function uniformContext(numberOfRows: number, rowHeight: number, rowPadding: number = 0): IExceptionContext {
+export function uniformContext(numberOfRows: number, rowHeight: number, rowPadding = 0): IExceptionContext {
   rowHeight += rowPadding;
   const exceptionsLookup = {
     keys: () => [].values(),
     get: () => rowHeight,
     has: () => false,
-    size: 0
+    size: 0,
   };
   return {
     exceptions: [],
@@ -95,7 +93,7 @@ export function uniformContext(numberOfRows: number, rowHeight: number, rowPaddi
     totalHeight: numberOfRows * rowHeight,
     numberOfRows,
     defaultRowHeight: rowHeight,
-    padding: () => rowPadding
+    padding: () => rowPadding,
   };
 }
 
@@ -104,7 +102,7 @@ export function uniformContext(numberOfRows: number, rowHeight: number, rowPaddi
  * @param {} values
  * @return {number}
  */
-function mostFrequentValue(values: {forEach: (callback: (height: number, index: number) => any) => any}): number {
+function mostFrequentValue(values: { forEach: (callback: (height: number, index: number) => any) => any }): number {
   const lookup = new Map<number, number>();
   values.forEach((value) => {
     lookup.set(value, (lookup.get(value) || 0) + 1);
@@ -120,7 +118,8 @@ function mostFrequentValue(values: {forEach: (callback: (height: number, index: 
     return a[0] - b[0];
   });
   const mostFrequent = sorted[0][0];
-  if (mostFrequent === 0) { // cornercase
+  if (mostFrequent === 0) {
+    // cornercase
     return sorted.length > 1 ? sorted[1][0] : 20; // all empty
   }
   return mostFrequent;
@@ -133,7 +132,13 @@ function mostFrequentValue(values: {forEach: (callback: (height: number, index: 
  * @param {number} rowPadding padding between rows
  * @return {IExceptionContext}
  */
-export function nonUniformContext(rowHeights: {forEach: (callback: (height: number, index: number) => any) => any}, defaultRowHeight: number = NaN, rowPadding: number | ((index: number) => number) = 0): IExceptionContext {
+export function nonUniformContext(
+  rowHeights: {
+    forEach: (callback: (height: number, index: number) => any) => any;
+  },
+  defaultRowHeight = NaN,
+  rowPadding: number | ((index: number) => number) = 0
+): IExceptionContext {
   const exceptionsLookup = new Map<number, number>();
   const exceptions: IRowHeightException[] = [];
 
@@ -145,7 +150,10 @@ export function nonUniformContext(rowHeights: {forEach: (callback: (height: numb
 
   defaultRowHeight += padding(-1);
 
-  let prev = -1, acc = 0, totalHeight = 0, numberOfRows = 0;
+  let prev = -1,
+    acc = 0,
+    totalHeight = 0,
+    numberOfRows = 0;
   rowHeights.forEach((height, index) => {
     height += padding(index);
     totalHeight += height;
@@ -161,7 +169,14 @@ export function nonUniformContext(rowHeights: {forEach: (callback: (height: numb
     acc = y + height;
     exceptions.push(new RowHeightException(index, y, height));
   });
-  return {exceptionsLookup, exceptions, totalHeight, defaultRowHeight, numberOfRows, padding};
+  return {
+    exceptionsLookup,
+    exceptions,
+    totalHeight,
+    defaultRowHeight,
+    numberOfRows,
+    padding,
+  };
 }
 
 /**
@@ -174,13 +189,19 @@ export function nonUniformContext(rowHeights: {forEach: (callback: (height: numb
  * @param {number} seed random seed
  * @return {IExceptionContext}
  */
-export function randomContext(numberOfRows: number, defaultRowHeight: number, minRowHeight = 2, maxRowHeight = defaultRowHeight * 10, ratio = 0.2, seed = Date.now()) {
+export function randomContext(
+  numberOfRows: number,
+  defaultRowHeight: number,
+  minRowHeight = 2,
+  maxRowHeight = defaultRowHeight * 10,
+  ratio = 0.2,
+  seed = Date.now()
+) {
   let actSeed = seed;
   const random = () => {
     const x = Math.sin(actSeed++) * 10000;
     return x - Math.floor(x);
   };
-
 
   const getter = () => {
     const coin = random();
@@ -195,7 +216,7 @@ export function randomContext(numberOfRows: number, defaultRowHeight: number, mi
       callback(getter(), index);
     }
   };
-  return nonUniformContext({forEach}, defaultRowHeight);
+  return nonUniformContext({ forEach }, defaultRowHeight);
 }
 
 export interface IVisibleRange {
@@ -226,16 +247,22 @@ export interface IVisibleRange {
  * @param {number} numberOfRows the number of rows
  * @return {IVisibleRange} the computed visible range
  */
-export function range(scrollTop: number, clientHeight: number, rowHeight: number, heightExceptions: IRowHeightException[], numberOfRows: number): IVisibleRange {
+export function range(
+  scrollTop: number,
+  clientHeight: number,
+  rowHeight: number,
+  heightExceptions: IRowHeightException[],
+  numberOfRows: number
+): IVisibleRange {
   if (numberOfRows === 0) {
-    return {first: 0, last: -1, firstRowPos: 0, endPos: 0};
+    return { first: 0, last: -1, firstRowPos: 0, endPos: 0 };
   }
   if (numberOfRows === 1) {
     return {
       first: 0,
       last: 0,
       firstRowPos: 0,
-      endPos: heightExceptions.length === 0 ? rowHeight : heightExceptions[0].y2
+      endPos: heightExceptions.length === 0 ? rowHeight : heightExceptions[0].y2,
     };
   }
   const offset = scrollTop;
@@ -245,7 +272,7 @@ export function range(scrollTop: number, clientHeight: number, rowHeight: number
     return Math.min(numberOfRows - 1, indexShift + Math.max(0, Math.floor(pos / rowHeight)));
   }
 
-  function calc(offsetShift: number, indexShift: number, isGuess: boolean = false) {
+  function calc(offsetShift: number, indexShift: number, isGuess = false) {
     const shifted = offset - offsetShift;
     const shifted2 = offset2 - offsetShift;
 
@@ -258,8 +285,18 @@ export function range(scrollTop: number, clientHeight: number, rowHeight: number
     //if (!isGuess) {
     //  console.log(first, '@', firstRowPos, last, '#', end, offset, offset2, firstRowPos <= offset, offset2 <= end);
     //}
-    console.assert(!isGuess || !(firstRowPos > offset || (endPos < offset2 && last < numberOfRows - 1)), 'error', isGuess, firstRowPos, endPos, offset, offset2, indexShift, offsetShift);
-    return {first, last, firstRowPos, endPos};
+    console.assert(
+      !isGuess || !(firstRowPos > offset || (endPos < offset2 && last < numberOfRows - 1)),
+      'error',
+      isGuess,
+      firstRowPos,
+      endPos,
+      offset,
+      offset2,
+      indexShift,
+      offsetShift
+    );
+    return { first, last, firstRowPos, endPos };
   }
 
   const r = calc(0, 0, true);
@@ -273,7 +310,7 @@ export function range(scrollTop: number, clientHeight: number, rowHeight: number
     return r;
   }
   if (r.last === heightExceptions[0].index && heightExceptions[0].height > rowHeight) {
-    return Object.assign(r, {endPos: heightExceptions[0].y2});
+    return Object.assign(r, { endPos: heightExceptions[0].y2 });
   }
 
   //the position where the exceptions ends
@@ -282,7 +319,10 @@ export function range(scrollTop: number, clientHeight: number, rowHeight: number
     const rest = calc(lastPos.y2, lastPos.index + 1);
     if (offset < lastPos.y2) {
       // include me
-      return Object.assign(rest, {first: lastPos.index, firstRowPos: lastPos.y});
+      return Object.assign(rest, {
+        first: lastPos.index,
+        firstRowPos: lastPos.y,
+      });
     }
     return rest;
   }
@@ -290,7 +330,7 @@ export function range(scrollTop: number, clientHeight: number, rowHeight: number
   const visible: IRowHeightException[] = [];
   let closest = heightExceptions[0]; //closest before not in range
   for (const item of heightExceptions) {
-    const {y, y2} = item;
+    const { y, y2 } = item;
     if (y >= offset2) {
       break;
     }
@@ -321,30 +361,46 @@ export function range(scrollTop: number, clientHeight: number, rowHeight: number
 
     //console.log(first, '@', firstRowPos, last, '#', end, offset, offset2, firstRowPos <= offset, offset2 <= end);
 
-    console.assert(firstRowPos <= offset && (endPos >= offset2 || last === numberOfRows - 1), 'error', firstRowPos, endPos, offset, offset2, firstException, lastException);
-    return {first, last, firstRowPos, endPos};
+    console.assert(
+      firstRowPos <= offset && (endPos >= offset2 || last === numberOfRows - 1),
+      'error',
+      firstRowPos,
+      endPos,
+      offset,
+      offset2,
+      firstException,
+      lastException
+    );
+    return { first, last, firstRowPos, endPos };
   }
 }
 
-
-export function frozenDelta(current: number[], target: number[]): {added: number[], removed: number[], common: number} {
+export function frozenDelta(
+  current: number[],
+  target: number[]
+): { added: number[]; removed: number[]; common: number } {
   const clength = current.length;
   const tlength = target.length;
   if (clength === 0) {
-    return {added: target, removed: [], common: 0};
+    return { added: target, removed: [], common: 0 };
   }
   if (tlength === 0) {
-    return {added: [], removed: current, common: 0};
+    return { added: [], removed: current, common: 0 };
   }
-  if (clength === tlength) { //since sorted and left increasing true
-    return {added: [], removed: [], common: clength};
+  if (clength === tlength) {
+    //since sorted and left increasing true
+    return { added: [], removed: [], common: clength };
   }
   const removed = current.slice(Math.min(tlength, clength));
   const added = target.slice(Math.min(tlength, clength));
-  return {added, removed, common: clength - removed.length};
+  return { added, removed, common: clength - removed.length };
 }
 
-export function updateFrozen(old: number[], columns: {frozen: boolean}[], first: number): {target: number[], added: number[], removed: number[]} {
+export function updateFrozen(
+  old: number[],
+  columns: { frozen: boolean }[],
+  first: number
+): { target: number[]; added: number[]; removed: number[] } {
   const oldLast = old.length === 0 ? 0 : old[old.length - 1] + 1;
   const added: number[] = [];
   const removed: number[] = [];
@@ -365,5 +421,5 @@ export function updateFrozen(old: number[], columns: {frozen: boolean}[], first:
       old.push(i);
     }
   }
-  return {target: old, added, removed};
+  return { target: old, added, removed };
 }

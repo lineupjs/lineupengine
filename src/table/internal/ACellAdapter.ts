@@ -1,12 +1,19 @@
-import {ABORTED, IAbortAblePromise, IAsyncUpdate, isAbortAble, isAsyncUpdate} from '../../abortAble';
-import {isLoadingCell} from '../../ARowRenderer';
-import {clear, IScrollInfo} from '../../internal';
-import {isScrollEventWaiting} from '../../internal/scroll';
-import {IExceptionContext, range, updateFrozen} from '../../logic';
-import {EScrollResult, IMixin, IMixinAdapter, IMixinClass} from '../../mixin';
-import {IColumn} from '../../style';
+import { ABORTED, IAbortAblePromise, IAsyncUpdate, isAbortAble, isAsyncUpdate } from '../../abortAble';
+import { isLoadingCell } from '../../ARowRenderer';
+import { clear, IScrollInfo } from '../../internal';
+import { isScrollEventWaiting } from '../../internal/scroll';
+import { IExceptionContext, range, updateFrozen } from '../../logic';
+import { EScrollResult, IMixin, IMixinAdapter, IMixinClass } from '../../mixin';
+import { IColumn } from '../../style';
 import GridStyleManager from '../../style/GridStyleManager';
-import {cssClass, CSS_CLASS_FROZEN, CSS_CLASS_LOADING, CSS_CLASS_SHIFTED, CSS_CLASS_TD, CSS_CLASS_TH} from '../../styles';
+import {
+  cssClass,
+  CSS_CLASS_FROZEN,
+  CSS_CLASS_LOADING,
+  CSS_CLASS_SHIFTED,
+  CSS_CLASS_TD,
+  CSS_CLASS_TH,
+} from '../../styles';
 
 const debug = false;
 
@@ -26,24 +33,27 @@ export abstract class ACellAdapter<T extends IColumn> {
   private readonly cellPool: HTMLElement[][] = [];
   private readonly loading = new WeakMap<HTMLElement, IAbortAblePromise<void>>();
 
-
   readonly visibleColumns = {
     frozen: <number[]>[], // column indices that are visible even tho they would be out of range
     first: 0,
     forcedFirst: 0,
     last: -1,
-    forcedLast: -1
+    forcedLast: -1,
   };
   visibleFirstColumnPos = 0;
 
-  private horizontallyShifted: boolean = false;
+  private horizontallyShifted = false;
   private readonly columnAdapter: IMixinAdapter;
   private readonly columnMixins: IMixin[];
 
   private readonly columnFragment: DocumentFragment;
 
-  constructor(protected readonly header: HTMLElement, protected readonly style: GridStyleManager, private readonly tableId: string, mixinClasses: IMixinClass[] = []) {
-
+  constructor(
+    protected readonly header: HTMLElement,
+    protected readonly style: GridStyleManager,
+    private readonly tableId: string,
+    mixinClasses: IMixinClass[] = []
+  ) {
     this.columnAdapter = this.createColumnAdapter();
     this.columnMixins = mixinClasses.map((mixinClass) => new mixinClass(this.columnAdapter));
 
@@ -74,32 +84,38 @@ export abstract class ACellAdapter<T extends IColumn> {
       updateOffset: this.updateColumnOffset.bind(this),
       scroller: this.headerScroller,
       syncFrozen: this.syncFrozen.bind(this),
-      isScrollEventWaiting: () => isScrollEventWaiting(this.headerScroller, 'animation')
+      isScrollEventWaiting: () => isScrollEventWaiting(this.headerScroller, 'animation'),
     };
     Object.defineProperties(r, {
       visibleFirstRowPos: {
         get: () => this.visibleFirstColumnPos,
-        enumerable: true
+        enumerable: true,
       },
       context: {
         get: () => this.context.column,
-        enumerable: true
+        enumerable: true,
       },
       scrollOffset: {
-        get: () => this.lastScrollInfo ? this.lastScrollInfo.left : 0,
-        enumerable: true
+        get: () => (this.lastScrollInfo ? this.lastScrollInfo.left : 0),
+        enumerable: true,
       },
       scrollTotal: {
-        get: () => this.lastScrollInfo ? this.lastScrollInfo.width : this.headerScroller.clientWidth,
-        enumerable: true
-      }
+        get: () => (this.lastScrollInfo ? this.lastScrollInfo.width : this.headerScroller.clientWidth),
+        enumerable: true,
+      },
     });
     return r;
   }
 
   init() {
     const context = this.context;
-    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, context.column.padding, 0, this.tableId);
+    this.style.update(
+      context.defaultRowHeight - context.padding(-1),
+      context.columns,
+      context.column.padding,
+      0,
+      this.tableId
+    );
 
     context.columns.forEach(() => {
       //init pool
@@ -131,7 +147,11 @@ export abstract class ACellAdapter<T extends IColumn> {
 
   protected abstract createCell(document: Document, index: number, column: T): HTMLElement | IAsyncUpdate<HTMLElement>;
 
-  protected abstract updateCell(node: HTMLElement, index: number, column: T): HTMLElement | IAsyncUpdate<HTMLElement> | void;
+  protected abstract updateCell(
+    node: HTMLElement,
+    index: number,
+    column: T
+  ): HTMLElement | IAsyncUpdate<HTMLElement> | void;
 
   protected abstract forEachRow(callback: (row: HTMLElement, rowIndex: number) => void): void;
 
@@ -228,7 +248,11 @@ export abstract class ACellAdapter<T extends IColumn> {
     }
   }
 
-  private selectProxyCell(row: number, column: number, columns: T[]): {item: HTMLElement, ready: IAbortAblePromise<void> | void} {
+  private selectProxyCell(
+    row: number,
+    column: number,
+    columns: T[]
+  ): { item: HTMLElement; ready: IAbortAblePromise<void> | void } {
     const pool = this.cellPool[column];
     const columnObj = columns[column];
 
@@ -236,7 +260,9 @@ export abstract class ACellAdapter<T extends IColumn> {
     let ready: IAbortAblePromise<void> | void;
     const pooled = pool.pop();
 
-    const r = pooled ? this.updateCell(pooled, row, columnObj) || pooled : this.createCell(this.header.ownerDocument!, row, columnObj);
+    const r = pooled
+      ? this.updateCell(pooled, row, columnObj) || pooled
+      : this.createCell(this.header.ownerDocument!, row, columnObj);
     if (isAsyncUpdate(r)) {
       item = r.item;
       ready = r.ready;
@@ -248,10 +274,10 @@ export abstract class ACellAdapter<T extends IColumn> {
       item.classList.add(CSS_CLASS_TD, this.style.cssClasses.td, cssClass(`td-${this.tableId}`));
     }
     this.updateShiftedState(item, columnObj);
-    return {item, ready};
+    return { item, ready };
   }
 
-  handleCellReady(item: HTMLElement, ready: IAbortAblePromise<void>, column: number = -1) {
+  handleCellReady(item: HTMLElement, ready: IAbortAblePromise<void>, column = -1) {
     item.classList.add(CSS_CLASS_LOADING);
     const abort = ready;
     //lazy loading
@@ -269,7 +295,7 @@ export abstract class ACellAdapter<T extends IColumn> {
   }
 
   private selectCell(row: number, column: number, columns: T[]): HTMLElement {
-    const {item, ready} = this.selectProxyCell(row, column, columns);
+    const { item, ready } = this.selectProxyCell(row, column, columns);
     if (!isAbortAble(ready)) {
       return item;
     }
@@ -280,7 +306,7 @@ export abstract class ACellAdapter<T extends IColumn> {
     node.classList.toggle(CSS_CLASS_SHIFTED, col.frozen && this.horizontallyShifted);
   }
 
-  recycleCell(item: HTMLElement, column: number = -1) {
+  recycleCell(item: HTMLElement, column = -1) {
     // check if the dom element is still being manipulated
     if (this.loading.has(item)) {
       const abort = this.loading.get(item)!;
@@ -291,7 +317,7 @@ export abstract class ACellAdapter<T extends IColumn> {
   }
 
   private addColumnAtStart(from: number, to: number, frozenShift: number = this.visibleColumns.frozen.length) {
-    const {columns} = this.context;
+    const { columns } = this.context;
     this.forEachRow((row: HTMLElement, rowIndex: number) => {
       this.addCellAtStart(row, rowIndex, from, to, frozenShift, columns);
     });
@@ -300,7 +326,14 @@ export abstract class ACellAdapter<T extends IColumn> {
     }
   }
 
-  private addCellAtStart(row: HTMLElement, rowIndex: number, from: number, to: number, frozenShift: number, columns: T[]) {
+  private addCellAtStart(
+    row: HTMLElement,
+    rowIndex: number,
+    from: number,
+    to: number,
+    frozenShift: number,
+    columns: T[]
+  ) {
     if (debug) {
       verifyRow(row, rowIndex, this.context.columns);
     }
@@ -326,14 +359,14 @@ export abstract class ACellAdapter<T extends IColumn> {
   }
 
   private insertFrozenColumns(columnIndices: number[], shift: number) {
-    const {columns} = this.context;
+    const { columns } = this.context;
     this.forEachRow((row: HTMLElement, rowIndex: number) => {
       this.insertFrozenCells(row, rowIndex, columnIndices, shift, columns);
     });
   }
 
   private addColumnAtEnd(from: number, to: number) {
-    const {columns} = this.context;
+    const { columns } = this.context;
     this.forEachRow((row: HTMLElement, rowIndex: number) => {
       this.addCellAtEnd(row, rowIndex, from, to, columns);
     });
@@ -343,7 +376,7 @@ export abstract class ACellAdapter<T extends IColumn> {
   }
 
   private verifyRows() {
-    const {columns} = this.context;
+    const { columns } = this.context;
     this.forEachRow((row, rowIndex) => verifyRow(row, rowIndex, columns));
   }
 
@@ -358,7 +391,7 @@ export abstract class ACellAdapter<T extends IColumn> {
   }
 
   updateHeaders() {
-    const {columns} = this.context;
+    const { columns } = this.context;
     Array.from(this.header.children).forEach((node: Element, i) => {
       const base = <HTMLElement>node;
       const col = columns[i];
@@ -381,8 +414,13 @@ export abstract class ACellAdapter<T extends IColumn> {
   recreate(left: number, width: number) {
     const context = this.context;
 
-    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, context.column.padding, -this.leftShift(), this.tableId);
-
+    this.style.update(
+      context.defaultRowHeight - context.padding(-1),
+      context.columns,
+      context.column.padding,
+      -this.leftShift(),
+      this.tableId
+    );
 
     this.clearPool();
     // init pool
@@ -421,12 +459,18 @@ export abstract class ACellAdapter<T extends IColumn> {
       this.header.appendChild(fragment);
     }
 
-    const {first, last, firstRowPos} = range(left, width, context.column.defaultRowHeight, context.column.exceptions, context.column.numberOfRows);
+    const { first, last, firstRowPos } = range(
+      left,
+      width,
+      context.column.defaultRowHeight,
+      context.column.exceptions,
+      context.column.numberOfRows
+    );
 
     this.visibleColumns.first = this.visibleColumns.forcedFirst = first;
     this.visibleColumns.last = this.visibleColumns.forcedLast = last;
     if (context.columns.some((c) => c.frozen)) {
-      const {target} = updateFrozen([], context.columns, first);
+      const { target } = updateFrozen([], context.columns, first);
       this.visibleColumns.frozen = target;
     } else {
       this.visibleColumns.frozen = [];
@@ -443,12 +487,18 @@ export abstract class ACellAdapter<T extends IColumn> {
     this.visibleFirstColumnPos = firstColumnPos;
     if (changed) {
       const context = this.context;
-      this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, context.column.padding, -this.leftShift(), this.tableId);
+      this.style.update(
+        context.defaultRowHeight - context.padding(-1),
+        context.columns,
+        context.column.padding,
+        -this.leftShift(),
+        this.tableId
+      );
     }
   }
 
   createRow(node: HTMLElement, rowIndex: number): void {
-    const {columns} = this.context;
+    const { columns } = this.context;
     const visible = this.visibleColumns;
 
     if (visible.frozen.length > 0) {
@@ -464,7 +514,7 @@ export abstract class ACellAdapter<T extends IColumn> {
   }
 
   updateRow(node: HTMLElement, rowIndex: number): void {
-    const {columns} = this.context;
+    const { columns } = this.context;
     const visible = this.visibleColumns;
 
     //columns may not match anymore if it is a pooled item a long time ago
@@ -497,7 +547,7 @@ export abstract class ACellAdapter<T extends IColumn> {
   }
 
   private mergeColumns(node: HTMLElement, rowIndex: number) {
-    const {columns} = this.context;
+    const { columns } = this.context;
     const visible = this.visibleColumns;
     const ids = new Map<string, HTMLElement>();
 
@@ -580,7 +630,7 @@ export abstract class ACellAdapter<T extends IColumn> {
   }
 
   private syncFrozen(first: number) {
-    const {columns} = this.context;
+    const { columns } = this.context;
     const visible = this.visibleColumns;
 
     if (!columns.some((d) => d.frozen)) {
@@ -594,7 +644,7 @@ export abstract class ACellAdapter<T extends IColumn> {
       return 0;
     }
     const old = visible.frozen.length;
-    const {target, added, removed} = updateFrozen(visible.frozen, columns, first);
+    const { target, added, removed } = updateFrozen(visible.frozen, columns, first);
     if (removed.length > 0) {
       this.removeFrozenColumns(removed, old - removed.length);
     }
@@ -609,14 +659,20 @@ export abstract class ACellAdapter<T extends IColumn> {
     const shiftingChanged = this.horizontallyShifted !== scrollLeft > 0;
     this.horizontallyShifted = scrollLeft > 0;
 
-    const {column} = this.context;
-    const {first, last, firstRowPos} = range(scrollLeft, clientWidth, column.defaultRowHeight, column.exceptions, column.numberOfRows);
+    const { column } = this.context;
+    const { first, last, firstRowPos } = range(
+      scrollLeft,
+      clientWidth,
+      column.defaultRowHeight,
+      column.exceptions,
+      column.numberOfRows
+    );
 
     const visible = this.visibleColumns;
     visible.forcedFirst = first;
     visible.forcedLast = last;
 
-    if ((first - visible.first) >= 0 && (last - visible.last) <= 0) {
+    if (first - visible.first >= 0 && last - visible.last <= 0) {
       //nothing to do
       if (shiftingChanged) {
         this.updateShiftedStates();
@@ -658,7 +714,6 @@ export abstract class ACellAdapter<T extends IColumn> {
 
     return r;
   }
-
 }
 
 /**
@@ -673,7 +728,15 @@ function verifyRow(row: HTMLElement, index: number, columns: IColumn[]) {
     return;
   }
   const colObjs = cols.map((c) => columns.find((d) => d.id === c.dataset.id)!);
-  console.assert(colObjs.every((d) => Boolean(d)), 'all columns must exist', index);
-  console.assert(colObjs.every((d, i) => i === 0 || d.index >= colObjs[i - 1]!.index), 'all columns in ascending order', index);
-  console.assert((new Set(colObjs)).size === colObjs.length, 'unique columns', colObjs);
+  console.assert(
+    colObjs.every((d) => Boolean(d)),
+    'all columns must exist',
+    index
+  );
+  console.assert(
+    colObjs.every((d, i) => i === 0 || d.index >= colObjs[i - 1]!.index),
+    'all columns in ascending order',
+    index
+  );
+  console.assert(new Set(colObjs).size === colObjs.length, 'unique columns', colObjs);
 }

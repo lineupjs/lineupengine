@@ -1,5 +1,5 @@
-import {uniformContext} from '../src';
-import {ACellRenderer, ICellContext} from '../src/cell/ACellRenderer';
+import { uniformContext } from '../src';
+import { ACellRenderer, ICellContext } from '../src/cell/ACellRenderer';
 import '../src/style.scss';
 
 /** @internal */
@@ -12,7 +12,7 @@ export default class CellRenderer extends ACellRenderer {
 
     this._context = {
       col: uniformContext(numberOfColumns, 50),
-      row: uniformContext(numberOfRows, 50)
+      row: uniformContext(numberOfRows, 50),
     };
   }
 

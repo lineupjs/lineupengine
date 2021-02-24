@@ -1,12 +1,12 @@
-import {ACellRenderer, ICellRenderContext, PrefetchMixin, uniformContext} from '../src';
-import {Column} from './column';
+import { ACellRenderer, ICellRenderContext, PrefetchMixin, uniformContext } from '../src';
+import { Column } from './column';
 
 /** @internal */
 export default class TestRenderer extends ACellRenderer<Column<number>> {
   protected readonly _context: ICellRenderContext<Column<number>>;
 
   constructor(root: HTMLElement, id: string, numberOfRows = 1000, numberOfColumns = 20) {
-    super(root, `#${id}`, {mixins: [PrefetchMixin], striped: true});
+    super(root, `#${id}`, { mixins: [PrefetchMixin], striped: true });
     root.id = id;
 
     const defaultRowHeight = 20;
@@ -15,11 +15,13 @@ export default class TestRenderer extends ACellRenderer<Column<number>> {
     for (let i = 0; i < numberOfColumns; ++i) {
       columns.push(new Column(i, i.toString(36), i === 0 || i === 2));
     }
-    this._context = Object.assign({
-      columns,
-      column: uniformContext(columns.length, 100),
-    }, uniformContext(numberOfRows, defaultRowHeight));
-
+    this._context = Object.assign(
+      {
+        columns,
+        column: uniformContext(columns.length, 100),
+      },
+      uniformContext(numberOfRows, defaultRowHeight)
+    );
   }
 
   protected createHeader(document: Document, column: Column<number>) {

@@ -1,5 +1,14 @@
-import {addScroll} from '../internal';
-import {cssClass, CSS_CLASS_BODY, CSS_CLASS_FOOTER, CSS_CLASS_HEADER, CSS_CLASS_SCROLLBAR_TESTER, CSS_CLASS_SHIFTED, CSS_CLASS_TBODY, CSS_CLASS_THEAD} from '../styles';
+import { addScroll } from '../internal';
+import {
+  cssClass,
+  CSS_CLASS_BODY,
+  CSS_CLASS_FOOTER,
+  CSS_CLASS_HEADER,
+  CSS_CLASS_SCROLLBAR_TESTER,
+  CSS_CLASS_SHIFTED,
+  CSS_CLASS_TBODY,
+  CSS_CLASS_THEAD,
+} from '../styles';
 import StyleManager from './StyleManager';
 
 export function setTemplate(root: HTMLElement, id: string) {
@@ -48,7 +57,7 @@ export function tableIds(tableId: string) {
     tbody: `tbody-${tableId}`,
     tr: `tr-${tableId}`,
     th: `th-${tableId}`,
-    td: `td-${tableId}`
+    td: `td-${tableId}`,
   };
 }
 
@@ -59,7 +68,7 @@ export function tableCSSClasses(tableId: string) {
     tbody: cssClass(ids.tbody),
     tr: cssClass(ids.tr),
     th: cssClass(ids.th),
-    td: cssClass(ids.td)
+    td: cssClass(ids.td),
   };
 }
 
@@ -67,7 +76,6 @@ export function tableCSSClasses(tableId: string) {
  * utility for custom generated CSS rules with a focus on dynamically generated grid layouts
  */
 export default class GridStyleManager extends StyleManager {
-
   readonly id: string;
 
   readonly ids: ISelectors;
@@ -85,9 +93,9 @@ export default class GridStyleManager extends StyleManager {
 
     // async since style needs to be added to dom first
     self.setTimeout(() => {
-      const {width} = measureScrollbar(root);
+      const { width } = measureScrollbar(root);
       this.updateRule('__scollBarFix2', `#header-${this.id} > article:last-of-type`, {
-        borderRight: `${width}px solid transparent`
+        borderRight: `${width}px solid transparent`,
       });
     }, 20);
 
@@ -111,7 +119,14 @@ export default class GridStyleManager extends StyleManager {
    * @param {string} tableId optional tableId in case of multiple tables within the same engine
    * @param {string} unit
    */
-  update(defaultRowHeight: number, columns: IColumn[], padding: (index: number) => number, frozenShift: number, tableId: string, unit: string = 'px') {
+  update(
+    defaultRowHeight: number,
+    columns: IColumn[],
+    padding: (index: number) => number,
+    frozenShift: number,
+    tableId: string,
+    unit = 'px'
+  ) {
     const ids = tableIds(tableId);
     const selectors = tableCSSClasses(tableId);
 
@@ -119,11 +134,11 @@ export default class GridStyleManager extends StyleManager {
 
     this.updateRule(`__heightsRule${selectors.tr}`, `.${selectors.tr}`, {
       height: `${defaultRowHeight}px`,
-      width: total
+      width: total,
     });
 
     this.updateRule(`__heightsRule${selectors.tbody}`, `#${ids.tbody}`, {
-      width: total
+      width: total,
     });
 
     this.updateColumns(columns, padding, selectors, frozenShift, unit);
@@ -146,7 +161,13 @@ export default class GridStyleManager extends StyleManager {
     }
   }
 
-  private updateColumns(columns: IColumn[], padding: (index: number) => number, cssSelectors: ISelectors, frozenShift: number, unit: string = 'px') {
+  private updateColumns(
+    columns: IColumn[],
+    padding: (index: number) => number,
+    cssSelectors: ISelectors,
+    frozenShift: number,
+    unit = 'px'
+  ) {
     const prefix = `__col${cssSelectors.td}_`;
     const rules = new Set(this.ruleNames.filter((d) => d.startsWith(prefix)));
 
@@ -154,12 +175,12 @@ export default class GridStyleManager extends StyleManager {
     columns.forEach((c, i) => {
       const th = `.${cssSelectors.th}[data-id="${c.id}"]`;
       const thStyles: Partial<CSSStyleDeclaration> = {
-        width: `${c.width}${unit}`
+        width: `${c.width}${unit}`,
       };
       const td = `.${cssSelectors.td}[data-id="${c.id}"]`;
       const tdStyles: Partial<CSSStyleDeclaration> = {
         transform: `translateX(${acc}${unit})`,
-        width: `${c.width}${unit}`
+        width: `${c.width}${unit}`,
       };
 
       if (c.frozen) {
@@ -167,7 +188,7 @@ export default class GridStyleManager extends StyleManager {
 
         this.updateRule(`${prefix}${td}F`, `.${cssSelectors.td}.${CSS_CLASS_SHIFTED}[data-id="${c.id}"]`, {
           transform: `translateX(0)`,
-          left: `${acc + frozenShift}${unit}`
+          left: `${acc + frozenShift}${unit}`,
         });
         rules.delete(`${prefix}${td}F`);
       }
@@ -189,9 +210,12 @@ export default class GridStyleManager extends StyleManager {
  */
 function measureScrollbar(root: HTMLElement) {
   const body = root.ownerDocument!.body;
-  body.insertAdjacentHTML('beforeend', `
+  body.insertAdjacentHTML(
+    'beforeend',
+    `
     <div class="${CSS_CLASS_SCROLLBAR_TESTER}"><div></div></div>
-  `);
+  `
+  );
   const elem = <HTMLElement>body.lastElementChild!;
 
   const width = elem.offsetWidth - elem.clientWidth;
@@ -199,5 +223,5 @@ function measureScrollbar(root: HTMLElement) {
 
   elem.remove();
 
-  return {width, height};
+  return { width, height };
 }

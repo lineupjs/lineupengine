@@ -1,4 +1,4 @@
-import {IExceptionContext} from '../logic';
+import { IExceptionContext } from '../logic';
 
 /**
  * utility class for optimized row context access
@@ -37,7 +37,7 @@ export default class KeyFinder {
   posByKey(key: string) {
     if (this.key2index.has(key)) {
       const index = this.key2index.get(key)!;
-      return {index, pos: this.pos(index)};
+      return { index, pos: this.pos(index) };
     }
     return this.fillCacheTillKey(key);
   }
@@ -67,7 +67,12 @@ export default class KeyFinder {
     return this.cache[index]!;
   }
 
-  private fillCache(first: number, last: number, offset: number, callback?: (index: number, key: string, pos: number) => void) {
+  private fillCache(
+    first: number,
+    last: number,
+    offset: number,
+    callback?: (index: number, key: string, pos: number) => void
+  ) {
     if (last <= this.lastFilled) {
       //everything already there
       if (!callback) {
@@ -106,7 +111,7 @@ export default class KeyFinder {
    * @param {boolean} returnDefault return null if default height
    * @returns {number}
    */
-  exceptionHeightOf(index: number, returnDefault: boolean = false) {
+  exceptionHeightOf(index: number, returnDefault = false) {
     const padding = this.context.padding(index);
     const lookup = this.context.exceptionsLookup;
     if (lookup.has(index)) {
@@ -137,11 +142,11 @@ export default class KeyFinder {
       this.cache[i] = pos;
       this.key2index.set(key, i);
       if (key === target) {
-        return {index: i, pos};
+        return { index: i, pos };
       }
       pos += this.heightOf(i);
     }
-    return {index: -1, pos: -1};
+    return { index: -1, pos: -1 };
   }
 
   /**

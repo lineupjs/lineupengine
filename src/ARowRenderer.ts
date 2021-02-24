@@ -1,11 +1,26 @@
-import {ABORTED, IAbortAblePromise, isAbortAble} from './abortAble';
-import {defaultPhases, EAnimationMode, IAnimationContext, IAnimationItem, IPhase, noAnimationChange} from './animation';
+import { ABORTED, IAbortAblePromise, isAbortAble } from './abortAble';
+import {
+  defaultPhases,
+  EAnimationMode,
+  IAnimationContext,
+  IAnimationItem,
+  IPhase,
+  noAnimationChange,
+} from './animation';
 import KeyFinder from './animation/KeyFinder';
-import {addScroll, clear, defaultMode, IDelayedMode, IScrollInfo, removeScroll} from './internal';
-import {isScrollEventWaiting} from './internal/scroll';
-import {IExceptionContext, range} from './logic';
-import {EScrollResult, IMixin, IMixinAdapter, IMixinClass} from './mixin';
-import {cssClass, CSS_CLASS_EVEN, CSS_CLASS_FOOTER, CSS_CLASS_LOADING, CSS_CLASS_ROW_ANIMATION, CSS_CLASS_SCROLLING, CSS_CLASS_TR} from './styles';
+import { addScroll, clear, defaultMode, IDelayedMode, IScrollInfo, removeScroll } from './internal';
+import { isScrollEventWaiting } from './internal/scroll';
+import { IExceptionContext, range } from './logic';
+import { EScrollResult, IMixin, IMixinAdapter, IMixinClass } from './mixin';
+import {
+  cssClass,
+  CSS_CLASS_EVEN,
+  CSS_CLASS_FOOTER,
+  CSS_CLASS_LOADING,
+  CSS_CLASS_ROW_ANIMATION,
+  CSS_CLASS_SCROLLING,
+  CSS_CLASS_TR,
+} from './styles';
 
 export declare type IRowRenderContext = IExceptionContext;
 
@@ -74,7 +89,7 @@ export abstract class ARowRenderer {
     first: 0,
     forcedFirst: 0,
     last: -1,
-    forcedLast: -1
+    forcedLast: -1,
   };
   /**
    * position of the first visible row in pixel
@@ -96,7 +111,7 @@ export abstract class ARowRenderer {
     scrollingHint: false,
     batchSize: 10,
     striped: false,
-    viewportOversize: 200
+    viewportOversize: 200,
   };
 
   constructor(protected readonly body: HTMLElement, options: Partial<IRowRendererOptions> = {}) {
@@ -126,25 +141,25 @@ export abstract class ARowRenderer {
       removeFromBeginning: this.removeFromBeginning.bind(this),
       removeFromBottom: this.removeFromBottom.bind(this),
       updateOffset: this.updateOffset.bind(this),
-      isScrollEventWaiting: () => isScrollEventWaiting(this.bodyScroller, this.options.async)
+      isScrollEventWaiting: () => isScrollEventWaiting(this.bodyScroller, this.options.async),
     };
     Object.defineProperties(r, {
       visibleFirstRowPos: {
         get: () => this.visibleFirstRowPos,
-        enumerable: true
+        enumerable: true,
       },
       context: {
         get: () => this.context,
-        enumerable: true
+        enumerable: true,
       },
       scrollOffset: {
-        get: () => this.lastScrollInfo ? this.lastScrollInfo.top : 0,
-        enumerable: true
+        get: () => (this.lastScrollInfo ? this.lastScrollInfo.top : 0),
+        enumerable: true,
       },
       scrollTotal: {
-        get: () => this.lastScrollInfo ? this.lastScrollInfo.height : this.bodyScroller.clientHeight,
-        enumerable: true
-      }
+        get: () => (this.lastScrollInfo ? this.lastScrollInfo.height : this.bodyScroller.clientHeight),
+        enumerable: true,
+      },
     });
     return r;
   }
@@ -198,24 +213,30 @@ export abstract class ARowRenderer {
   protected init() {
     const scroller = this.bodyScroller;
 
-    let old = addScroll(scroller, this.options.async, this.scrollListener = (act) => {
-      this.lastScrollInfo = act;
-      if (Math.abs(old.top - act.top) < this.options.minScrollDelta && Math.abs(old.height - act.height) < this.options.minScrollDelta) {
-        return;
-      }
-      const isGoingDown = act.top > old.top;
-      old = act;
-      this.onScrolledVertically(act.top, act.height, isGoingDown);
-      if (this.options.scrollingHint) {
-        this.body.classList.remove(CSS_CLASS_SCROLLING);
-      }
-    });
+    let old = addScroll(
+      scroller,
+      this.options.async,
+      (this.scrollListener = (act) => {
+        this.lastScrollInfo = act;
+        if (
+          Math.abs(old.top - act.top) < this.options.minScrollDelta &&
+          Math.abs(old.height - act.height) < this.options.minScrollDelta
+        ) {
+          return;
+        }
+        const isGoingDown = act.top > old.top;
+        old = act;
+        this.onScrolledVertically(act.top, act.height, isGoingDown);
+        if (this.options.scrollingHint) {
+          this.body.classList.remove(CSS_CLASS_SCROLLING);
+        }
+      })
+    );
     if (this.options.scrollingHint) {
       addScroll(scroller, 'animation', () => this.body.classList.add(CSS_CLASS_SCROLLING));
     }
     this.recreate();
   }
-
 
   /**
    * destroys this renderer and unregisters all event listeners
@@ -229,7 +250,7 @@ export abstract class ARowRenderer {
     item.style.height = null;
   }
 
-  private select(index: number): {item: HTMLElement, result: IAbortAblePromise<void> | void} {
+  private select(index: number): { item: HTMLElement; result: IAbortAblePromise<void> | void } {
     let item: HTMLElement;
     let result: IAbortAblePromise<void> | void;
     if (this.pool.length > 0) {
@@ -248,7 +269,7 @@ export abstract class ARowRenderer {
     if (this.options.striped) {
       item.classList.toggle(CSS_CLASS_EVEN, index % 2 === 0);
     }
-    return {item, result};
+    return { item, result };
   }
 
   private selectProxy() {
@@ -287,35 +308,38 @@ export abstract class ARowRenderer {
     proxy.style.height = real.style.height;
 
     this.loading.set(proxy, abort);
-    abort.then((result) => {
-      if (result === ABORTED) {
+    abort.then(
+      (result) => {
+        if (result === ABORTED) {
+          //aborted can recycle the real one
+          ARowRenderer.cleanUp(real);
+          this.pool.push(real);
+        } else {
+          //fully loaded
+          this.body.replaceChild(real, proxy);
+        }
+        this.loading.delete(proxy);
+        ARowRenderer.cleanUp(proxy);
+        this.loadingPool.push(proxy);
+      },
+      () => {
+        // handle as aborted
         //aborted can recycle the real one
         ARowRenderer.cleanUp(real);
         this.pool.push(real);
-      } else {
-        //fully loaded
-        this.body.replaceChild(real, proxy);
-      }
-      this.loading.delete(proxy);
-      ARowRenderer.cleanUp(proxy);
-      this.loadingPool.push(proxy);
-    }, () => {
-      // handle as aborted
-      //aborted can recycle the real one
-      ARowRenderer.cleanUp(real);
-      this.pool.push(real);
 
-      this.loading.delete(proxy);
-      ARowRenderer.cleanUp(proxy);
-      this.loadingPool.push(proxy);
-    });
+        this.loading.delete(proxy);
+        ARowRenderer.cleanUp(proxy);
+        this.loadingPool.push(proxy);
+      }
+    );
     return proxy;
   }
 
   private create(index: number) {
-    const {item, result} = this.select(index);
+    const { item, result } = this.select(index);
 
-    const {exceptionsLookup: ex, padding} = this.context;
+    const { exceptionsLookup: ex, padding } = this.context;
     if (ex.has(index)) {
       item.style.height = `${ex.get(index)! - padding(index)}px`;
     }
@@ -337,7 +361,6 @@ export abstract class ARowRenderer {
     }
     return torecycle;
   }
-
 
   /**
    * triggers and visual update of all visible rows
@@ -365,7 +388,7 @@ export abstract class ARowRenderer {
    * @param {(row: HTMLElement, rowIndex: number) => void} callback callback to execute
    * @param {boolean} inplace whether the DOM changes should be performed inplace instead of in a fragment
    */
-  protected forEachRow(callback: (row: HTMLElement, rowIndex: number) => void, inplace: boolean = false) {
+  protected forEachRow(callback: (row: HTMLElement, rowIndex: number) => void, inplace = false) {
     const rows = <HTMLElement[]>Array.from(this.body.children);
     const fragment = this.fragment;
     if (!inplace) {
@@ -395,7 +418,7 @@ export abstract class ARowRenderer {
 
   private remove(from: number, to: number, fromBeginning: boolean, perform = true) {
     if (to < from) {
-      return;
+      return [];
     }
     const b = this.body;
     const torecycle: HTMLElement[] = [];
@@ -410,7 +433,6 @@ export abstract class ARowRenderer {
         this.recycle(item);
       }
       torecycle.push(item);
-
     }
     return torecycle;
   }
@@ -436,12 +458,12 @@ export abstract class ARowRenderer {
 
   private addAtBottom(from: number, to: number, perform = true) {
     if (to < from) {
-      return;
+      return null;
     }
     // console.log('add_b', (to - from) + 1, this.body.childElementCount + ((to - from) + 1));
     if (from === to && perform) {
       this.body.appendChild(this.create(from));
-      return;
+      return null;
     }
     const fragment = this.fragment;
     for (let i = from; i <= to; ++i) {
@@ -460,7 +482,7 @@ export abstract class ARowRenderer {
   }
 
   protected updateSizer(firstRowPos: number) {
-    const {totalHeight} = this.context;
+    const { totalHeight } = this.context;
     setTransform(this.body, 0, firstRowPos.toFixed(0));
     setTransform(this.bodySizer, 0, Math.max(0, totalHeight - 1).toFixed(0));
   }
@@ -489,7 +511,13 @@ export abstract class ARowRenderer {
     this.removeAll();
     this.clearPool();
 
-    const {first, last, firstRowPos} = range(scroller.scrollTop, scroller.clientHeight, context.defaultRowHeight, context.exceptions, context.numberOfRows);
+    const { first, last, firstRowPos } = range(
+      scroller.scrollTop,
+      scroller.clientHeight,
+      context.defaultRowHeight,
+      context.exceptions,
+      context.numberOfRows
+    );
 
     this.visible.first = this.visible.forcedFirst = first;
     this.visible.last = this.visible.forcedLast = last;
@@ -503,12 +531,17 @@ export abstract class ARowRenderer {
     this.updateOffset(firstRowPos);
   }
 
-
   private recreateAnimated(ctx: IAnimationContext) {
-    const lookup = new Map<string, {n: HTMLElement, pos: number, i: number}>();
+    const lookup = new Map<string, { n: HTMLElement; pos: number; i: number }>();
     const prev = new KeyFinder(ctx.previous, ctx.previousKey);
     const cur = new KeyFinder(this.context, ctx.currentKey);
-    const next = range(this.bodyScroller.scrollTop, this.bodyScroller.clientHeight, cur.context.defaultRowHeight, cur.context.exceptions, cur.context.numberOfRows);
+    const next = range(
+      this.bodyScroller.scrollTop,
+      this.bodyScroller.clientHeight,
+      cur.context.defaultRowHeight,
+      cur.context.exceptions,
+      cur.context.numberOfRows
+    );
 
     {
       const rows = <HTMLElement[]>Array.from(this.body.children);
@@ -519,8 +552,9 @@ export abstract class ARowRenderer {
 
       prev.positions(old.first, Math.min(old.last, old.first + rows.length), this.visibleFirstRowPos, (i, key, pos) => {
         const n = rows[i];
-        if (n) { // shouldn't happen that it is not there
-          lookup.set(key, {n, pos, i});
+        if (n) {
+          // shouldn't happen that it is not there
+          lookup.set(key, { n, pos, i });
         }
         // else {
         //  console.error(i, key, pos, rows);
@@ -555,7 +589,7 @@ export abstract class ARowRenderer {
         previous = {
           index: item.i,
           y: item.pos,
-          height: prev.exceptionHeightOf(item.i, true)
+          height: prev.exceptionHeightOf(item.i, true),
         };
       } else {
         // need a new row
@@ -567,7 +601,7 @@ export abstract class ARowRenderer {
         previous = {
           index: old.index,
           y: old.pos >= 0 ? old.pos : pos,
-          height: old.index < 0 ? cur.exceptionHeightOf(i, true) : prev.exceptionHeightOf(old.index, true)
+          height: old.index < 0 ? cur.exceptionHeightOf(i, true) : prev.exceptionHeightOf(old.index, true),
         };
       }
       animation.push({
@@ -580,8 +614,8 @@ export abstract class ARowRenderer {
         current: {
           index: i,
           y: pos,
-          height: cur.exceptionHeightOf(i)
-        }
+          height: cur.exceptionHeightOf(i),
+        },
       });
       node.style.transform = `translate(0, ${nodeY - pos}px)`;
       nodeY += previous.height! + (previous.index < 0 ? cur.padding(i) : prev.padding(previous.index));
@@ -613,17 +647,18 @@ export abstract class ARowRenderer {
         previous: {
           index: item.i,
           y: item.pos,
-          height: prevHeight
+          height: prevHeight,
         },
         nodeY,
         nodeYCurrentHeight,
         current: {
           index: r.index,
           y: nextPos,
-          height: r.index < 0 ? null : cur.exceptionHeightOf(r.index)
-        }
+          height: r.index < 0 ? null : cur.exceptionHeightOf(r.index),
+        },
       });
-      nodeYCurrentHeight += r.index < 0 ? cur.context.defaultRowHeight : (cur.exceptionHeightOf(r.index, true)! + cur.padding(r.index));
+      nodeYCurrentHeight +=
+        r.index < 0 ? cur.context.defaultRowHeight : cur.exceptionHeightOf(r.index, true)! + cur.padding(r.index);
       nodeY += prevHeight! + prev.padding(item.i);
     });
 
@@ -632,7 +667,13 @@ export abstract class ARowRenderer {
     this.animate(animation, ctx.phases || defaultPhases, prev, cur, fragment);
   }
 
-  private animate(animation: IAnimationItem[], phases: IPhase[], previousFinder: KeyFinder, currentFinder: KeyFinder, fragment: DocumentFragment) {
+  private animate(
+    animation: IAnimationItem[],
+    phases: IPhase[],
+    previousFinder: KeyFinder,
+    currentFinder: KeyFinder,
+    fragment: DocumentFragment
+  ) {
     if (animation.length <= 0) {
       this.body.appendChild(fragment);
       return;
@@ -666,7 +707,7 @@ export abstract class ARowRenderer {
         }
       });
       // clean up
-      animation.forEach(({node, mode}) => {
+      animation.forEach(({ node, mode }) => {
         if (mode !== EAnimationMode.UPDATE_REMOVE && mode !== EAnimationMode.HIDE) {
           return;
         }
@@ -705,7 +746,7 @@ export abstract class ARowRenderer {
     }
 
     body.classList.add(CSS_CLASS_ROW_ANIMATION);
-    (new Set(animation.map((d) => d.mode))).forEach((mode) => {
+    new Set(animation.map((d) => d.mode)).forEach((mode) => {
       // add class but map to UPDATE only
       body.classList.add(cssClass(`${EAnimationMode[mode].toLowerCase().split('_')[0]}-animation`));
     });
@@ -774,11 +815,11 @@ export abstract class ARowRenderer {
   private shiftFirst(current: number, currentFirstRow: number, currentDelta: number) {
     const b = this.options.batchSize;
     if (currentDelta >= b || current <= 0) {
-      return {first: current, firstRowPos: currentFirstRow};
+      return { first: current, firstRowPos: currentFirstRow };
     }
     const first = Math.max(0, current - (this.options.batchSize - currentDelta));
 
-    const {exceptionsLookup, defaultRowHeight} = this.context;
+    const { exceptionsLookup, defaultRowHeight } = this.context;
     let firstRowPos = currentFirstRow;
     for (let i = first; i < current; ++i) {
       if (exceptionsLookup.has(i)) {
@@ -787,18 +828,24 @@ export abstract class ARowRenderer {
         firstRowPos -= defaultRowHeight;
       }
     }
-    return {first, firstRowPos};
+    return { first, firstRowPos };
   }
 
   private onScrolledImpl(scrollTop: number, clientHeight: number): EScrollResult {
     const context = this.context;
-    let {first, last, firstRowPos} = range(scrollTop, clientHeight, context.defaultRowHeight, context.exceptions, context.numberOfRows);
+    let { first, last, firstRowPos } = range(
+      scrollTop,
+      clientHeight,
+      context.defaultRowHeight,
+      context.exceptions,
+      context.numberOfRows
+    );
 
     const visible = this.visible;
     visible.forcedFirst = first;
     visible.forcedLast = last;
 
-    if ((first - visible.first) >= 0 && (last - visible.last) <= 0) {
+    if (first - visible.first >= 0 && last - visible.last <= 0) {
       //nothing to do
       return EScrollResult.NONE;
     }
@@ -879,7 +926,6 @@ export abstract class ARowRenderer {
 }
 
 export default ARowRenderer;
-
 
 export function setTransform(elem: HTMLElement, x: number | string, y: number | string) {
   const text = `translate(${x}px, ${y}px)`;

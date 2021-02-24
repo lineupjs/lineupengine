@@ -43,11 +43,11 @@
       transition: all $engine_animation_update_duration $engine_animation_ease;
       will-change: transform, opacity, height;
 
-      &[data-animation=show] {
+      &[data-animation='show'] {
         transition: all $engine_animation_show_duration $engine_animation_ease;
       }
 
-      &[data-animation=hide] {
+      &[data-animation='hide'] {
         transition: all $engine_animation_hide_duration $engine_animation_ease;
       }
 
@@ -57,34 +57,34 @@
     }
 
     &.#{$engine_css_prefix}-hide-animation > .#{$engine_css_prefix}-tr {
-
       // in case of hiding shift update and show
-      transition: all $engine_animation_update_duration $engine_animation_ease $engine_animation_hide_duration + $engine_animation_pause;
+      transition: all $engine_animation_update_duration $engine_animation_ease $engine_animation_hide_duration +
+        $engine_animation_pause;
 
-      &[data-animation=hide] {
-
+      &[data-animation='hide'] {
         // since order
         transition: all $engine_animation_hide_duration $engine_animation_ease;
       }
 
-      &[data-animation=show] {
-        transition: all $engine_animation_show_duration $engine_animation_ease $engine_animation_hide_duration + $engine_animation_pause;
+      &[data-animation='show'] {
+        transition: all $engine_animation_show_duration $engine_animation_ease $engine_animation_hide_duration +
+          $engine_animation_pause;
       }
     }
 
     &.#{$engine_css_prefix}-update-animation > .#{$engine_css_prefix}-tr {
-      &[data-animation=show] {
-
+      &[data-animation='show'] {
         // in case of update shift show
-        transition: all $engine_animation_show_duration $engine_animation_ease $engine_animation_update_duration + $engine_animation_pause;
+        transition: all $engine_animation_show_duration $engine_animation_ease $engine_animation_update_duration +
+          $engine_animation_pause;
       }
     }
 
     &.#{$engine_css_prefix}-update-animation.#{$engine_css_prefix}-hide-animation > .#{$engine_css_prefix}-tr {
-      &[data-animation=show] {
-
+      &[data-animation='show'] {
         // in case of both update and hide shift show twice
-        transition: all $engine_animation_show_duration $engine_animation_ease $engine_animation_hide_duration + $engine_animation_pause + $engine_animation_update_duration + $engine_animation_pause;
+        transition: all $engine_animation_show_duration $engine_animation_ease $engine_animation_hide_duration +
+          $engine_animation_pause + $engine_animation_update_duration + $engine_animation_pause;
       }
     }
   }

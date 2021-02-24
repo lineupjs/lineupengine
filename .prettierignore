@@ -1,0 +1,10 @@
+/build
+/dist
+/docs
+/coverage
+/.gitattributes
+/.gitignore
+/.prettierignore
+/LICENSE
+/.vscode
+*.svg

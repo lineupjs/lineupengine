@@ -1,5 +1,5 @@
-import {range} from '../logic';
-import {EScrollResult, IMixin, IMixinAdapter} from './IMixin';
+import { range } from '../logic';
+import { EScrollResult, IMixin, IMixinAdapter } from './IMixin';
 
 export interface IPrefetchRendererOptions {
   /**
@@ -23,20 +23,19 @@ export interface IPrefetchRendererOptions {
  * mixin that prefetches rows depending on the scrolling direction for faster rendering
  */
 export default class PrefetchMixin implements IMixin {
-  private prefetchTimeout: number = -1;
-  private cleanupTimeout: number = -1;
+  private prefetchTimeout = -1;
+  private cleanupTimeout = -1;
 
   private readonly options: IPrefetchRendererOptions = {
     prefetchRows: 20,
     cleanUpRows: 10,
-    delay: 200
+    delay: 200,
   };
 
   constructor(private readonly adapter: IMixinAdapter, options?: Partial<IPrefetchRendererOptions>) {
     Object.assign(this.options, options);
     return this;
   }
-
 
   private prefetchDown() {
     this.prefetchTimeout = -1;
@@ -46,7 +45,10 @@ export default class PrefetchMixin implements IMixin {
     const context = this.adapter.context;
     const nextLast = Math.min(this.adapter.visible.forcedLast + this.options.prefetchRows, context.numberOfRows - 1);
     // add some rows in advance
-    if (this.adapter.visible.last === nextLast && this.adapter.visible.last >= (this.adapter.visible.forcedLast + this.options.prefetchRows)) {
+    if (
+      this.adapter.visible.last === nextLast &&
+      this.adapter.visible.last >= this.adapter.visible.forcedLast + this.options.prefetchRows
+    ) {
       return;
     }
 
@@ -57,13 +59,22 @@ export default class PrefetchMixin implements IMixin {
 
   private prefetchUp() {
     this.prefetchTimeout = -1;
-    if (this.adapter.isScrollEventWaiting() || this.adapter.visible.first <= (this.adapter.visible.forcedFirst - this.options.prefetchRows!)) {
+    if (
+      this.adapter.isScrollEventWaiting() ||
+      this.adapter.visible.first <= this.adapter.visible.forcedFirst - this.options.prefetchRows!
+    ) {
       return;
     }
     const context = this.adapter.context;
     const fakeOffset = Math.max(this.adapter.scrollOffset - this.options.prefetchRows! * context.defaultRowHeight, 0);
     const height = this.adapter.scrollTotal;
-    const {first, firstRowPos} = range(fakeOffset, height, context.defaultRowHeight, context.exceptions, context.numberOfRows);
+    const { first, firstRowPos } = range(
+      fakeOffset,
+      height,
+      context.defaultRowHeight,
+      context.exceptions,
+      context.numberOfRows
+    );
 
     if (first === this.adapter.visible.first) {
       return;
@@ -83,8 +94,10 @@ export default class PrefetchMixin implements IMixin {
       clearTimeout(this.prefetchTimeout);
     }
 
-    const prefetchDownPossible = this.adapter.visible.last < (this.adapter.visible.forcedLast + this.options.prefetchRows);
-    const prefetchUpPossible = this.adapter.visible.first > (this.adapter.visible.forcedFirst - this.options.prefetchRows);
+    const prefetchDownPossible =
+      this.adapter.visible.last < this.adapter.visible.forcedLast + this.options.prefetchRows;
+    const prefetchUpPossible =
+      this.adapter.visible.first > this.adapter.visible.forcedFirst - this.options.prefetchRows;
 
     const isLast = this.adapter.visible.last === this.adapter.context.numberOfRows;
     const isFirst = this.adapter.visible.first === 0;
@@ -94,7 +107,7 @@ export default class PrefetchMixin implements IMixin {
     }
 
     // go down if we are already at the top, too
-    const op = (isGoingDown || isFirst) ? this.prefetchDown.bind(this) : this.prefetchUp.bind(this);
+    const op = isGoingDown || isFirst ? this.prefetchDown.bind(this) : this.prefetchUp.bind(this);
 
     this.prefetchTimeout = self.setTimeout(op, this.options.delay);
   }
@@ -147,11 +160,18 @@ export default class PrefetchMixin implements IMixin {
     if (this.cleanupTimeout >= 0) {
       clearTimeout(this.cleanupTimeout);
     }
-    if ((isGoingDown && (first - this.options.cleanUpRows) <= this.adapter.visible.first) || (!isGoingDown && this.adapter.visible.last <= (last + this.options.cleanUpRows))) {
+    if (
+      (isGoingDown && first - this.options.cleanUpRows <= this.adapter.visible.first) ||
+      (!isGoingDown && this.adapter.visible.last <= last + this.options.cleanUpRows)
+    ) {
       return;
     }
 
-    this.cleanupTimeout = self.setTimeout(isGoingDown ? this.cleanUpTop.bind(this) : this.cleanUpBottom.bind(this), this.options.delay, isGoingDown ? first : last);
+    this.cleanupTimeout = self.setTimeout(
+      isGoingDown ? this.cleanUpTop.bind(this) : this.cleanUpBottom.bind(this),
+      this.options.delay,
+      isGoingDown ? first : last
+    );
   }
 
   onScrolled(isGoingDown: boolean, scrollResult: EScrollResult) {

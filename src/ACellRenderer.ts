@@ -1,20 +1,19 @@
-import {IAbortAblePromise, IAsyncUpdate} from './abortAble';
-import {IAnimationContext} from './animation';
-import {ARowRenderer, IRowRendererOptions} from './ARowRenderer';
-import {addScroll} from './internal';
-import {EScrollResult, IMixinClass} from './mixin';
-import {GridStyleManager, IColumn, setTemplate} from './style';
-import {cssClass} from './styles';
-import ACellAdapter, {ICellAdapterRenderContext} from './table/internal/ACellAdapter';
+import { IAbortAblePromise, IAsyncUpdate } from './abortAble';
+import { IAnimationContext } from './animation';
+import { ARowRenderer, IRowRendererOptions } from './ARowRenderer';
+import { addScroll } from './internal';
+import { EScrollResult, IMixinClass } from './mixin';
+import { GridStyleManager, IColumn, setTemplate } from './style';
+import { cssClass } from './styles';
+import ACellAdapter, { ICellAdapterRenderContext } from './table/internal/ACellAdapter';
 
-export {isLoadingCell} from './ARowRenderer';
+export { isLoadingCell } from './ARowRenderer';
 export declare type ICellRenderContext<T extends IColumn> = ICellAdapterRenderContext<T>;
 
 /**
  * a @see ARowRenderer which manages multiple columns per row
  */
 export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
-
   protected readonly style: GridStyleManager;
 
   private readonly cell: ACellAdapter<T>;
@@ -66,7 +65,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
       }
     }
 
-    this.cell = new LocalCell(this.header, this.style, this.style.id, (options.mixins || []));
+    this.cell = new LocalCell(this.header, this.style, this.style.id, options.mixins || []);
   }
 
   protected get idPrefix() {
@@ -110,13 +109,15 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
    * initialized this renderer
    */
   protected init() {
-
     this.cell.init();
 
     const scroller = <HTMLElement>this.body.parentElement;
 
     let old = addScroll(scroller, this.options.async, (act) => {
-      if (Math.abs(old.left - act.left) < this.options.minScrollDelta && Math.abs(old.width - act.width) < this.options.minScrollDelta) {
+      if (
+        Math.abs(old.left - act.left) < this.options.minScrollDelta &&
+        Math.abs(old.width - act.width) < this.options.minScrollDelta
+      ) {
         return;
       }
       const isGoingRight = act.left > old.left;
@@ -181,7 +182,11 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
    * @param {T} column column to use
    * @returns {HTMLElement | void} an optional new replacement node for the header
    */
-  protected abstract updateCell(node: HTMLElement, index: number, column: T): HTMLElement | IAsyncUpdate<HTMLElement> | void;
+  protected abstract updateCell(
+    node: HTMLElement,
+    index: number,
+    column: T
+  ): HTMLElement | IAsyncUpdate<HTMLElement> | void;
 
   /**
    * trigger to update all headers
@@ -190,11 +195,11 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
     this.cell.updateHeaders();
   }
 
-  protected handleCellReady(item: HTMLElement, ready: IAbortAblePromise<void>, column: number = -1) {
+  protected handleCellReady(item: HTMLElement, ready: IAbortAblePromise<void>, column = -1) {
     return this.cell.handleCellReady(item, ready, column);
   }
 
-  protected recycleCell(item: HTMLElement, column: number = -1) {
+  protected recycleCell(item: HTMLElement, column = -1) {
     this.cell.recycleCell(item, column);
   }
 
@@ -203,7 +208,13 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
    */
   protected updateColumnWidths() {
     const context = this.context;
-    this.style.update(context.defaultRowHeight - context.padding(-1), context.columns, context.column.padding, -this.cell.leftShift(), this.idPrefix);
+    this.style.update(
+      context.defaultRowHeight - context.padding(-1),
+      context.columns,
+      context.column.padding,
+      -this.cell.leftShift(),
+      this.idPrefix
+    );
   }
 
   protected updateSizer(firstRowPos: number) {
@@ -212,7 +223,10 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
     const totalWidth = ctx.column.totalHeight;
 
     this.updateShifts(firstRowPos, this.cell.leftShift());
-    this.bodySizer.style.transform = `translate(${Math.max(0, totalWidth - 1).toFixed(0)}px, ${Math.max(0, totalHeight - 1).toFixed(0)}px)`;
+    this.bodySizer.style.transform = `translate(${Math.max(0, totalWidth - 1).toFixed(0)}px, ${Math.max(
+      0,
+      totalHeight - 1
+    ).toFixed(0)}px)`;
   }
 
   protected updateShifts(top: number, left: number) {

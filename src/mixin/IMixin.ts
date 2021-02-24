@@ -1,4 +1,4 @@
-import {IExceptionContext} from '../logic';
+import { IExceptionContext } from '../logic';
 
 /**
  * scrolling result
@@ -23,7 +23,7 @@ export enum EScrollResult {
   /**
    * some rows are added at the top
    */
-  SOME_TOP
+  SOME_TOP,
 }
 
 /**
@@ -68,5 +68,5 @@ export interface IMixin {
 }
 
 export interface IMixinClass {
-  new(adapter: IMixinAdapter, options?: any): IMixin;
+  new (adapter: IMixinAdapter, options?: any): IMixin;
 }

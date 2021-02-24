@@ -67,7 +67,10 @@ export default class StyleManager {
       return;
     }
     const rules = sheet.cssRules;
-    if (rules.length === this.rules.length && this.rules.every((d, i) => (<CSSStyleRule>rules[i]).selectorText === d.selector)) {
+    if (
+      rules.length === this.rules.length &&
+      this.rules.every((d, i) => (<CSSStyleRule>rules[i]).selectorText === d.selector)
+    ) {
       // same
       return;
     }
@@ -89,7 +92,7 @@ export default class StyleManager {
   }
 
   private get sheet() {
-    return (<CSSStyleSheet | null>this.node.sheet);
+    return <CSSStyleSheet | null>this.node.sheet;
   }
 
   private getSheetRule(index: number) {
@@ -109,12 +112,12 @@ export default class StyleManager {
     const sheet = this.sheet;
     if (!sheet) {
       // upon next update
-      this.rules.push({id, selector, style});
-      return;
+      this.rules.push({ id, selector, style });
+      return null;
     }
     const index = sheet.insertRule(`${selector} {}`, sheet.cssRules.length);
     const rule = <CSSStyleRule>sheet.cssRules[index];
-    this.rules.push({id, selector: rule.selectorText, style});
+    this.rules.push({ id, selector: rule.selectorText, style });
     assignStyles(rule.style, style);
     return id;
   }
@@ -138,7 +141,8 @@ export default class StyleManager {
 
     const rule = this.getSheetRule(index);
     if (rule) {
-      if (rule.selectorText.replace(/\s/gm, '') !== selector.replace(/\s/gm, '')) { //ignoring white space
+      if (rule.selectorText.replace(/\s/gm, '') !== selector.replace(/\s/gm, '')) {
+        //ignoring white space
         rule.selectorText = selector;
         stored.selector = rule.selectorText;
       }

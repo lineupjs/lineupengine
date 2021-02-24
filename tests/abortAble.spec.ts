@@ -1,5 +1,4 @@
-import abortAble, {ABORTED, isAbortAble} from '../src/abortAble';
-
+import abortAble, { ABORTED, isAbortAble } from '../src/abortAble';
 
 function resolveIn<T>(this: any, ms: number, result?: T) {
   return new Promise<T>((resolve) => {
@@ -42,18 +41,18 @@ describe('utils', () => {
     });
     it('resolve chain', () => {
       const a = abortAble(resolveIn(10, 1));
-      const b = a.then((v) => typeof v === 'symbol' ? v : v * 10);
+      const b = a.then((v) => (typeof v === 'symbol' ? v : v * 10));
       return b.then((r) => expect(r).toBe(10));
     });
     it('resolve chain abort', () => {
       const a = abortAble(resolveIn(10, 1));
       a.abort();
-      const b = a.then((v) => typeof v === 'symbol' ? v : v * 10);
+      const b = a.then((v) => (typeof v === 'symbol' ? v : v * 10));
       return b.then((r) => expect(r).toBe(ABORTED));
     });
     it('resolve chain abort2', () => {
       const a = abortAble(resolveIn(10, 1));
-      const b = a.then((v) => typeof v === 'symbol' ? v : v * 10);
+      const b = a.then((v) => (typeof v === 'symbol' ? v : v * 10));
       b.abort();
       return b.then((r) => expect(r).toBe(ABORTED));
     });

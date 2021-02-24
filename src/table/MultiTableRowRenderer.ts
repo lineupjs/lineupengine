@@ -1,7 +1,15 @@
-import {setTransform} from '../ARowRenderer';
-import {addScroll, defaultMode, IDelayedMode} from '../internal';
-import {GridStyleManager, tableCSSClasses, tableIds} from '../style';
-import {cssClass, CSS_CLASS_BODY, CSS_CLASS_FOOTER, CSS_CLASS_HEADER, CSS_CLASS_MULTI, CSS_CLASS_TBODY, CSS_CLASS_THEAD} from '../styles';
+import { setTransform } from '../ARowRenderer';
+import { addScroll, defaultMode, IDelayedMode } from '../internal';
+import { GridStyleManager, tableCSSClasses, tableIds } from '../style';
+import {
+  cssClass,
+  CSS_CLASS_BODY,
+  CSS_CLASS_FOOTER,
+  CSS_CLASS_HEADER,
+  CSS_CLASS_MULTI,
+  CSS_CLASS_TBODY,
+  CSS_CLASS_THEAD,
+} from '../styles';
 
 /**
  * basic interface of a table section
@@ -62,7 +70,6 @@ export interface IMultiTableRowRendererOptions {
  * manager of multiple columns separated by separators each an own row renderer
  */
 export default class MultiTableRowRenderer {
-
   readonly style: GridStyleManager;
   private tableId = 0;
 
@@ -71,7 +78,7 @@ export default class MultiTableRowRenderer {
   private readonly options: Readonly<IMultiTableRowRendererOptions> = {
     columnPadding: 0,
     async: defaultMode,
-    minScrollDelta: 30
+    minScrollDelta: 30,
   };
 
   constructor(public readonly node: HTMLElement, htmlId: string, options: Partial<IMultiTableRowRendererOptions> = {}) {
@@ -89,7 +96,10 @@ export default class MultiTableRowRenderer {
     this.style = new GridStyleManager(this.node, htmlId);
 
     let old = addScroll(this.main, this.options.async, (act) => {
-      if (Math.abs(old.left - act.left) < this.options.minScrollDelta && Math.abs(old.width - act.width) < this.options.minScrollDelta) {
+      if (
+        Math.abs(old.left - act.left) < this.options.minScrollDelta &&
+        Math.abs(old.width - act.width) < this.options.minScrollDelta
+      ) {
         return;
       }
       const isGoingRight = act.left > old.left;
@@ -174,7 +184,10 @@ export default class MultiTableRowRenderer {
     this.header.insertBefore(header, this.header.lastElementChild); //before the footer
     this.main.appendChild(body);
 
-    const table = factory.apply(this, <[HTMLElement, HTMLElement, string, GridStyleManager, ...any[]]>[header, body, tableId, this.style].concat(extras));
+    const table = factory.apply(
+      this,
+      <[HTMLElement, HTMLElement, string, GridStyleManager, ...any[]]>[header, body, tableId, this.style].concat(extras)
+    );
     table.init();
     this.sections.push(table);
     this.update();
@@ -195,7 +208,10 @@ export default class MultiTableRowRenderer {
     this.header.insertBefore(header, this.header.lastElementChild); //before the footer
     this.main.appendChild(body);
 
-    const separator = factory.apply(this, <[HTMLElement, HTMLElement, GridStyleManager, ...any[]]>[header, body, this.style].concat(extras));
+    const separator = factory.apply(
+      this,
+      <[HTMLElement, HTMLElement, GridStyleManager, ...any[]]>[header, body, this.style].concat(extras)
+    );
     separator.init();
     this.sections.push(separator);
     this.update();
@@ -229,5 +245,4 @@ export default class MultiTableRowRenderer {
   widthChanged() {
     this.update();
   }
-
 }
