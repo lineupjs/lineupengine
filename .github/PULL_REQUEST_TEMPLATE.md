@@ -1,4 +1,4 @@
-closes <list issues here>
+closes <!--list issues here-->
 
 **prerequisites**: 
  * [ ] branch is up-to-date with the branch to be merged with, i.e. develop
@@ -6,5 +6,5 @@ closes <list issues here>
  * [ ] code is cleaned up and formatted 
 
 
-### Summary
+## Summary
  
