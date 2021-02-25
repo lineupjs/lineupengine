@@ -12,7 +12,7 @@ interface ICSSRule {
 
 function assignStyles(target: any, source: any) {
   for (const key of Object.keys(source)) {
-    const v = <string>source[key];
+    const v = source[key] as string;
 
     if (!v.endsWith(' !important')) {
       if (target[key] !== v) {
@@ -60,6 +60,7 @@ export default class StyleManager {
         return;
       }
       // test till attached
+      // eslint-disable-next-line no-restricted-globals
       this.testVerifyTimeout = self.setTimeout(() => {
         this.testVerifyTimeout = -1;
         this.verifySheet();
@@ -69,7 +70,7 @@ export default class StyleManager {
     const rules = sheet.cssRules;
     if (
       rules.length === this.rules.length &&
-      this.rules.every((d, i) => (<CSSStyleRule>rules[i]).selectorText === d.selector)
+      this.rules.every((d, i) => (rules[i] as CSSStyleRule).selectorText === d.selector)
     ) {
       // same
       return;
@@ -85,19 +86,19 @@ export default class StyleManager {
     // create all
     for (const rule of this.rules) {
       const index = sheet.insertRule(`${rule.selector} {}`, sheet.cssRules.length);
-      const cssRule = <CSSStyleRule>sheet.cssRules[index];
+      const cssRule = sheet.cssRules[index] as CSSStyleRule;
       rule.selector = cssRule.selectorText;
       assignStyles(cssRule.style, rule.style);
     }
   }
 
   private get sheet() {
-    return <CSSStyleSheet | null>this.node.sheet;
+    return this.node.sheet as CSSStyleSheet | null;
   }
 
   private getSheetRule(index: number) {
     const sheet = this.sheet;
-    return sheet ? <CSSStyleRule>sheet.cssRules[index] : null;
+    return sheet ? (sheet.cssRules[index] as CSSStyleRule) : null;
   }
 
   /**
@@ -116,7 +117,7 @@ export default class StyleManager {
       return null;
     }
     const index = sheet.insertRule(`${selector} {}`, sheet.cssRules.length);
-    const rule = <CSSStyleRule>sheet.cssRules[index];
+    const rule = sheet.cssRules[index] as CSSStyleRule;
     this.rules.push({ id, selector: rule.selectorText, style });
     assignStyles(rule.style, style);
     return id;

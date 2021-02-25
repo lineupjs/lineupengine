@@ -88,13 +88,14 @@ export default class GridStyleManager extends StyleManager {
     this.ids = tableIds(this.id);
     this.cssClasses = tableCSSClasses(this.id);
 
-    const headerScroller = <HTMLElement>root.getElementsByTagName('header')[0];
-    const bodyScroller = <HTMLElement>root.getElementsByTagName('main')[0];
+    const headerScroller = root.getElementsByTagName('header')[0] as HTMLElement;
+    const bodyScroller = root.getElementsByTagName('main')[0] as HTMLElement;
 
     // async since style needs to be added to dom first
+    // eslint-disable-next-line no-restricted-globals
     self.setTimeout(() => {
       const { width } = measureScrollbar(root);
-      this.updateRule('__scollBarFix2', `#header-${this.id} > article:last-of-type`, {
+      this.updateRule('__scrollBarFix2', `#header-${this.id} > article:last-of-type`, {
         borderRight: `${width}px solid transparent`,
       });
     }, 20);
@@ -115,7 +116,7 @@ export default class GridStyleManager extends StyleManager {
    * updates the column widths and default row height for a table
    * @param {number} defaultRowHeight
    * @param {IColumn[]} columns
-   * @param {number} frozenShift shift frozen colums
+   * @param {number} frozenShift shift frozen columns
    * @param {string} tableId optional tableId in case of multiple tables within the same engine
    * @param {string} unit
    */
@@ -216,7 +217,7 @@ function measureScrollbar(root: HTMLElement) {
     <div class="${CSS_CLASS_SCROLLBAR_TESTER}"><div></div></div>
   `
   );
-  const elem = <HTMLElement>body.lastElementChild!;
+  const elem = body.lastElementChild! as HTMLElement;
 
   const width = elem.offsetWidth - elem.clientWidth;
   const height = elem.offsetHeight - elem.clientHeight;

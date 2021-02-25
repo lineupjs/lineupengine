@@ -126,7 +126,7 @@ export abstract class ARowRenderer {
 
   /**
    * register another mixin to this renderer
-   * @param {IMixinClass} mixinClass the mixin class to instantitiate
+   * @param {IMixinClass} mixinClass the mixin class to instantiate
    * @param options optional constructor options
    */
   protected addMixin(mixinClass: IMixinClass, options?: any) {
@@ -169,12 +169,12 @@ export abstract class ARowRenderer {
    * @returns {HTMLElement}
    */
   protected get bodyScroller() {
-    return <HTMLElement>this.body.parentElement;
+    return this.body.parentElement as HTMLElement;
   }
 
   protected get bodySizer(): HTMLElement {
     const parent = this.bodyScroller;
-    const sizer = (<HTMLElement[]>Array.from(parent.children)).find((d) => d.tagName.toLowerCase() === 'footer');
+    const sizer = (Array.from(parent.children) as HTMLElement[]).find((d) => d.tagName.toLowerCase() === 'footer');
     if (sizer) {
       return sizer;
     }
@@ -350,16 +350,16 @@ export abstract class ARowRenderer {
   private removeAll(perform = true) {
     const b = this.body;
     if (!perform) {
-      return <HTMLElement[]>Array.from(b.children);
+      return Array.from(b.children) as HTMLElement[];
     }
-    const torecycle: HTMLElement[] = [];
+    const toRecycle: HTMLElement[] = [];
     while (b.lastElementChild) {
-      const i = <HTMLElement>b.lastElementChild;
+      const i = b.lastElementChild as HTMLElement;
       b.removeChild(i);
       this.recycle(i);
-      torecycle.push(i);
+      toRecycle.push(i);
     }
-    return torecycle;
+    return toRecycle;
   }
 
   /**
@@ -368,7 +368,7 @@ export abstract class ARowRenderer {
   protected update() {
     const first = this.visible.first;
     const fragment = this.fragment;
-    const items = <HTMLElement[]>Array.from(this.body.children);
+    const items = Array.from(this.body.children) as HTMLElement[];
     clear(this.body);
     items.forEach((item: HTMLElement, i) => {
       if (this.loading.has(item)) {
@@ -389,7 +389,7 @@ export abstract class ARowRenderer {
    * @param {boolean} inplace whether the DOM changes should be performed inplace instead of in a fragment
    */
   protected forEachRow(callback: (row: HTMLElement, rowIndex: number) => void, inplace = false) {
-    const rows = <HTMLElement[]>Array.from(this.body.children);
+    const rows = Array.from(this.body.children) as HTMLElement[];
     const fragment = this.fragment;
     if (!inplace) {
       clear(this.body);
@@ -421,20 +421,20 @@ export abstract class ARowRenderer {
       return [];
     }
     const b = this.body;
-    const torecycle: HTMLElement[] = [];
+    const toRecycle: HTMLElement[] = [];
     // console.log('remove', fromBeginning, (to - from) + 1, this.body.childElementCount - ((to - from) + 1));
-    let act = <HTMLElement>(fromBeginning ? b.firstChild : b.lastChild);
+    let act = (fromBeginning ? b.firstChild : b.lastChild) as HTMLElement;
     for (let i = from; i <= to; ++i) {
       const item = act;
-      act = <HTMLElement>(fromBeginning ? act.nextSibling : act.previousSibling);
+      act = (fromBeginning ? act.nextSibling : act.previousSibling) as HTMLElement;
 
       if (perform) {
         b.removeChild(item);
         this.recycle(item);
       }
-      torecycle.push(item);
+      toRecycle.push(item);
     }
-    return torecycle;
+    return toRecycle;
   }
 
   private addAtBeginning(from: number, to: number, perform = true) {
@@ -544,7 +544,7 @@ export abstract class ARowRenderer {
     );
 
     {
-      const rows = <HTMLElement[]>Array.from(this.body.children);
+      const rows = Array.from(this.body.children) as HTMLElement[];
       const old = Object.assign({}, this.visible);
       //store the current rows in a lookup and clear
 
@@ -695,6 +695,7 @@ export abstract class ARowRenderer {
       if (actPhase < phases.length) {
         // schedule the next one
         const next = phases[actPhase]!;
+        // eslint-disable-next-line no-restricted-globals
         currentTimer = self.setTimeout(run, next.delay);
         return;
       }
@@ -764,6 +765,7 @@ export abstract class ARowRenderer {
     };
 
     // next tick such that DOM will be updated
+    // eslint-disable-next-line no-restricted-globals
     currentTimer = self.setTimeout(run, phases[actPhase].delay);
   }
 
@@ -776,7 +778,7 @@ export abstract class ARowRenderer {
   }
 
   /**
-   * triggers a revalidation of the current scrolling offest
+   * triggers a revalidation of the current scrolling offset
    */
   protected revalidate() {
     const scroller = this.bodyScroller;
@@ -853,8 +855,8 @@ export abstract class ARowRenderer {
     let r: EScrollResult = EScrollResult.SOME;
 
     let torecycle: HTMLElement[] | undefined;
-    let toadd: DocumentFragment | undefined;
-    let toaddBottom = false;
+    let toAdd: DocumentFragment | undefined;
+    let toAddBottom = false;
 
     if (first > visible.last || last < visible.first) {
       //no overlap, clean and draw everything
@@ -862,8 +864,8 @@ export abstract class ARowRenderer {
       //removeRows(visibleFirst, visibleLast);
 
       torecycle = this.removeAll(false);
-      toadd = this.addAtBottom(first, last, false);
-      toaddBottom = true;
+      toAdd = this.addAtBottom(first, last, false);
+      toAddBottom = true;
       r = EScrollResult.ALL;
     } else if (first < visible.first) {
       //some first rows missing and some last rows to much
@@ -878,8 +880,8 @@ export abstract class ARowRenderer {
       const shift = this.shiftFirst(first, firstRowPos, visible.first - 1 - first);
       first = shift.first;
       firstRowPos = shift.firstRowPos;
-      toadd = this.addAtBeginning(first, visible.first - 1, false);
-      toaddBottom = false;
+      toAdd = this.addAtBeginning(first, visible.first - 1, false);
+      toAddBottom = false;
       r = EScrollResult.SOME_TOP;
     } else {
       //console.log(`do added: ${last - visibleLast + 1} removed: ${first - visibleFirst + 1} ${first}:${last} ${offset}`);
@@ -894,8 +896,8 @@ export abstract class ARowRenderer {
 
       last = this.shiftLast(last, last - visible.last + 1);
 
-      toadd = this.addAtBottom(visible.last + 1, last, false);
-      toaddBottom = true;
+      toAdd = this.addAtBottom(visible.last + 1, last, false);
+      toAddBottom = true;
       r = EScrollResult.SOME_BOTTOM;
     }
 
@@ -903,7 +905,7 @@ export abstract class ARowRenderer {
     visible.last = last;
 
     this.updateOffset(firstRowPos);
-    this.manipulate(torecycle, toadd, toaddBottom);
+    this.manipulate(torecycle, toAdd, toAddBottom);
     return r;
   }
 
@@ -929,7 +931,7 @@ export default ARowRenderer;
 
 export function setTransform(elem: HTMLElement, x: number | string, y: number | string) {
   const text = `translate(${x}px, ${y}px)`;
-  const anyelem = <any>elem;
+  const anyelem = elem as any;
   if (anyelem.__transform__ === text) {
     return;
   }

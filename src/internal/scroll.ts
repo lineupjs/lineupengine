@@ -96,6 +96,7 @@ class ScrollHandler {
       if (handler.handler.length === 0) {
         return;
       }
+      // eslint-disable-next-line no-restricted-globals
       handler.timer = self.setTimeout(() => {
         this.handle(handler);
         handler.timer = -1;
@@ -157,12 +158,13 @@ class ScrollHandler {
 /**
  * @internal
  */
-export function addScroll(scroller: HTMLElement, mode: IDelayedMode, handler: (act: IScrollInfo) => void) {
+export function addScroll(scrollElement: HTMLElement, mode: IDelayedMode, handler: (act: IScrollInfo) => void) {
   // hide in element to have just one real listener
-  if (!(<any>scroller).__le_scroller__) {
-    (<any>scroller).__le_scroller__ = new ScrollHandler(scroller);
+  const c = scrollElement as HTMLElement & { __le_scroller__?: ScrollHandler };
+  if (!c.__le_scroller__) {
+    c.__le_scroller__ = new ScrollHandler(scrollElement);
   }
-  const s: ScrollHandler = (<any>scroller).__le_scroller__;
+  const s: ScrollHandler = c.__le_scroller__;
   s.push(mode, handler);
   return s.asInfo();
 }
@@ -171,10 +173,11 @@ export function addScroll(scroller: HTMLElement, mode: IDelayedMode, handler: (a
  * @internal
  */
 export function isScrollEventWaiting(scroller: HTMLElement, mode: IDelayedMode) {
-  if (!(<any>scroller).__le_scroller__) {
+  const c = scroller as HTMLElement & { __le_scroller__?: ScrollHandler };
+  if (!c.__le_scroller__) {
     return false;
   }
-  const s: ScrollHandler = (<any>scroller).__le_scroller__;
+  const s: ScrollHandler = c.__le_scroller__;
   return s.isWaiting(mode);
 }
 
@@ -182,7 +185,8 @@ export function isScrollEventWaiting(scroller: HTMLElement, mode: IDelayedMode) 
  * @internal
  */
 export function removeScroll(scroller: HTMLElement, handler: (act: IScrollInfo) => void) {
-  if ((<any>scroller).__le_scroller__) {
-    (<ScrollHandler>(<any>scroller).__le_scroller__).remove(handler);
+  const c = scroller as HTMLElement & { __le_scroller__?: ScrollHandler };
+  if (c.__le_scroller__) {
+    c.__le_scroller__.remove(handler);
   }
 }

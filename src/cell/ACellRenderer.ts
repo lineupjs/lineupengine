@@ -41,15 +41,15 @@ export abstract class ACellRenderer {
   }
 
   private get body(): HTMLElement {
-    return <HTMLElement>this.root.children[2]!;
+    return this.root.children[2]! as HTMLElement;
   }
 
   private get colHeader(): HTMLElement {
-    return <HTMLElement>this.root.firstElementChild!;
+    return this.root.firstElementChild! as HTMLElement;
   }
 
   private get rowHeader(): HTMLElement {
-    return <HTMLElement>this.root.children[1]!;
+    return this.root.children[1]! as HTMLElement;
   }
 
   protected abstract createCell(doc: Document, row: number, col: number): HTMLElement;
@@ -153,8 +153,8 @@ export abstract class ACellRenderer {
     this.tree = this.buildTree(context.row, context.col);
 
     //clear
-    const root = <HTMLElement>body.firstElementChild!;
-    Array.from(root.children).forEach((c) => this.recycle(<HTMLElement>c));
+    const root = body.firstElementChild! as HTMLElement;
+    Array.from(root.children).forEach((c) => this.recycle(c as HTMLElement));
     this.clearPool();
 
     const col = range(
@@ -192,13 +192,13 @@ export abstract class ACellRenderer {
     const col = range(left, width, context.col.defaultRowHeight, context.col.exceptions, context.col.numberOfRows);
     const row = range(top, height, context.row.defaultRowHeight, context.row.exceptions, context.row.numberOfRows);
 
-    const root = <HTMLElement>this.body.firstElementChild!;
+    const root = this.body.firstElementChild! as HTMLElement;
     this.render(this.tree!, root, row.first, row.last, col.first, col.last);
   }
 
   private renderLeaf(leaf: QuadTreeLeafNode, parent: HTMLElement) {
     const doc = this.doc;
-    const children = <HTMLElement[]>Array.from(parent.children);
+    const children = Array.from(parent.children) as HTMLElement[];
     parent.dataset.leafCols = String(leaf.colCount);
     if (children.length > 0) {
       clear(parent);
@@ -234,9 +234,9 @@ export abstract class ACellRenderer {
     colLast: number
   ) {
     if (node.type === 'leaf') {
-      return this.renderLeaf(<QuadTreeLeafNode>node, parent);
+      return this.renderLeaf(node as QuadTreeLeafNode, parent);
     }
-    const inner = <QuadTreeInnerNode>node;
+    const inner = node as QuadTreeInnerNode;
 
     const create = (index: number) => {
       const child = inner.children[index];
@@ -261,7 +261,7 @@ export abstract class ACellRenderer {
       return node;
     };
 
-    const children = <HTMLElement[]>Array.from(parent.children);
+    const children = Array.from(parent.children) as HTMLElement[];
 
     const showLeft = !(inner.colFirst > colLast || inner.colMiddle < colFirst);
     const showRight = !(inner.colMiddle > colLast || inner.colLast < colFirst);
@@ -304,7 +304,7 @@ export abstract class ACellRenderer {
       const node = children[BOTTOM_LEFT + 1];
       const down = showLeft && showBottom;
       if (down !== (node.dataset.node !== 'placeholder')) {
-        // no matchmatch
+        // no match
         parent.replaceChild(down ? create(BOTTOM_LEFT) : placeholder(BOTTOM_LEFT), node);
         this.recycle(node);
       } else if (down && inner.children[BOTTOM_LEFT].type === 'inner') {
@@ -315,7 +315,7 @@ export abstract class ACellRenderer {
       const node = children[BOTTOM_RIGHT + 1];
       const down = showRight && showBottom;
       if (down !== (node.dataset.node !== 'placeholder')) {
-        // no matchmatch
+        // no match
         parent.replaceChild(down ? create(BOTTOM_RIGHT) : placeholder(BOTTOM_RIGHT), node);
         this.recycle(node);
       } else if (down && inner.children[BOTTOM_RIGHT].type === 'inner') {
@@ -332,9 +332,9 @@ export abstract class ACellRenderer {
       return;
     }
     //recycle all leaves
-    const leaves = <HTMLElement[]>Array.from(node.querySelectorAll('[data-node=leaf]'));
+    const leaves = Array.from(node.querySelectorAll<HTMLElement>('[data-node=leaf]'));
     //recycle all inner nodes
-    const inner = <HTMLElement[]>Array.from(node.querySelectorAll('[data-node=inner], [data-node=placeholder'));
+    const inner = Array.from(node.querySelectorAll<HTMLElement>('[data-node=inner], [data-node=placeholder'));
     clear(node);
     leaves.forEach((node) => this.recycleLeaf(node));
     inner.forEach((node) => {

@@ -19,11 +19,12 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
   private readonly cell: ACellAdapter<T>;
 
   constructor(protected readonly root: HTMLElement, htmlId: string, options: Partial<IRowRendererOptions> = {}) {
-    super(<HTMLElement>setTemplate(root, htmlId).querySelector('main > article'), options);
+    super(setTemplate(root, htmlId).querySelector<HTMLElement>('main > article'), options);
     root.classList.add(cssClass(), 'lineup-engine');
 
     this.style = new GridStyleManager(this.root, htmlId);
 
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const that = this;
 
     class LocalCell extends ACellAdapter<T> {
@@ -77,7 +78,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
    * @returns {HTMLElement}
    */
   protected get header() {
-    return <HTMLElement>this.root.querySelector('header > article');
+    return this.root.querySelector<HTMLElement>('header > article');
   }
 
   /**
@@ -85,7 +86,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
    * @returns {HTMLElement}
    */
   protected get headerScroller() {
-    return <HTMLElement>this.root.getElementsByTagName('header')[0];
+    return this.root.getElementsByTagName('header')[0] as HTMLElement;
   }
 
   protected get visibleColumns() {
@@ -111,7 +112,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
   protected init() {
     this.cell.init();
 
-    const scroller = <HTMLElement>this.body.parentElement;
+    const scroller = this.body.parentElement as HTMLElement;
 
     let old = addScroll(scroller, this.options.async, (act) => {
       if (

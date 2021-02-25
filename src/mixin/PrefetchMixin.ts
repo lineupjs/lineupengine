@@ -109,6 +109,7 @@ export default class PrefetchMixin implements IMixin {
     // go down if we are already at the top, too
     const op = isGoingDown || isFirst ? this.prefetchDown.bind(this) : this.prefetchUp.bind(this);
 
+    // eslint-disable-next-line no-restricted-globals
     this.prefetchTimeout = self.setTimeout(op, this.options.delay);
   }
 
@@ -167,6 +168,7 @@ export default class PrefetchMixin implements IMixin {
       return;
     }
 
+    // eslint-disable-next-line no-restricted-globals
     this.cleanupTimeout = self.setTimeout(
       isGoingDown ? this.cleanUpTop.bind(this) : this.cleanUpBottom.bind(this),
       this.options.delay,

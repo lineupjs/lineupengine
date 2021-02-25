@@ -12,7 +12,7 @@ export enum EAnimationMode {
    */
   UPDATE,
   /**
-   * exists both before and after but wasn't visible yet thus waas created
+   * exists both before and after but wasn't visible yet thus was created
    */
   UPDATE_CREATE,
   /**

@@ -1,16 +1,8 @@
 /* eslint-env node */
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const pkg = require('./package.json');
-
 module.exports = {
   plugins: ['@typescript-eslint', 'prettier'],
-  extends: [
-    'react-app',
-    'plugin:@typescript-eslint/recommended',
-    'plugin:prettier/recommended',
-    'prettier',
-  ],
+  extends: ['react-app', 'plugin:@typescript-eslint/recommended', 'plugin:prettier/recommended', 'prettier'],
   settings: {
     react: {
       version: '99.99.99',
@@ -18,7 +10,7 @@ module.exports = {
   },
   rules: {
     '@typescript-eslint/explicit-module-boundary-types': 'off',
-    // '@typescript-eslint/no-explicit-any': 'off',
-    // '@typescript-eslint/no-non-null-assertion': 'off',
+    '@typescript-eslint/no-explicit-any': 'off',
+    '@typescript-eslint/no-non-null-assertion': 'off',
   },
 };

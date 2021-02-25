@@ -43,7 +43,7 @@ export default class KeyFinder {
   }
 
   /**
-   * returns the position of the tthe given index
+   * returns the position of the given index
    * @param {number} index index to look for
    * @returns {number}
    */
@@ -154,7 +154,7 @@ export default class KeyFinder {
    * @param {number} first first row index
    * @param {number} last last row index
    * @param {number} offset pos offset for the first row index
-   * @param {(index: number, key: string, pos: number) => void} callback callack for each identified index
+   * @param {(index: number, key: string, pos: number) => void} callback callback for each identified index
    */
   positions(first: number, last: number, offset: number, callback?: (index: number, key: string, pos: number) => void) {
     this.fillCache(first, last, offset, callback);

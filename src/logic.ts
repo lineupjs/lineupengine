@@ -29,7 +29,7 @@ class RowHeightException implements IRowHeightException {
 }
 
 /**
- * simliar to a map
+ * similar to a map
  */
 export interface IRowHeightExceptionLookup {
   keys(): IterableIterator<number>;
@@ -119,7 +119,7 @@ function mostFrequentValue(values: { forEach: (callback: (height: number, index:
   });
   const mostFrequent = sorted[0][0];
   if (mostFrequent === 0) {
-    // cornercase
+    // corner case
     return sorted.length > 1 ? sorted[1][0] : 20; // all empty
   }
   return mostFrequent;
@@ -127,7 +127,7 @@ function mostFrequentValue(values: { forEach: (callback: (height: number, index:
 
 /**
  * creates a non uniform context based on the given array like heights
- * @param rowHeights arrayish to get the heights
+ * @param rowHeights array like to get the heights
  * @param {number} defaultRowHeight if not given the most frequent value will be used
  * @param {number} rowPadding padding between rows
  * @return {IExceptionContext}
@@ -142,7 +142,7 @@ export function nonUniformContext(
   const exceptionsLookup = new Map<number, number>();
   const exceptions: IRowHeightException[] = [];
 
-  const padding = typeof rowPadding === 'function' ? rowPadding : () => <number>rowPadding;
+  const padding = typeof rowPadding === 'function' ? rowPadding : () => rowPadding as number;
 
   if (isNaN(defaultRowHeight)) {
     defaultRowHeight = mostFrequentValue(rowHeights);
@@ -233,7 +233,7 @@ export interface IVisibleRange {
    */
   readonly firstRowPos: number;
   /**
-   * position of the last visible row includings its size
+   * position of the last visible row including its size
    */
   readonly endPos: number;
 }
@@ -379,21 +379,21 @@ export function frozenDelta(
   current: number[],
   target: number[]
 ): { added: number[]; removed: number[]; common: number } {
-  const clength = current.length;
-  const tlength = target.length;
-  if (clength === 0) {
+  const currentLength = current.length;
+  const targetLength = target.length;
+  if (currentLength === 0) {
     return { added: target, removed: [], common: 0 };
   }
-  if (tlength === 0) {
+  if (targetLength === 0) {
     return { added: [], removed: current, common: 0 };
   }
-  if (clength === tlength) {
+  if (currentLength === targetLength) {
     //since sorted and left increasing true
-    return { added: [], removed: [], common: clength };
+    return { added: [], removed: [], common: currentLength };
   }
-  const removed = current.slice(Math.min(tlength, clength));
-  const added = target.slice(Math.min(tlength, clength));
-  return { added, removed, common: clength - removed.length };
+  const removed = current.slice(Math.min(targetLength, currentLength));
+  const added = target.slice(Math.min(targetLength, currentLength));
+  return { added, removed, common: currentLength - removed.length };
 }
 
 export function updateFrozen(

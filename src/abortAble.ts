@@ -46,7 +46,7 @@ function thenFactory<T>(loader: PromiseLike<T | symbol>, isAborted: () => boolea
   ): IAbortAblePromiseBase<TResult1 | TResult2> {
     const fullfiller = loader.then((loaded) => {
       const loadedOrAborted = isAborted() ? ABORTED : loaded;
-      const res = onfulfilled ? onfulfilled(loadedOrAborted) : <any>loadedOrAborted;
+      const res = onfulfilled ? onfulfilled(loadedOrAborted) : (loadedOrAborted as any);
 
       if (isPromiseLike(res)) {
         return res.then((r) => {
@@ -211,7 +211,7 @@ export function isAbortAble(abortAble: IAbortAblePromise<any> | any): abortAble 
 }
 
 export function isAsyncUpdate<T>(update: T | void | undefined | null | IAsyncUpdate<T>): update is IAsyncUpdate<T> {
-  return update !== undefined && update !== null && update && isAbortAble((<IAsyncUpdate<T>>update).ready);
+  return update !== undefined && update !== null && update && isAbortAble((update as IAsyncUpdate<T>).ready);
 }
 
 /**
@@ -222,7 +222,7 @@ export function abortAbleResolveNow<T>(value: T) {
     onfulfilled?: ((value: T | symbol) => TResult1 | PromiseLike<TResult1>) | undefined | null,
     _onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null
   ): IAbortAblePromiseBase<TResult1 | TResult2> {
-    const res = onfulfilled ? onfulfilled(value) : <any>value;
+    const res = onfulfilled ? onfulfilled(value) : (value as any);
     if (isAbortAble(res)) {
       return res;
     }
@@ -230,7 +230,7 @@ export function abortAbleResolveNow<T>(value: T) {
       return abortAble(res);
     }
     return {
-      then: <any>abortAbleResolveNow(<TResult1>res),
+      then: abortAbleResolveNow(res as TResult1) as any,
       abort: () => undefined,
       isAborted: () => false,
     };

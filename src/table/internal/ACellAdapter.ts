@@ -34,7 +34,7 @@ export abstract class ACellAdapter<T extends IColumn> {
   private readonly loading = new WeakMap<HTMLElement, IAbortAblePromise<void>>();
 
   readonly visibleColumns = {
-    frozen: <number[]>[], // column indices that are visible even tho they would be out of range
+    frozen: [] as number[], // column indices that are visible even tho they would be out of range
     first: 0,
     forcedFirst: 0,
     last: -1,
@@ -67,7 +67,7 @@ export abstract class ACellAdapter<T extends IColumn> {
   }
 
   protected get headerScroller() {
-    return <HTMLElement>this.header.parentElement!;
+    return this.header.parentElement! as HTMLElement;
   }
 
   addColumnMixin(mixinClass: IMixinClass, options?: any) {
@@ -166,7 +166,7 @@ export abstract class ACellAdapter<T extends IColumn> {
 
   private removeCellFromStart(row: HTMLElement, from: number, to: number, frozenShift: number) {
     for (let i = from; i <= to; ++i) {
-      const node = <HTMLElement>(frozenShift === 0 ? row.firstElementChild : row.children[frozenShift]);
+      const node = (frozenShift === 0 ? row.firstElementChild : row.children[frozenShift]) as HTMLElement;
       node.remove();
       this.recycleCell(node, i);
     }
@@ -186,7 +186,7 @@ export abstract class ACellAdapter<T extends IColumn> {
 
   private removeCellFromEnd(row: HTMLElement, from: number, to: number) {
     for (let i = to; i >= from; --i) {
-      const node = <HTMLElement>row.lastElementChild;
+      const node = row.lastElementChild as HTMLElement;
       node.remove();
       this.recycleCell(node, i);
     }
@@ -197,7 +197,7 @@ export abstract class ACellAdapter<T extends IColumn> {
 
   private removeFrozenCells(row: HTMLElement, columnIndices: number[], shift: number) {
     for (const columnIndex of columnIndices) {
-      const node = <HTMLElement>row.children[shift]!;
+      const node = row.children[shift]! as HTMLElement;
       node.remove();
       this.recycleCell(node, columnIndex);
     }
@@ -225,7 +225,7 @@ export abstract class ACellAdapter<T extends IColumn> {
   }
 
   private removeAllCells(row: HTMLElement, includingFrozen: boolean, shift = this.visibleColumns.first) {
-    const arr = <HTMLElement[]>Array.from(row.children);
+    const arr = Array.from(row.children) as HTMLElement[];
     const frozen = this.visibleColumns.frozen;
     clear(row);
 
@@ -235,7 +235,7 @@ export abstract class ACellAdapter<T extends IColumn> {
       }
     } else {
       // have frozen and keep them, so readd them
-      for (const _ of frozen) {
+      for (let i = 0; i < frozen.length; i++) {
         row.appendChild(arr.shift()!);
       }
     }
@@ -393,7 +393,7 @@ export abstract class ACellAdapter<T extends IColumn> {
   updateHeaders() {
     const { columns } = this.context;
     Array.from(this.header.children).forEach((node: Element, i) => {
-      const base = <HTMLElement>node;
+      const base = node as HTMLElement;
       const col = columns[i];
       const r = this.updateHeader(base, col);
       let n: HTMLElement;
@@ -436,7 +436,7 @@ export abstract class ACellAdapter<T extends IColumn> {
       // create lookup cache to reuse headers
       const ids = new Map<string, HTMLElement>();
       while (this.header.lastChild) {
-        const c = <HTMLElement>this.header.lastChild;
+        const c = this.header.lastChild as HTMLElement;
         this.header.removeChild(c);
         ids.set(c.dataset.id!, c);
       }
@@ -527,7 +527,7 @@ export abstract class ACellAdapter<T extends IColumn> {
         this.addCellAtEnd(node, rowIndex, visible.first, visible.last, columns);
         break;
       case 1:
-        const old = <HTMLElement>node.firstElementChild;
+        const old = node.firstElementChild as HTMLElement;
         const id = old.dataset.id!;
         const columnIndex = columns.findIndex((c) => c.id === id);
         node.removeChild(old);
@@ -552,7 +552,7 @@ export abstract class ACellAdapter<T extends IColumn> {
     const ids = new Map<string, HTMLElement>();
 
     while (node.lastChild) {
-      const c = <HTMLElement>node.lastChild;
+      const c = node.lastChild as HTMLElement;
       node.removeChild(c);
       ids.set(c.dataset.id!, c);
     }
@@ -593,7 +593,7 @@ export abstract class ACellAdapter<T extends IColumn> {
     }
 
     // recycle
-    const byId = new Map(columns.map((d, i) => <[string, number]>[d.id, i]));
+    const byId = new Map(columns.map((d, i) => [d.id, i]));
     ids.forEach((node, key) => {
       const index = byId.get(key);
       if (index != null && index >= 0) {
@@ -722,7 +722,7 @@ export abstract class ACellAdapter<T extends IColumn> {
 export default ACellAdapter;
 
 function verifyRow(row: HTMLElement, index: number, columns: IColumn[]) {
-  const cols = <HTMLElement[]>Array.from(row.children);
+  const cols = Array.from(row.children) as HTMLElement[];
   //sort incrementally
   if (cols.length <= 1) {
     return;

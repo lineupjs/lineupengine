@@ -25,6 +25,7 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
   ) {
     super(body, options);
 
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const that = this;
 
     class LocalCell extends ACellAdapter<T> {
@@ -99,15 +100,6 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
     return this.header.classList.contains(CSS_CLASS_LOADING);
   }
 
-  protected updateSizer(firstRowPos: number) {
-    this.updateShifts(firstRowPos, this.cell.leftShift());
-    // no sizer update since centrally managed
-  }
-
-  protected updateShifts(top: number, _left: number) {
-    setTransform(this.body, 0 /*left.toFixed(0)*/, top.toFixed(0));
-  }
-
   set hidden(value: boolean) {
     const old = this.hidden;
     if (old === value) {
@@ -118,6 +110,15 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
     this.header.classList.toggle(CSS_CLASS_HIDDEN, value);
     this.body.classList.toggle(CSS_CLASS_HIDDEN, value);
     this.onVisibilityChanged(!value);
+  }
+
+  protected updateSizer(firstRowPos: number) {
+    this.updateShifts(firstRowPos, this.cell.leftShift());
+    // no sizer update since centrally managed
+  }
+
+  protected updateShifts(top: number, _left: number) {
+    setTransform(this.body, 0 /*left.toFixed(0)*/, top.toFixed(0));
   }
 
   /**

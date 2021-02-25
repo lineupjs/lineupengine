@@ -1,4 +1,4 @@
-import { ACellRenderer, ICellRenderContext, PrefetchMixin, uniformContext, ACellTableSection } from '../src';
+import { ICellRenderContext, uniformContext, ACellTableSection } from '../src';
 import { Column } from './column';
 import MultiTableRowRenderer from '../src/table/MultiTableRowRenderer';
 

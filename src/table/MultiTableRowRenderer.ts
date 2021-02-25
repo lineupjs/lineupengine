@@ -156,11 +156,11 @@ export default class MultiTableRowRenderer {
   }
 
   private get header() {
-    return <HTMLElement>this.node.getElementsByTagName('header')[0];
+    return this.node.getElementsByTagName('header')[0] as HTMLElement;
   }
 
   private get main() {
-    return <HTMLElement>this.node.getElementsByTagName('main')[0];
+    return this.node.getElementsByTagName('main')[0] as HTMLElement;
   }
 
   /**
@@ -186,7 +186,13 @@ export default class MultiTableRowRenderer {
 
     const table = factory.apply(
       this,
-      <[HTMLElement, HTMLElement, string, GridStyleManager, ...any[]]>[header, body, tableId, this.style].concat(extras)
+      [header, body, tableId, this.style].concat(extras) as [
+        HTMLElement,
+        HTMLElement,
+        string,
+        GridStyleManager,
+        ...any[]
+      ]
     );
     table.init();
     this.sections.push(table);
@@ -210,7 +216,7 @@ export default class MultiTableRowRenderer {
 
     const separator = factory.apply(
       this,
-      <[HTMLElement, HTMLElement, GridStyleManager, ...any[]]>[header, body, this.style].concat(extras)
+      [header, body, this.style].concat(extras) as [HTMLElement, HTMLElement, GridStyleManager, ...any[]]
     );
     separator.init();
     this.sections.push(separator);
