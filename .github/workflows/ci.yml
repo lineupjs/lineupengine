@@ -33,7 +33,7 @@ jobs:
           cp -r build/* public/main
           mv README.md public/
           mkdir -p public_dev/develop
-          cp -r build/* public/develop
+          cp -r build/* public_dev/develop
 
       - name: Deploy Main
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
