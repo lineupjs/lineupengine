@@ -31,7 +31,7 @@ jobs:
       - run: |
           mkdir -p public/main
           cp -r build/* public/main
-          mv README.m public/
+          mv README.md public/
           mkdir -p public_dev/develop
           cp -r build/* public/develop
 
