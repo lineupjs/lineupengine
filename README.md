@@ -1,18 +1,16 @@
-LineUpEngine
-============
-[![License: MIT][mit-image]][mit-url] [![NPM version][npm-image]][npm-url]  [![CircleCI][ci-image]][ci-url] 
+# LineUpEngine
 
-a fast engine for rendering large tables consisting of rows, rows+columns, multiple rows+columns instances. 
+[![License: MIT][mit-image]][mit-url] [![NPM version][npm-image]][npm-url] [![CircleCI][ci-image]][ci-url]
 
-Supported Browsers
-------------------
+a fast engine for rendering large tables consisting of rows, rows+columns, multiple rows+columns instances.
 
- * latest Chrome (best performance)
- * Firefox Quantum
- * Edge 16
+## Supported Browsers
 
-Installation
-------------
+- latest Chrome (best performance)
+- Firefox Quantum
+- Edge 16
+
+## Installation
 
 Develop Version:
 
@@ -20,25 +18,19 @@ Develop Version:
 <script src="https://sgratzl.github.io/lineupengine_docs/develop/lineupengine.min.js"></script>
 ```
 
-Usage
------
+## Usage
 
 **TODO**
 
-
-API Documentation
------------------
+## API Documentation
 
 see [Develop API documentation](https://sgratzl.github.io/lineupengine_docs/develop/docs)
 
-Demos
------
+## Demos
 
 see [Develop Demo](https://sgratzl.github.io/lineupengine/develop_docs/demo)
 
-
-Development Environment
------------------------
+## Development Environment
 
 **Installation**
 
@@ -60,15 +52,13 @@ npm run build
 npm run lint
 ```
 
-
 **Watch file changes**
 
 ```bash
 npm run watch
 ```
 
-Notes
------
+## Notes
 
 ```
 firefox max DOM height: 17.800.000px < 17899999px

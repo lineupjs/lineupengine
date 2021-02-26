@@ -4,12 +4,7 @@
     "target": "ES5",
     "importHelpers": true,
     "sourceMap": true,
-    "lib": [
-      "DOM",
-      "ES2015",
-      "es2016.array.include",
-      "es2017.object"
-    ],
+    "lib": ["DOM", "ES2015", "es2016.array.include", "es2017.object"],
     "composite": true,
     "declaration": true,
     "declarationMap": true,
@@ -34,12 +29,6 @@
       "*": ["*", "node_modules/*"]
     }
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "tsd.d.ts"
-  ],
-  "exclude": [
-    "src/**/*.d.ts"
-  ]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "tsd.d.ts"],
+  "exclude": ["src/**/*.d.ts"]
 }

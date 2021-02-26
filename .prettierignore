@@ -8,3 +8,6 @@
 /LICENSE
 /.vscode
 *.svg
+*.tsbuildinfo
+/.stylelintrc
+/.editorconfig
