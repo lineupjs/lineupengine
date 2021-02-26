@@ -1,6 +1,6 @@
 # LineUpEngine
 
-[![License: MIT][mit-image]][mit-url] [![NPM version][npm-image]][npm-url] [Github Actions][github-actions-image]][github-actions-url]
+[![License: MIT][mit-image]][mit-url] [![NPM version][npm-image]][npm-url] [![Github Actions][github-actions-image]][github-actions-url]
 
 a fast engine for rendering large tables consisting of rows, rows+columns, multiple rows+columns instances.
 
@@ -11,10 +11,22 @@ a fast engine for rendering large tables consisting of rows, rows+columns, multi
 
 ## Installation
 
-Develop Version:
+```sh
+npm install lineupengine
+```
 
 ```html
-<script src="https://lineupengine.js.org/develop/lineupengine.min.js"></script>
+<script src="https://lineupengine.js.org/main/lineupengine.js"></script>
+```
+
+### Develop Version:
+
+```sh
+npm install lineupengine@next
+```
+
+```html
+<script src="https://lineupengine.js.org/develop/lineupengine.js"></script>
 ```
 
 ## Usage
@@ -23,15 +35,14 @@ Develop Version:
 
 ## API Documentation
 
-see [Develop API documentation](https://lineupengine.js.org/develop/docs)
+see [Main API documentation](https://lineupengine.js.org/main/docs) and [Develop API documentation](https://lineupengine.js.org/develop/docs)
 
 ## Development Environment
-
-**Installation**
 
 ```sh
 git clone https://github.com/lineupjs/lineupengine.git
 cd lineupengine
+
 npm i -g yarn
 yarn set version latest
 cat .yarnrc_patch.yml >> .yarnrc.yml

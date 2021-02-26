@@ -20,6 +20,7 @@
   "main": "build/lineupengine.js",
   "module": "src/index.js",
   "unpkg": "build/lineupengine.js",
+  "jsdelivr": "build/lineupengine.js",
   "types": "src/index.d.ts",
   "sideEffects": [
     "*.scss",
