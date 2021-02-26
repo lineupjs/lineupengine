@@ -12,6 +12,6 @@
     "excludePrivate": true,
     "includeVersion": true,
     "hideGenerator": true,
-    "exclude": "**/*.(d.ts|js|spec.ts|scss)",
+    "exclude": "**/*.(d.ts|js|spec.ts|scss)"
   }
 }

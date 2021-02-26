@@ -11,3 +11,7 @@
 *.tsbuildinfo
 /.stylelintrc
 /.editorconfig
+/.yarn
+/.pnp.js
+/.yarnrc.yml
+/.vscode
