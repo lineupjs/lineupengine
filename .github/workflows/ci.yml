@@ -28,10 +28,36 @@ jobs:
       - run: yarn lint
       - run: yarn test:coverage
       - run: yarn docs
-      # - name: Deploy
-      #   if: github.ref == 'refs/heads/master' && github.event_name == 'push'
-      #   uses: peaceiris/actions-gh-pages@v3
-      #   with:
-      #     github_token: ${{ secrets.GITHUB_TOKEN }}
-      #     publish_dir: ./docs
-      #     enable_jekyll: false
+      - run: |
+          mkdir -p public
+          mv build/* public/main
+          mv README.m public/
+          mkdir -p public_dev
+          mv build/* public/develop
+
+      - name: Deploy Main
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: upsetjs/actions-gh-pages@sgratzl
+        env:
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+        with:
+          deploy_key: ${{ secrets.PRIVATE_GITHUB_TOKEN }}
+          external_repository: lineupjs/lineupengine.js.org
+          publish_branch: main
+          publish_dir: ./public
+          enable_jekyll: true
+          remove_path_spec: 'README.md,main'
+
+      - name: Deploy Develop
+        if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+        uses: upsetjs/actions-gh-pages@sgratzl
+        env:
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+        with:
+          deploy_key: ${{ secrets.PRIVATE_GITHUB_TOKEN }}
+          external_repository: lineupjs/lineupengine.js.org
+          publish_branch: main
+          publish_dir: ./public_dev
+          enable_jekyll: true
+          remove_path_spec: 'develop'
+
