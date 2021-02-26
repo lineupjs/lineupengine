@@ -41,7 +41,7 @@ jobs:
         env:
           ACTIONS_ALLOW_UNSECURE_COMMANDS: true
         with:
-          github_token: ${{ secrets.PRIVATE_GITHUB_TOKEN }}
+          personal_token: ${{ secrets.PRIVATE_GITHUB_TOKEN }}
           external_repository: lineupjs/lineupengine.js.org
           publish_branch: main
           publish_dir: ./public
@@ -54,7 +54,7 @@ jobs:
         env:
           ACTIONS_ALLOW_UNSECURE_COMMANDS: true
         with:
-          github_token: ${{ secrets.PRIVATE_GITHUB_TOKEN }}
+          personal_token: ${{ secrets.PRIVATE_GITHUB_TOKEN }}
           external_repository: lineupjs/lineupengine.js.org
           publish_branch: main
           publish_dir: ./public_dev
