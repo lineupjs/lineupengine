@@ -13,3 +13,4 @@ node_modules/
 *.tsbuildinfo
 /.yarn
 /.pnp.js
+/.yarnrc.yml
