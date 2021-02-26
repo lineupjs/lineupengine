@@ -6,7 +6,7 @@ updates:
     schedule:
       interval: 'weekly'
   # Maintain dependencies for npm
-  - package-ecosystem: 'npm'
-    directory: '/'
-    schedule:
-      interval: 'weekly'
+  # - package-ecosystem: 'npm'
+  #   directory: '/'
+  #   schedule:
+  #     interval: 'weekly'

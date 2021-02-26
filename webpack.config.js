@@ -66,9 +66,7 @@ module.exports = (_env, options) => {
         filename: '[name].css',
         chunkFilename: '[id].css',
       }),
-      new ForkTsCheckerWebpackPlugin({
-        checkSyntacticErrors: true,
-      }),
+      new ForkTsCheckerWebpackPlugin(),
     ],
     externals: {},
     module: {
@@ -81,9 +79,6 @@ module.exports = (_env, options) => {
           test: /\.tsx?$/,
           exclude: /node_modules/,
           use: [
-            {
-              loader: 'cache-loader',
-            },
             {
               loader: 'thread-loader',
               options: {
@@ -98,34 +93,11 @@ module.exports = (_env, options) => {
                 happyPackMode: true, // IMPORTANT! use happyPackMode mode to speed-up  compilation and reduce errors reported to webpack
               },
             },
-          ].slice(process.env.CI || !dev ? 2 : 0), // no optimizations for CIs and in production mode
+          ].slice(process.env.CI || !dev ? 1 : 0), // no optimizations for CIs and in production mode
         },
         {
-          test: /\.(png|jpg)$/,
-          loader: 'url-loader',
-          options: {
-            limit: 20000, //inline <= 10kb
-          },
-        },
-        {
-          test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-          loader: 'url-loader',
-          options: {
-            limit: 20000, //inline <= 20kb
-            mimetype: 'application/font-woff',
-          },
-        },
-        {
-          test: /\.svg(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-          loader: 'url-loader',
-          options: {
-            limit: 10000, //inline <= 10kb
-            mimetype: 'image/svg+xml',
-          },
-        },
-        {
-          test: /\.(ttf|eot)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-          loader: 'file-loader',
+          test: /\.svg?$/,
+          type: 'asset',
         },
       ],
     },
