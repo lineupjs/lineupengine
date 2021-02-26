@@ -33,7 +33,7 @@ describe('logic', () => {
         acc[acc.length - 1].height = indexOrHeight;
       }
       return acc;
-    }, <{ index: number; height: number }[]>[]);
+    }, [] as { index: number; height: number }[]);
 
     expect(ex.size).toBe(checks.length);
 

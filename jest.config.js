@@ -2,12 +2,12 @@
 
 module.exports = {
   preset: 'ts-jest',
-  testRegex: '((\\.|/)(test|spec))\\.[jt]sx?$',
+  testRegex: 'tests/.*\\.spec\\.(ts|tsx|js)$',
   globals: {
     'ts-jest': {
       tsConfig: 'tsconfig.test.json',
-      diagnostics: true,
-      babelConfig: false
-    }
-  }
+      // diagnostics: true,
+      // babelConfig: false,
+    },
+  },
 };

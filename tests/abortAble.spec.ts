@@ -2,7 +2,7 @@ import abortAble, { ABORTED, isAbortAble } from '../src/abortAble';
 
 function resolveIn<T>(this: any, ms: number, result?: T) {
   return new Promise<T>((resolve) => {
-    self.setTimeout(resolve.bind(this, result), ms);
+    setTimeout(resolve.bind(this, result), ms);
   });
 }
 
@@ -62,7 +62,7 @@ describe('utils', () => {
     expect(typeof isAbortAble).toBe('function');
     expect(isAbortAble(null)).toBe(false);
     expect(isAbortAble(undefined)).toBe(false);
-    expect(isAbortAble(<any>Promise.resolve(false))).toBe(false);
+    expect(isAbortAble(Promise.resolve(false))).toBe(false);
     expect(isAbortAble(abortAble(Promise.resolve(false)).then(() => true))).toBe(true);
   });
 });

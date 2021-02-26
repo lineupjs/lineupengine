@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-env node */
 
 const resolve = require('path').resolve;
@@ -7,11 +8,14 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
 const now = new Date();
-const prefix = (n) => n < 10 ? ('0' + n) : n.toString();
-const buildId = `${now.getUTCFullYear()}${prefix(now.getUTCMonth() + 1)}${prefix(now.getUTCDate())}-${prefix(now.getUTCHours())}${prefix(now.getUTCMinutes())}${prefix(now.getUTCSeconds())}`;
+const prefix = (n) => (n < 10 ? '0' + n : n.toString());
+const buildId = `${now.getUTCFullYear()}${prefix(now.getUTCMonth() + 1)}${prefix(now.getUTCDate())}-${prefix(
+  now.getUTCHours()
+)}${prefix(now.getUTCMinutes())}${prefix(now.getUTCSeconds())}`;
 
-const year = (new Date()).getFullYear();
-const banner = `/*! ${pkg.title || pkg.name} - v${pkg.version} - ${year}\n` +
+const year = new Date().getFullYear();
+const banner =
+  `/*! ${pkg.title || pkg.name} - v${pkg.version} - ${year}\n` +
   (pkg.homepage ? `* ${pkg.homepage}\n` : '') +
   `* Copyright (c) ${year} ${pkg.author.name}; Licensed ${pkg.license} */\n`;
 
@@ -22,14 +26,16 @@ module.exports = (_env, options) => {
   const dev = options.mode.startsWith('d');
   return {
     node: false, // no polyfills
-    entry: !dev ? {
-      lineupengine: './src/bundle.ts',
-    } : {
-        lineupengine: './src/index.ts',
-        demo: './demo/index.ts',
-        table: './demo/table.ts',
-        cell: './demo/cell.ts'
-    },
+    entry: !dev
+      ? {
+          lineupengine: './src/bundle.ts',
+        }
+      : {
+          lineupengine: './src/index.ts',
+          demo: './demo/index.ts',
+          table: './demo/table.ts',
+          cell: './demo/cell.ts',
+        },
     output: {
       path: resolve(__dirname, 'build'),
       filename: `[name].js`,
@@ -37,22 +43,22 @@ module.exports = (_env, options) => {
       publicPath: '', //no public path = relative
       library: pkg.global,
       libraryTarget: 'umd',
-      umdNamedDefine: false //anonymous require module
+      umdNamedDefine: false, //anonymous require module
     },
     resolve: {
       extensions: ['.ts', '.tsx', '.mjs', '.js'],
-      symlinks: false
+      symlinks: false,
     },
     plugins: [
       new webpack.BannerPlugin({
         banner: banner,
-        raw: true
+        raw: true,
       }),
       //define magic constants that are replaced
       new webpack.DefinePlugin({
         __VERSION__: JSON.stringify(pkg.version),
         __LICENSE__: JSON.stringify(pkg.license),
-        __BUILD_ID__: JSON.stringify(buildId)
+        __BUILD_ID__: JSON.stringify(buildId),
       }),
       new MiniCssExtractPlugin({
         // Options similar to the same options in webpackOptions.output
@@ -61,75 +67,73 @@ module.exports = (_env, options) => {
         chunkFilename: '[id].css',
       }),
       new ForkTsCheckerWebpackPlugin({
-        checkSyntacticErrors: true
-      })
+        checkSyntacticErrors: true,
+      }),
     ],
     externals: {},
     module: {
-      rules: [{
-        test: /\.s?css$/,
-        use: [
-          MiniCssExtractPlugin.loader,
-          'css-loader',
-          'sass-loader'
-        ]
-      },
-      {
-        test: /\.tsx?$/,
-        exclude: /node_modules/,
-        use: [{
-          loader: 'cache-loader'
+      rules: [
+        {
+          test: /\.s?css$/,
+          use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],
         },
         {
-          loader: 'thread-loader',
+          test: /\.tsx?$/,
+          exclude: /node_modules/,
+          use: [
+            {
+              loader: 'cache-loader',
+            },
+            {
+              loader: 'thread-loader',
+              options: {
+                // there should be 1 cpu for the fork-ts-checker-webpack-plugin
+                workers: require('os').cpus().length - 1,
+              },
+            },
+            {
+              loader: 'ts-loader',
+              options: {
+                configFile: dev ? 'tsconfig.dev.json' : 'tsconfig.json',
+                happyPackMode: true, // IMPORTANT! use happyPackMode mode to speed-up  compilation and reduce errors reported to webpack
+              },
+            },
+          ].slice(process.env.CI || !dev ? 2 : 0), // no optimizations for CIs and in production mode
+        },
+        {
+          test: /\.(png|jpg)$/,
+          loader: 'url-loader',
           options: {
-            // there should be 1 cpu for the fork-ts-checker-webpack-plugin
-            workers: require('os').cpus().length - 1,
+            limit: 20000, //inline <= 10kb
           },
         },
         {
-          loader: 'ts-loader',
+          test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+          loader: 'url-loader',
           options: {
-            configFile: dev ? 'tsconfig.dev.json' : 'tsconfig.json',
-            happyPackMode: true // IMPORTANT! use happyPackMode mode to speed-up  compilation and reduce errors reported to webpack
-          }
-        }
-        ].slice(process.env.CI || !dev ? 2 : 0) // no optimizations for CIs and in production mode
-      },
-      {
-        test: /\.(png|jpg)$/,
-        loader: 'url-loader',
-        options: {
-          limit: 20000 //inline <= 10kb
-        }
-      },
-      {
-        test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-        loader: 'url-loader',
-        options: {
-          limit: 20000, //inline <= 20kb
-          mimetype: 'application/font-woff'
-        }
-      },
-      {
-        test: /\.svg(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-        loader: 'url-loader',
-        options: {
-          limit: 10000, //inline <= 10kb
-          mimetype: 'image/svg+xml'
-        }
-      },
-      {
-        test: /\.(ttf|eot)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-        loader: 'file-loader'
-      }
-      ]
+            limit: 20000, //inline <= 20kb
+            mimetype: 'application/font-woff',
+          },
+        },
+        {
+          test: /\.svg(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+          loader: 'url-loader',
+          options: {
+            limit: 10000, //inline <= 10kb
+            mimetype: 'image/svg+xml',
+          },
+        },
+        {
+          test: /\.(ttf|eot)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+          loader: 'file-loader',
+        },
+      ],
     },
     watchOptions: {
-      ignored: /node_modules/
+      ignored: /node_modules/,
     },
     devServer: {
-      contentBase: 'demo'
-    }
+      contentBase: 'demo',
+    },
   };
 };
