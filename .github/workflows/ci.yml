@@ -60,4 +60,3 @@ jobs:
           publish_dir: ./public_dev
           enable_jekyll: true
           remove_path_spec: 'develop'
-
