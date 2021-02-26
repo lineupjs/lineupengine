@@ -1,21 +1,20 @@
 # LineUpEngine
 
-[![License: MIT][mit-image]][mit-url] [![NPM version][npm-image]][npm-url] [![CircleCI][ci-image]][ci-url]
+[![License: MIT][mit-image]][mit-url] [![NPM version][npm-image]][npm-url] [Github Actions][github-actions-image]][github-actions-url]
 
 a fast engine for rendering large tables consisting of rows, rows+columns, multiple rows+columns instances.
 
 ## Supported Browsers
 
 - latest Chrome (best performance)
-- Firefox Quantum
-- Edge 16
+- Firefox ESR
 
 ## Installation
 
 Develop Version:
 
 ```html
-<script src="https://sgratzl.github.io/lineupengine_docs/develop/lineupengine.min.js"></script>
+<script src="https://lineupengine.js.org/develop/lineupengine.min.js"></script>
 ```
 
 ## Usage
@@ -24,38 +23,34 @@ Develop Version:
 
 ## API Documentation
 
-see [Develop API documentation](https://sgratzl.github.io/lineupengine_docs/develop/docs)
-
-## Demos
-
-see [Develop Demo](https://sgratzl.github.io/lineupengine/develop_docs/demo)
+see [Develop API documentation](https://lineupengine.js.org/develop/docs)
 
 ## Development Environment
 
 **Installation**
 
-```bash
-git clone https://github.com/sgratzl/lineupengine.git
+```sh
+git clone https://github.com/lineupjs/lineupengine.git
 cd lineupengine
-npm install
+npm i -g yarn
+yarn set version latest
+cat .yarnrc_patch.yml >> .yarnrc.yml
+yarn install
+yarn pnpify --sdk vscode
 ```
 
-**Build distribution packages**
+### Common commands
 
-```bash
-npm run build
-```
-
-**Run Linting**
-
-```bash
-npm run lint
-```
-
-**Watch file changes**
-
-```bash
-npm run watch
+```sh
+yarn clean
+yarn compile
+yarn test
+yarn lint
+yarn fix
+yarn build
+yarn docs
+yarn release
+yarn release:pre
 ```
 
 ## Notes
@@ -74,5 +69,5 @@ edge:    3.033.917px height
 [npm-url]: https://npmjs.org/package/lineupengine
 [mit-image]: https://img.shields.io/badge/License-MIT-yellow.svg
 [mit-url]: https://opensource.org/licenses/MIT
-[ci-image]: https://circleci.com/gh/lineupjs/lineupengine.svg?style=shield
-[ci-url]: https://circleci.com/gh/lineupjs/lineupengine
+[github-actions-image]: https://github.com/lineupjs/lineupengine/workflows/ci/badge.svg
+[github-actions-url]: https://github.com/lineupjs/lineupengine/actions
