@@ -23,6 +23,7 @@
     "esModuleInterop": true,
     "rootDir": "./src",
     "baseUrl": "./",
+    "outDir": "build/src",
     "paths": {
       "@": ["./src"],
       "*": ["*", "node_modules/*"]

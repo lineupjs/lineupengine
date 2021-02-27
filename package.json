@@ -18,10 +18,11 @@
   },
   "global": "lineupengine",
   "main": "build/lineupengine.js",
-  "module": "src/index.js",
+  "module": "build/src/index.js",
   "unpkg": "build/lineupengine.js",
   "jsdelivr": "build/lineupengine.js",
-  "types": "src/index.d.ts",
+  "types": "build/src/index.d.ts",
+  "exports": "./build/src/index.js",
   "sideEffects": [
     "*.scss",
     "*.css"
@@ -33,17 +34,12 @@
   ],
   "files": [
     "build",
-    "!build/docs",
-    "!build/demo",
-    "src/**/*.js",
-    "src/**/*.d.ts",
-    "src/**/*.map",
-    "src/assets",
-    "src/**/*.scss"
+    "src",
+    "!build/demo"
   ],
   "scripts": {
     "clean": "rimraf build dist docs \"*.tgz\" && yarn run clean:compile",
-    "clean:compile": "rimraf \"*.tsbuildinfo\" \"+(src|tests|demo)/**/*.+(map|js|d.ts)\"",
+    "clean:compile": "rimraf build/src \"build/*.tsbuildinfo\" \"*.tsbuildinfo\" ",
     "compile": "tsc",
     "compile:dev": "tsc -p ./tsconfig.dev.json",
     "fix": "yarn run eslint:fix && yarn run prettier:write",
@@ -72,6 +68,7 @@
     "@typescript-eslint/eslint-plugin": "^4.15.2",
     "@typescript-eslint/parser": "^4.15.2",
     "@yarnpkg/pnpify": "^2.4.0",
+    "copy-webpack-plugin": "^7.0.0",
     "css-loader": "^5.0.2",
     "eslint": "^7.20.0",
     "eslint-config-prettier": "^8.1.0",
