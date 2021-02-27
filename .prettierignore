@@ -16,3 +16,4 @@
 /.yarnrc.yml
 /.vscode
 *.lock
+*.tgz

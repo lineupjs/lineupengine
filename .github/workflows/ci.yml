@@ -29,11 +29,13 @@ jobs:
       - run: yarn test:coverage
       - run: yarn docs
       - run: |
-          mkdir -p public/main
+          mkdir -p public/main/docs
           cp -r build/* public/main
+          cp -r docs/* public/main/docs
           mv README.md public/
-          mkdir -p public_dev/develop
+          mkdir -p public_dev/develop/docs
           cp -r build/* public_dev/develop
+          cp -r docs/* public_dev/develop/docs
 
       - name: Deploy Main
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'

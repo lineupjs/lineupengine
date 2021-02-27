@@ -2,6 +2,7 @@
 /.idea
 /build/
 /dist/
+/docs/
 node_modules/
 /src/**/*.js
 /src/**/*.d.ts
@@ -14,3 +15,5 @@ node_modules/
 /.yarn
 /.pnp.js
 /.yarnrc.yml
+*.tgz
+*.zip
