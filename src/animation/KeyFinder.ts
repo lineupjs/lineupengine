@@ -5,7 +5,9 @@ import { IExceptionContext } from '../logic';
  */
 export default class KeyFinder {
   private readonly cache: number[] = [];
+
   private lastFilled = 0;
+
   private readonly key2index = new Map<string, number>();
 
   /**
@@ -21,7 +23,7 @@ export default class KeyFinder {
   }
 
   private findValidStart(before: number) {
-    for (let i = before - 1; i >= 0; --i) {
+    for (let i = before - 1; i >= 0; i -= 1) {
       if (this.cache[i] !== undefined) {
         return i;
       }
@@ -32,11 +34,10 @@ export default class KeyFinder {
   /**
    * returns the position of the given given or -1 if not found
    * @param {string} key
-   * @return {number} -1 if not found
    */
-  posByKey(key: string) {
-    if (this.key2index.has(key)) {
-      const index = this.key2index.get(key)!;
+  posByKey(key: string): { index: number; pos: number } {
+    const index = this.key2index.get(key);
+    if (index != null) {
       return { index, pos: this.pos(index) };
     }
     return this.fillCacheTillKey(key);
@@ -45,9 +46,8 @@ export default class KeyFinder {
   /**
    * returns the position of the given index
    * @param {number} index index to look for
-   * @returns {number}
    */
-  pos(index: number) {
+  pos(index: number): number {
     if (this.context.exceptions.length === 0) {
       // fast pass
       return index * this.context.defaultRowHeight;
@@ -56,7 +56,7 @@ export default class KeyFinder {
     if (cached !== undefined) {
       return cached;
     }
-    //need to compute it
+    // need to compute it
     // find the starting point where to start counting
     const start = this.findValidStart(index);
     if (start < 0) {
@@ -64,7 +64,7 @@ export default class KeyFinder {
     } else {
       this.fillCache(start + 1, index, this.cache[start] + this.heightOf(start));
     }
-    return this.cache[index]!;
+    return this.cache[index];
   }
 
   private fillCache(
@@ -74,17 +74,17 @@ export default class KeyFinder {
     callback?: (index: number, key: string, pos: number) => void
   ) {
     if (last <= this.lastFilled) {
-      //everything already there
+      // everything already there
       if (!callback) {
         return;
       }
-      for (let i = first; i <= last; ++i) {
+      for (let i = first; i <= last; i += 1) {
         callback(i, this.key(i), this.cache[i]);
       }
       return;
     }
     let pos = offset;
-    for (let i = first; i <= last; ++i) {
+    for (let i = first; i <= last; i += 1) {
       this.cache[i] = pos;
       const key = this.key(i);
       this.key2index.set(key, i);
@@ -98,11 +98,10 @@ export default class KeyFinder {
   /**
    * returns the height of the row identified by index
    * @param {number} index
-   * @returns {number}
    */
-  heightOf(index: number) {
+  heightOf(index: number): number {
     const lookup = this.context.exceptionsLookup;
-    return lookup.has(index) ? lookup.get(index)! : this.context.defaultRowHeight;
+    return lookup.get(index) ?? this.context.defaultRowHeight;
   }
 
   /**
@@ -111,11 +110,12 @@ export default class KeyFinder {
    * @param {boolean} returnDefault return null if default height
    * @returns {number}
    */
-  exceptionHeightOf(index: number, returnDefault = false) {
+  exceptionHeightOf(index: number, returnDefault = false): number | null {
     const padding = this.context.padding(index);
     const lookup = this.context.exceptionsLookup;
-    if (lookup.has(index)) {
-      return lookup.get(index)! - padding;
+    const entry = lookup.get(index);
+    if (entry != null) {
+      return entry - padding;
     }
     return returnDefault ? this.context.defaultRowHeight - padding : null;
   }
@@ -125,13 +125,13 @@ export default class KeyFinder {
    * @param {number} index
    * @returns {number}
    */
-  padding(index: number) {
+  padding(index: number): number {
     return this.context.padding(index);
   }
 
   private fillCacheTillKey(target: string) {
     let pos = 0;
-    for (let i = this.lastFilled; i < this.context.numberOfRows; ++i, ++this.lastFilled) {
+    for (let i = this.lastFilled; i < this.context.numberOfRows; i += 1, this.lastFilled += 1) {
       const c = this.cache[i];
       if (c !== undefined) {
         pos = c + this.heightOf(i);
@@ -156,7 +156,12 @@ export default class KeyFinder {
    * @param {number} offset pos offset for the first row index
    * @param {(index: number, key: string, pos: number) => void} callback callback for each identified index
    */
-  positions(first: number, last: number, offset: number, callback?: (index: number, key: string, pos: number) => void) {
+  positions(
+    first: number,
+    last: number,
+    offset: number,
+    callback?: (index: number, key: string, pos: number) => void
+  ): void {
     this.fillCache(first, last, offset, callback);
   }
 }

@@ -15,11 +15,19 @@ import {
   CSS_CLASS_TH,
 } from '../../styles';
 
-const debug = false;
+// const debug = false;
 
 export interface ICellAdapterRenderContext<T extends IColumn> extends IExceptionContext {
   readonly column: IExceptionContext;
   readonly columns: T[];
+}
+
+export interface IVisibleColumns {
+  frozen: number[];
+  first: number;
+  forcedFirst: number;
+  last: number;
+  forcedLast: number;
 }
 
 /**
@@ -31,19 +39,23 @@ export abstract class ACellAdapter<T extends IColumn> {
    * @type {Array}
    */
   private readonly cellPool: HTMLElement[][] = [];
+
   private readonly loading = new WeakMap<HTMLElement, IAbortAblePromise<void>>();
 
-  readonly visibleColumns = {
+  readonly visibleColumns: IVisibleColumns = {
     frozen: [] as number[], // column indices that are visible even tho they would be out of range
     first: 0,
     forcedFirst: 0,
     last: -1,
     forcedLast: -1,
   };
+
   visibleFirstColumnPos = 0;
 
   private horizontallyShifted = false;
+
   private readonly columnAdapter: IMixinAdapter;
+
   private readonly columnMixins: IMixin[];
 
   private readonly columnFragment: DocumentFragment;
@@ -55,27 +67,29 @@ export abstract class ACellAdapter<T extends IColumn> {
     mixinClasses: IMixinClass[] = []
   ) {
     this.columnAdapter = this.createColumnAdapter();
-    this.columnMixins = mixinClasses.map((mixinClass) => new mixinClass(this.columnAdapter));
+    this.columnMixins = mixinClasses.map((MixinClass) => new MixinClass(this.columnAdapter));
 
-    this.columnFragment = header.ownerDocument!.createDocumentFragment();
+    this.columnFragment = header.ownerDocument.createDocumentFragment();
   }
 
-  leftShift() {
+  leftShift(): number {
     const ctx = this.context;
     const frozen = this.visibleColumns.frozen.reduce((a, d) => a + ctx.columns[d].width + ctx.column.padding(d), 0);
     return this.visibleFirstColumnPos - frozen;
   }
 
-  protected get headerScroller() {
-    return this.header.parentElement! as HTMLElement;
+  protected get headerScroller(): HTMLElement {
+    return this.header.parentElement as HTMLElement;
   }
 
-  addColumnMixin(mixinClass: IMixinClass, options?: any) {
-    this.columnMixins.push(new mixinClass(this.columnAdapter, options));
+  addColumnMixin(MixinClass: IMixinClass, options?: unknown): void {
+    this.columnMixins.push(new MixinClass(this.columnAdapter, options));
   }
 
   private createColumnAdapter(): IMixinAdapter {
-    const r: any = {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const that = this;
+    const r = {
       visible: this.visibleColumns,
       addAtBeginning: this.addColumnAtStart.bind(this),
       addAtBottom: this.addColumnAtEnd.bind(this),
@@ -85,30 +99,24 @@ export abstract class ACellAdapter<T extends IColumn> {
       scroller: this.headerScroller,
       syncFrozen: this.syncFrozen.bind(this),
       isScrollEventWaiting: () => isScrollEventWaiting(this.headerScroller, 'animation'),
+      get visibleFirstRowPos() {
+        return that.visibleFirstColumnPos;
+      },
+      get context() {
+        return that.context.column;
+      },
+      get scrollOffset() {
+        return that.lastScrollInfo ? that.lastScrollInfo.left : 0;
+      },
+      get scrollTotal() {
+        return that.lastScrollInfo ? that.lastScrollInfo.width : that.headerScroller.clientWidth;
+      },
     };
-    Object.defineProperties(r, {
-      visibleFirstRowPos: {
-        get: () => this.visibleFirstColumnPos,
-        enumerable: true,
-      },
-      context: {
-        get: () => this.context.column,
-        enumerable: true,
-      },
-      scrollOffset: {
-        get: () => (this.lastScrollInfo ? this.lastScrollInfo.left : 0),
-        enumerable: true,
-      },
-      scrollTotal: {
-        get: () => (this.lastScrollInfo ? this.lastScrollInfo.width : this.headerScroller.clientWidth),
-        enumerable: true,
-      },
-    });
     return r;
   }
 
-  init() {
-    const context = this.context;
+  init(): void {
+    const { context } = this;
     this.style.update(
       context.defaultRowHeight - context.padding(-1),
       context.columns,
@@ -118,12 +126,12 @@ export abstract class ACellAdapter<T extends IColumn> {
     );
 
     context.columns.forEach(() => {
-      //init pool
+      // init pool
       this.cellPool.push([]);
     });
   }
 
-  onScrolledHorizontally(scrollLeft: number, clientWidth: number, isGoingRight: boolean) {
+  onScrolledHorizontally(scrollLeft: number, clientWidth: number, isGoingRight: boolean): EScrollResult {
     const scrollResult = this.onScrolledHorizontallyImpl(scrollLeft, clientWidth);
     for (const mixin of this.columnMixins) {
       mixin.onScrolled(isGoingRight, scrollResult);
@@ -159,93 +167,93 @@ export abstract class ACellAdapter<T extends IColumn> {
     this.forEachRow((row: HTMLElement) => {
       this.removeCellFromStart(row, from, to, frozenShift);
     });
-    if (debug) {
-      this.verifyRows();
-    }
+    // if (debug) {
+    //   this.verifyRows();
+    // }
   }
 
   private removeCellFromStart(row: HTMLElement, from: number, to: number, frozenShift: number) {
-    for (let i = from; i <= to; ++i) {
+    for (let i = from; i <= to; i += 1) {
       const node = (frozenShift === 0 ? row.firstElementChild : row.children[frozenShift]) as HTMLElement;
       node.remove();
       this.recycleCell(node, i);
     }
-    if (debug) {
-      verifyRow(row, -1, this.context.columns);
-    }
+    // if (debug) {
+    //   verifyRow(row, -1, this.context.columns);
+    // }
   }
 
   private removeColumnFromEnd(from: number, to: number) {
     this.forEachRow((row: HTMLElement) => {
       this.removeCellFromEnd(row, from, to);
     });
-    if (debug) {
-      this.verifyRows();
-    }
+    // if (debug) {
+    //   this.verifyRows();
+    // }
   }
 
   private removeCellFromEnd(row: HTMLElement, from: number, to: number) {
-    for (let i = to; i >= from; --i) {
+    for (let i = to; i >= from; i -= 1) {
       const node = row.lastElementChild as HTMLElement;
       node.remove();
       this.recycleCell(node, i);
     }
-    if (debug) {
-      verifyRow(row, -1, this.context.columns);
-    }
+    // if (debug) {
+    //   verifyRow(row, -1, this.context.columns);
+    // }
   }
 
   private removeFrozenCells(row: HTMLElement, columnIndices: number[], shift: number) {
     for (const columnIndex of columnIndices) {
-      const node = row.children[shift]! as HTMLElement;
+      const node = row.children[shift] as HTMLElement;
       node.remove();
       this.recycleCell(node, columnIndex);
     }
-    if (debug) {
-      verifyRow(row, -1, this.context.columns);
-    }
+    // if (debug) {
+    //   verifyRow(row, -1, this.context.columns);
+    // }
   }
 
   private removeFrozenColumns(columnIndices: number[], shift: number) {
     this.forEachRow((row: HTMLElement) => {
       this.removeFrozenCells(row, columnIndices, shift);
     });
-    if (debug) {
-      this.verifyRows();
-    }
+    // if (debug) {
+    //   this.verifyRows();
+    // }
   }
 
   private removeAllColumns(includingFrozen: boolean) {
     this.forEachRow((row: HTMLElement) => {
       this.removeAllCells(row, includingFrozen);
     });
-    if (debug) {
-      this.verifyRows();
-    }
+    // if (debug) {
+    //   this.verifyRows();
+    // }
   }
 
   private removeAllCells(row: HTMLElement, includingFrozen: boolean, shift = this.visibleColumns.first) {
     const arr = Array.from(row.children) as HTMLElement[];
-    const frozen = this.visibleColumns.frozen;
+    const { frozen } = this.visibleColumns;
     clear(row);
 
     if (includingFrozen || frozen.length === 0) {
       for (const i of frozen) {
-        this.recycleCell(arr.shift()!, i);
+        this.recycleCell(arr.shift(), i);
       }
     } else {
       // have frozen and keep them, so readd them
-      for (let i = 0; i < frozen.length; i++) {
-        row.appendChild(arr.shift()!);
+      for (let i = 0; i < frozen.length; i += 1) {
+        row.appendChild(arr.shift());
       }
     }
     arr.forEach((item, i) => {
       this.recycleCell(item, i + shift);
     });
 
-    if (debug) {
-      verifyRow(row, -1, this.context.columns);
-    }
+    // if (debug) {
+    //   verifyRow(row, -1, this.context.columns);
+    // }
   }
 
   private selectProxyCell(
@@ -262,7 +270,7 @@ export abstract class ACellAdapter<T extends IColumn> {
 
     const r = pooled
       ? this.updateCell(pooled, row, columnObj) || pooled
-      : this.createCell(this.header.ownerDocument!, row, columnObj);
+      : this.createCell(this.header.ownerDocument, row, columnObj);
     if (isAsyncUpdate(r)) {
       item = r.item;
       ready = r.ready;
@@ -277,17 +285,17 @@ export abstract class ACellAdapter<T extends IColumn> {
     return { item, ready };
   }
 
-  handleCellReady(item: HTMLElement, ready: IAbortAblePromise<void>, column = -1) {
+  handleCellReady(item: HTMLElement, ready: IAbortAblePromise<void>, column = -1): HTMLElement {
     item.classList.add(CSS_CLASS_LOADING);
     const abort = ready;
-    //lazy loading
+    // lazy loading
 
     this.loading.set(item, abort);
     abort.then((result) => {
       this.loading.delete(item);
       item.classList.remove(CSS_CLASS_LOADING);
       if (result === ABORTED && column >= 0) {
-        //aborted can recycle the real one
+        // aborted can recycle the real one
         this.cellPool[column].push(item);
       }
     });
@@ -302,14 +310,14 @@ export abstract class ACellAdapter<T extends IColumn> {
     return this.handleCellReady(item, ready, column);
   }
 
-  protected updateShiftedState(node: HTMLElement, col: IColumn) {
+  protected updateShiftedState(node: HTMLElement, col: IColumn): void {
     node.classList.toggle(CSS_CLASS_SHIFTED, col.frozen && this.horizontallyShifted);
   }
 
-  recycleCell(item: HTMLElement, column = -1) {
+  recycleCell(item: HTMLElement, column = -1): void {
     // check if the dom element is still being manipulated
-    if (this.loading.has(item)) {
-      const abort = this.loading.get(item)!;
+    const abort = this.loading.get(item);
+    if (abort != null) {
       abort.abort();
     } else if (!isLoadingCell(item) && column >= 0) {
       this.cellPool[column].push(item);
@@ -321,9 +329,9 @@ export abstract class ACellAdapter<T extends IColumn> {
     this.forEachRow((row: HTMLElement, rowIndex: number) => {
       this.addCellAtStart(row, rowIndex, from, to, frozenShift, columns);
     });
-    if (debug) {
-      this.verifyRows();
-    }
+    // if (debug) {
+    //   this.verifyRows();
+    // }
   }
 
   private addCellAtStart(
@@ -334,16 +342,16 @@ export abstract class ACellAdapter<T extends IColumn> {
     frozenShift: number,
     columns: T[]
   ) {
-    if (debug) {
-      verifyRow(row, rowIndex, this.context.columns);
-    }
-    for (let i = to; i >= from; --i) {
+    // if (debug) {
+    //   verifyRow(row, rowIndex, this.context.columns);
+    // }
+    for (let i = to; i >= from; i -= 1) {
       const cell = this.selectCell(rowIndex, i, columns);
       row.insertBefore(cell, frozenShift > 0 ? row.children[frozenShift] : row.firstChild);
     }
-    if (debug) {
-      verifyRow(row, rowIndex, this.context.columns);
-    }
+    // if (debug) {
+    //   verifyRow(row, rowIndex, this.context.columns);
+    // }
   }
 
   private insertFrozenCells(row: HTMLElement, rowIndex: number, columnIndices: number[], shift: number, columns: T[]) {
@@ -370,27 +378,27 @@ export abstract class ACellAdapter<T extends IColumn> {
     this.forEachRow((row: HTMLElement, rowIndex: number) => {
       this.addCellAtEnd(row, rowIndex, from, to, columns);
     });
-    if (debug) {
-      this.verifyRows();
-    }
+    // if (debug) {
+    //   this.verifyRows();
+    // }
   }
 
-  private verifyRows() {
-    const { columns } = this.context;
-    this.forEachRow((row, rowIndex) => verifyRow(row, rowIndex, columns));
-  }
+  // private verifyRows() {
+  //   const { columns } = this.context;
+  //   this.forEachRow((row, rowIndex) => verifyRow(row, rowIndex, columns));
+  // }
 
   private addCellAtEnd(row: HTMLElement, rowIndex: number, from: number, to: number, columns: T[]) {
-    for (let i = from; i <= to; ++i) {
+    for (let i = from; i <= to; i += 1) {
       const cell = this.selectCell(rowIndex, i, columns);
       row.appendChild(cell);
     }
-    if (debug) {
-      verifyRow(row, rowIndex, this.context.columns);
-    }
+    // if (debug) {
+    //   verifyRow(row, rowIndex, this.context.columns);
+    // }
   }
 
-  updateHeaders() {
+  updateHeaders(): void {
     const { columns } = this.context;
     Array.from(this.header.children).forEach((node: Element, i) => {
       const base = node as HTMLElement;
@@ -411,8 +419,8 @@ export abstract class ACellAdapter<T extends IColumn> {
     });
   }
 
-  recreate(left: number, width: number) {
-    const context = this.context;
+  recreate(left: number, width: number): void {
+    const { context } = this;
 
     this.style.update(
       context.defaultRowHeight - context.padding(-1),
@@ -424,21 +432,21 @@ export abstract class ACellAdapter<T extends IColumn> {
 
     this.clearPool();
     // init pool
-    for (let i = this.cellPool.length; i < context.columns.length; ++i) {
+    for (let i = this.cellPool.length; i < context.columns.length; i += 1) {
       this.cellPool.push([]);
     }
 
-    //create all header columns
+    // create all header columns
     {
       const fragment = this.columnFragment;
-      const document = fragment.ownerDocument!;
+      const document = fragment.ownerDocument;
 
       // create lookup cache to reuse headers
       const ids = new Map<string, HTMLElement>();
       while (this.header.lastChild) {
         const c = this.header.lastChild as HTMLElement;
         this.header.removeChild(c);
-        ids.set(c.dataset.id!, c);
+        ids.set(c.dataset.id ?? '', c);
       }
 
       context.columns.forEach((col) => {
@@ -467,8 +475,11 @@ export abstract class ACellAdapter<T extends IColumn> {
       context.column.numberOfRows
     );
 
-    this.visibleColumns.first = this.visibleColumns.forcedFirst = first;
-    this.visibleColumns.last = this.visibleColumns.forcedLast = last;
+    this.visibleColumns.first = first;
+    this.visibleColumns.forcedFirst = first;
+    this.visibleColumns.last = last;
+    this.visibleColumns.forcedLast = last;
+
     if (context.columns.some((c) => c.frozen)) {
       const { target } = updateFrozen([], context.columns, first);
       this.visibleColumns.frozen = target;
@@ -478,15 +489,15 @@ export abstract class ACellAdapter<T extends IColumn> {
     this.updateColumnOffset(firstRowPos);
   }
 
-  clearPool() {
+  clearPool(): void {
     this.cellPool.forEach((p) => p.splice(0, p.length));
   }
 
-  protected updateColumnOffset(firstColumnPos: number) {
+  protected updateColumnOffset(firstColumnPos: number): void {
     const changed = firstColumnPos !== this.visibleFirstColumnPos;
     this.visibleFirstColumnPos = firstColumnPos;
     if (changed) {
-      const context = this.context;
+      const { context } = this;
       this.style.update(
         context.defaultRowHeight - context.padding(-1),
         context.columns,
@@ -507,7 +518,7 @@ export abstract class ACellAdapter<T extends IColumn> {
         node.appendChild(cell);
       }
     }
-    for (let i = visible.first; i <= visible.last; ++i) {
+    for (let i = visible.first; i <= visible.last; i += 1) {
       const cell = this.selectCell(rowIndex, i, columns);
       node.appendChild(cell);
     }
@@ -517,7 +528,7 @@ export abstract class ACellAdapter<T extends IColumn> {
     const { columns } = this.context;
     const visible = this.visibleColumns;
 
-    //columns may not match anymore if it is a pooled item a long time ago
+    // columns may not match anymore if it is a pooled item a long time ago
 
     switch (node.childElementCount) {
       case 0:
@@ -526,9 +537,9 @@ export abstract class ACellAdapter<T extends IColumn> {
         }
         this.addCellAtEnd(node, rowIndex, visible.first, visible.last, columns);
         break;
-      case 1:
+      case 1: {
         const old = node.firstElementChild as HTMLElement;
-        const id = old.dataset.id!;
+        const id = old.dataset.id ?? '';
         const columnIndex = columns.findIndex((c) => c.id === id);
         node.removeChild(old);
         if (columnIndex >= 0) {
@@ -540,6 +551,7 @@ export abstract class ACellAdapter<T extends IColumn> {
         }
         this.addCellAtEnd(node, rowIndex, visible.first, visible.last, columns);
         break;
+      }
       default:
         this.mergeColumns(node, rowIndex);
         break;
@@ -554,7 +566,7 @@ export abstract class ACellAdapter<T extends IColumn> {
     while (node.lastChild) {
       const c = node.lastChild as HTMLElement;
       node.removeChild(c);
-      ids.set(c.dataset.id!, c);
+      ids.set(c.dataset.id, c);
     }
 
     const updateImpl = (i: number) => {
@@ -584,7 +596,7 @@ export abstract class ACellAdapter<T extends IColumn> {
     for (const frozen of visible.frozen) {
       updateImpl(frozen);
     }
-    for (let i = visible.first; i <= visible.last; ++i) {
+    for (let i = visible.first; i <= visible.last; i += 1) {
       updateImpl(i);
     }
 
@@ -594,10 +606,10 @@ export abstract class ACellAdapter<T extends IColumn> {
 
     // recycle
     const byId = new Map(columns.map((d, i) => [d.id, i]));
-    ids.forEach((node, key) => {
+    ids.forEach((idNode, key) => {
       const index = byId.get(key);
       if (index != null && index >= 0) {
-        this.recycleCell(node, index);
+        this.recycleCell(idNode, index);
       }
     });
   }
@@ -673,7 +685,7 @@ export abstract class ACellAdapter<T extends IColumn> {
     visible.forcedLast = last;
 
     if (first - visible.first >= 0 && last - visible.last <= 0) {
-      //nothing to do
+      // nothing to do
       if (shiftingChanged) {
         this.updateShiftedStates();
       }
@@ -685,22 +697,22 @@ export abstract class ACellAdapter<T extends IColumn> {
     const frozenShift = this.syncFrozen(first);
 
     if (first > visible.last || last < visible.first) {
-      //no overlap, clean and draw everything
-      //console.log(`ff added: ${last - first + 1} removed: ${visibleLast - visibleFirst + 1} ${first}:${last} ${offset}`);
-      //removeRows(visibleFirst, visibleLast);
+      // no overlap, clean and draw everything
+      // console.log(`ff added: ${last - first + 1} removed: ${visibleLast - visibleFirst + 1} ${first}:${last} ${offset}`);
+      // removeRows(visibleFirst, visibleLast);
       this.removeAllColumns(false);
       this.addColumnAtEnd(first, last);
       r = EScrollResult.ALL;
     } else if (first < visible.first) {
-      //some first rows missing and some last rows to much
-      //console.log(`up added: ${visibleFirst - first + 1} removed: ${visibleLast - last + 1} ${first}:${last} ${offset}`);
+      // some first rows missing and some last rows to much
+      // console.log(`up added: ${visibleFirst - first + 1} removed: ${visibleLast - last + 1} ${first}:${last} ${offset}`);
       this.removeColumnFromEnd(last + 1, visible.last);
       this.updateShiftedStates();
       this.addColumnAtStart(first, visible.first - 1, frozenShift);
       r = EScrollResult.SOME_TOP;
     } else {
-      //console.log(`do added: ${last - visibleLast + 1} removed: ${first - visibleFirst + 1} ${first}:${last} ${offset}`);
-      //some last rows missing and some first rows to much
+      // console.log(`do added: ${last - visibleLast + 1} removed: ${first - visibleFirst + 1} ${first}:${last} ${offset}`);
+      // some last rows missing and some first rows to much
       this.removeColumnFromStart(visible.first, first - 1, frozenShift);
       this.updateShiftedStates();
       this.addColumnAtEnd(visible.last + 1, last);
@@ -721,22 +733,22 @@ export abstract class ACellAdapter<T extends IColumn> {
  */
 export default ACellAdapter;
 
-function verifyRow(row: HTMLElement, index: number, columns: IColumn[]) {
-  const cols = Array.from(row.children) as HTMLElement[];
-  //sort incrementally
-  if (cols.length <= 1) {
-    return;
-  }
-  const colObjs = cols.map((c) => columns.find((d) => d.id === c.dataset.id)!);
-  console.assert(
-    colObjs.every((d) => Boolean(d)),
-    'all columns must exist',
-    index
-  );
-  console.assert(
-    colObjs.every((d, i) => i === 0 || d.index >= colObjs[i - 1]!.index),
-    'all columns in ascending order',
-    index
-  );
-  console.assert(new Set(colObjs).size === colObjs.length, 'unique columns', colObjs);
-}
+// function verifyRow(row: HTMLElement, index: number, columns: IColumn[]) {
+//   const cols = Array.from(row.children) as HTMLElement[];
+//   // sort incrementally
+//   if (cols.length <= 1) {
+//     return;
+//   }
+//   const colObjs = cols.map((c) => columns.find((d) => d.id === c.dataset.id));
+//   console.assert(
+//     colObjs.every((d) => Boolean(d)),
+//     'all columns must exist',
+//     index
+//   );
+//   console.assert(
+//     colObjs.every((d, i) => i === 0 || d.index >= colObjs[i - 1]!.index),
+//     'all columns in ascending order',
+//     index
+//   );
+//   console.assert(new Set(colObjs).size === colObjs.length, 'unique columns', colObjs);
+// }

@@ -1,4 +1,5 @@
 /** @internal */
+// eslint-disable-next-line max-classes-per-file
 abstract class AQuadTreeNode {
   parent: QuadTreeInnerNode | null = null;
 
@@ -13,7 +14,7 @@ abstract class AQuadTreeNode {
   ) {}
 
   get rowCount() {
-    //since inclusive
+    // since inclusive
     return this.rowLast - this.rowFirst + 1;
   }
 
@@ -85,17 +86,18 @@ export const BOTTOM_RIGHT = 3;
 /** @internal */
 export class QuadTreeInnerNode extends AQuadTreeNode {
   readonly type = 'inner';
+
   /**
    * 0 | 1
    * 2 | 3
    */
   readonly children: QuadTreeNode[] = [];
 
-  get colMiddle() {
+  get colMiddle(): number {
     return Math.floor(this.colFirst + this.colCount / 2) - 1;
   }
 
-  get rowMiddle() {
+  get rowMiddle(): number {
     return Math.floor(this.rowFirst + this.rowCount / 2) - 1;
   }
 }

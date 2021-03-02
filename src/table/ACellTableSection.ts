@@ -1,11 +1,13 @@
+/* eslint-disable class-methods-use-this */
+/* eslint-disable max-classes-per-file */
 import { IAbortAblePromise, IAsyncUpdate } from '../abortAble';
 import { IAnimationContext } from '../animation';
-import ARowRenderer, { IRowRendererOptions, setTransform } from '../ARowRenderer';
+import { ARowRenderer, IRowRendererOptions, setTransform } from '../ARowRenderer';
 import { EScrollResult, IMixinClass } from '../mixin';
 import { IColumn } from '../style';
 import GridStyleManager from '../style/GridStyleManager';
 import { CSS_CLASS_HIDDEN, CSS_CLASS_LOADING } from '../styles';
-import ACellAdapter, { ICellAdapterRenderContext } from './internal/ACellAdapter';
+import { ACellAdapter, ICellAdapterRenderContext, IVisibleColumns } from './internal/ACellAdapter';
 import { ITableSection } from './MultiTableRowRenderer';
 
 export declare type ITableCellRenderContext<T extends IColumn> = ICellAdapterRenderContext<T>;
@@ -70,33 +72,33 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
     this.cell = new LocalCell(this.header, this.style, tableId, options.mixins || []);
   }
 
-  protected addColumnMixin(mixinClass: IMixinClass, options?: any) {
+  protected addColumnMixin(mixinClass: IMixinClass, options?: unknown): void {
     this.cell.addColumnMixin(mixinClass, options);
   }
 
-  protected get idPrefix() {
+  protected get idPrefix(): string {
     return this.tableId;
   }
 
   abstract get id(): string;
 
-  get width() {
+  get width(): number {
     return this.context.column.totalHeight;
   }
 
-  protected get visibleColumns() {
+  protected get visibleColumns(): IVisibleColumns {
     return this.cell.visibleColumns;
   }
 
-  protected get visibleFirstColumnPos() {
+  protected get visibleFirstColumnPos(): number {
     return this.cell.visibleFirstColumnPos;
   }
 
-  get height() {
+  get height(): number {
     return this.context.totalHeight;
   }
 
-  get hidden() {
+  get hidden(): boolean {
     return this.header.classList.contains(CSS_CLASS_LOADING);
   }
 
@@ -112,28 +114,28 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
     this.onVisibilityChanged(!value);
   }
 
-  protected updateSizer(firstRowPos: number) {
+  protected updateSizer(firstRowPos: number): void {
     this.updateShifts(firstRowPos, this.cell.leftShift());
     // no sizer update since centrally managed
   }
 
-  protected updateShifts(top: number, _left: number) {
-    setTransform(this.body, 0 /*left.toFixed(0)*/, top.toFixed(0));
+  protected updateShifts(top: number, _left: number): void {
+    setTransform(this.body, 0 /* left.toFixed(0) */, top.toFixed(0));
   }
 
   /**
    * hook when the visibility changes
    * @param {boolean} _visible current visibility
    */
-  protected onVisibilityChanged(_visible: boolean) {
+  protected onVisibilityChanged(_visible: boolean): void {
     // hook
   }
 
-  hide() {
+  hide(): void {
     this.hidden = true;
   }
 
-  show(scrollLeft: number, clientWidth: number, isGoingRight: boolean) {
+  show(scrollLeft: number, clientWidth: number, isGoingRight: boolean): void {
     const wasHidden = this.hidden;
     this.hidden = false;
     if (wasHidden) {
@@ -144,13 +146,13 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
     }
   }
 
-  init() {
+  init(): void {
     this.hide(); // hide by default
     this.cell.init();
     super.init();
   }
 
-  destroy() {
+  destroy(): void {
     super.destroy();
     this.header.remove();
     this.style.remove(this.tableId);
@@ -163,7 +165,7 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
     return super.onScrolledVertically(scrollTop, clientHeight, isGoingDown);
   }
 
-  protected onScrolledHorizontally(scrollLeft: number, clientWidth: number, isGoingRight: boolean) {
+  protected onScrolledHorizontally(scrollLeft: number, clientWidth: number, isGoingRight: boolean): EScrollResult {
     const r = this.cell.onScrolledHorizontally(scrollLeft, clientWidth, isGoingRight);
     this.updateSizer(this.visibleFirstRowPos);
     return r;
@@ -216,23 +218,23 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
   /**
    * triggers updating the header
    */
-  protected updateHeaders() {
+  protected updateHeaders(): void {
     this.cell.updateHeaders();
   }
 
-  protected handleCellReady(item: HTMLElement, ready: IAbortAblePromise<void>, column = -1) {
+  protected handleCellReady(item: HTMLElement, ready: IAbortAblePromise<void>, column = -1): HTMLElement {
     return this.cell.handleCellReady(item, ready, column);
   }
 
-  protected recycleCell(item: HTMLElement, column = -1) {
+  protected recycleCell(item: HTMLElement, column = -1): void {
     this.cell.recycleCell(item, column);
   }
 
   /**
    * trigger an update all all column widths
    */
-  protected updateColumnWidths() {
-    const context = this.context;
+  protected updateColumnWidths(): void {
+    const { context } = this;
     this.style.update(
       context.defaultRowHeight - context.padding(-1),
       context.columns,
@@ -242,7 +244,7 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
     );
   }
 
-  protected recreate(ctx?: IAnimationContext) {
+  protected recreate(ctx?: IAnimationContext): void {
     const scroller = this.bodyScroller;
     const oldLeft = scroller.scrollLeft;
     this.cell.recreate(oldLeft, scroller.clientWidth);
@@ -252,7 +254,7 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
     scroller.scrollLeft = oldLeft;
   }
 
-  protected clearPool() {
+  protected clearPool(): void {
     super.clearPool();
     this.cell.clearPool();
   }

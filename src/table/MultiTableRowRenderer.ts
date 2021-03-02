@@ -37,11 +37,11 @@ export interface ITableSection {
 }
 
 export interface ITableFactory<T extends ITableSection> {
-  (header: HTMLElement, body: HTMLElement, tableId: string, style: GridStyleManager, ...extras: any[]): T;
+  (header: HTMLElement, body: HTMLElement, tableId: string, style: GridStyleManager, ...extras: unknown[]): T;
 }
 
 export interface ISeparatorFactory<T extends ITableSection> {
-  (header: HTMLElement, body: HTMLElement, style: GridStyleManager, ...extras: any[]): T;
+  (header: HTMLElement, body: HTMLElement, style: GridStyleManager, ...extras: unknown[]): T;
 }
 
 export interface IMultiTableRowRendererOptions {
@@ -71,6 +71,7 @@ export interface IMultiTableRowRendererOptions {
  */
 export default class MultiTableRowRenderer {
   readonly style: GridStyleManager;
+
   private tableId = 0;
 
   private readonly sections: ITableSection[] = [];
@@ -83,17 +84,21 @@ export default class MultiTableRowRenderer {
 
   constructor(public readonly node: HTMLElement, htmlId: string, options: Partial<IMultiTableRowRendererOptions> = {}) {
     Object.assign(this.options, options);
-    htmlId = htmlId.startsWith('#') ? htmlId.slice(1) : htmlId;
-    node.id = htmlId;
-    node.innerHTML = `<header id="header-${htmlId}" class="${CSS_CLASS_HEADER} ${cssClass(`header-${htmlId}`)}">
-      <footer class="${CSS_CLASS_FOOTER} ${cssClass(`footer-${htmlId}`)}">&nbsp;</footer>
+    const cleanHTMLId = htmlId.startsWith('#') ? htmlId.slice(1) : htmlId;
+    // eslint-disable-next-line no-param-reassign
+    node.id = cleanHTMLId;
+    // eslint-disable-next-line no-param-reassign
+    node.innerHTML = `<header id="header-${cleanHTMLId}" class="${CSS_CLASS_HEADER} ${cssClass(
+      `header-${cleanHTMLId}`
+    )}">
+      <footer class="${CSS_CLASS_FOOTER} ${cssClass(`footer-${cleanHTMLId}`)}">&nbsp;</footer>
     </header>
-    <main id="body-${htmlId}" class="${CSS_CLASS_BODY} ${cssClass(`body-${htmlId}`)}">
+    <main id="body-${cleanHTMLId}" class="${CSS_CLASS_BODY} ${cssClass(`body-${cleanHTMLId}`)}">
       <footer class="${CSS_CLASS_FOOTER}">&nbsp;</footer>
     </main>`;
     node.classList.add(cssClass(), CSS_CLASS_MULTI, 'lineup-engine');
 
-    this.style = new GridStyleManager(this.node, htmlId);
+    this.style = new GridStyleManager(this.node, cleanHTMLId);
 
     let old = addScroll(this.main, this.options.async, (act) => {
       if (
@@ -113,7 +118,10 @@ export default class MultiTableRowRenderer {
 
     let offset = 0;
     this.sections.forEach((s) => {
-      s.body.style.left = s.header.style.left = `${offset}px`;
+      // eslint-disable-next-line no-param-reassign
+      s.body.style.left = `${offset}px`;
+      // eslint-disable-next-line no-param-reassign
+      s.header.style.left = `${offset}px`;
       offset += s.width + this.options.columnPadding;
     });
   }
@@ -136,8 +144,8 @@ export default class MultiTableRowRenderer {
   }
 
   private updateOffset() {
-    const headerFooter = this.header.getElementsByTagName('footer')[0]!;
-    const bodyFooter = this.main.getElementsByTagName('footer')[0]!;
+    const headerFooter = this.header.getElementsByTagName('footer')[0];
+    const bodyFooter = this.main.getElementsByTagName('footer')[0];
 
     const maxHeight = this.sections.reduce((acc, d) => Math.max(acc, d.height), 0);
     const total = this.sections.reduce((a, c) => a + c.width + this.options.columnPadding, 0);
@@ -146,13 +154,13 @@ export default class MultiTableRowRenderer {
     setTransform(bodyFooter, total, maxHeight);
   }
 
-  destroy() {
+  destroy(): void {
     this.sections.forEach((d) => d.destroy());
     this.node.remove();
   }
 
-  private get doc() {
-    return this.node.ownerDocument!;
+  private get doc(): Document {
+    return this.node.ownerDocument;
   }
 
   private get header() {
@@ -169,11 +177,12 @@ export default class MultiTableRowRenderer {
    * @param extras additional arguments to provide for the factory
    * @returns {T} the table instance
    */
-  pushTable<T extends ITableSection>(factory: ITableFactory<T>, ...extras: any[]) {
+  pushTable<T extends ITableSection>(factory: ITableFactory<T>, ...extras: unknown[]): T {
     const header = this.doc.createElement('article');
     const body = this.doc.createElement('article');
 
-    const tableId = `${this.node.id}T${this.tableId++}`;
+    const tableId = `${this.node.id}T${this.tableId}`;
+    this.tableId += 1;
     const ids = tableIds(tableId);
     const cssClasses = tableCSSClasses(tableId);
 
@@ -181,19 +190,10 @@ export default class MultiTableRowRenderer {
     header.classList.add(CSS_CLASS_THEAD, cssClasses.thead);
     body.id = ids.tbody;
     body.classList.add(CSS_CLASS_TBODY, cssClasses.tbody);
-    this.header.insertBefore(header, this.header.lastElementChild); //before the footer
+    this.header.insertBefore(header, this.header.lastElementChild); // before the footer
     this.main.appendChild(body);
 
-    const table = factory.apply(
-      this,
-      [header, body, tableId, this.style].concat(extras) as [
-        HTMLElement,
-        HTMLElement,
-        string,
-        GridStyleManager,
-        ...any[]
-      ]
-    );
+    const table = factory.call(this, header, body, tableId, this.style, ...extras);
     table.init();
     this.sections.push(table);
     this.update();
@@ -206,18 +206,15 @@ export default class MultiTableRowRenderer {
    * @param extras optional additional arguments
    * @returns {T} the new created separator
    */
-  pushSeparator<T extends ITableSection>(factory: ISeparatorFactory<T>, ...extras: any[]) {
+  pushSeparator<T extends ITableSection>(factory: ISeparatorFactory<T>, ...extras: unknown[]): T {
     const header = this.doc.createElement('section');
     const body = this.doc.createElement('section');
     header.classList.add(cssClass('header-separator'));
     body.classList.add(cssClass('separator'));
-    this.header.insertBefore(header, this.header.lastElementChild); //before the footer
+    this.header.insertBefore(header, this.header.lastElementChild); // before the footer
     this.main.appendChild(body);
 
-    const separator = factory.apply(
-      this,
-      [header, body, this.style].concat(extras) as [HTMLElement, HTMLElement, GridStyleManager, ...any[]]
-    );
+    const separator = factory.call(this, header, body, this.style, ...extras);
     separator.init();
     this.sections.push(separator);
     this.update();
@@ -229,7 +226,7 @@ export default class MultiTableRowRenderer {
    * @param {ITableSection} section section to remove
    * @returns {boolean} successful flag
    */
-  remove(section: ITableSection) {
+  remove(section: ITableSection): boolean {
     const index = this.sections.indexOf(section);
     if (index < 0) {
       return false;
@@ -240,7 +237,7 @@ export default class MultiTableRowRenderer {
     return true;
   }
 
-  clear() {
+  clear(): void {
     this.sections.splice(0, this.sections.length).forEach((s) => s.destroy());
     this.update();
   }
@@ -248,7 +245,7 @@ export default class MultiTableRowRenderer {
   /**
    * triggers and update because of a change in width of one or more table sections
    */
-  widthChanged() {
+  widthChanged(): void {
     this.update();
   }
 }

@@ -24,6 +24,7 @@ export interface IPrefetchRendererOptions {
  */
 export default class PrefetchMixin implements IMixin {
   private prefetchTimeout = -1;
+
   private cleanupTimeout = -1;
 
   private readonly options: IPrefetchRendererOptions = {
@@ -42,7 +43,7 @@ export default class PrefetchMixin implements IMixin {
     if (this.adapter.isScrollEventWaiting()) {
       return;
     }
-    const context = this.adapter.context;
+    const { context } = this.adapter;
     const nextLast = Math.min(this.adapter.visible.forcedLast + this.options.prefetchRows, context.numberOfRows - 1);
     // add some rows in advance
     if (
@@ -53,7 +54,7 @@ export default class PrefetchMixin implements IMixin {
     }
 
     this.adapter.addAtBottom(this.adapter.visible.last + 1, nextLast);
-    //console.log('prefetch', visibleFirst, visibleLast + 1, '=>', nextLast, ranking.children.length);
+    // console.log('prefetch', visibleFirst, visibleLast + 1, '=>', nextLast, ranking.children.length);
     this.adapter.visible.last = nextLast;
   }
 
@@ -61,12 +62,12 @@ export default class PrefetchMixin implements IMixin {
     this.prefetchTimeout = -1;
     if (
       this.adapter.isScrollEventWaiting() ||
-      this.adapter.visible.first <= this.adapter.visible.forcedFirst - this.options.prefetchRows!
+      this.adapter.visible.first <= this.adapter.visible.forcedFirst - this.options.prefetchRows
     ) {
       return;
     }
-    const context = this.adapter.context;
-    const fakeOffset = Math.max(this.adapter.scrollOffset - this.options.prefetchRows! * context.defaultRowHeight, 0);
+    const { context } = this.adapter;
+    const fakeOffset = Math.max(this.adapter.scrollOffset - this.options.prefetchRows * context.defaultRowHeight, 0);
     const height = this.adapter.scrollTotal;
     const { first, firstRowPos } = range(
       fakeOffset,
@@ -83,7 +84,7 @@ export default class PrefetchMixin implements IMixin {
     const frozenShift = this.adapter.syncFrozen ? this.adapter.syncFrozen(first) : 0;
 
     this.adapter.addAtBeginning(first, this.adapter.visible.first - 1, frozenShift);
-    //console.log('prefetch up ', visibleFirst, '=>', first, visibleLast, ranking.children.length);
+    // console.log('prefetch up ', visibleFirst, '=>', first, visibleLast, ranking.children.length);
     this.adapter.visible.first = first;
 
     this.adapter.updateOffset(firstRowPos);
@@ -124,17 +125,18 @@ export default class PrefetchMixin implements IMixin {
       return;
     }
 
-    //console.log('cleanup top');
+    // console.log('cleanup top');
     const frozenShift = this.adapter.syncFrozen ? this.adapter.syncFrozen(newFirst) : 0;
 
     this.adapter.removeFromBeginning(this.adapter.visible.first, newFirst - 1, frozenShift);
-    const context = this.adapter.context;
-    //console.log('cleanup up ', visibleFirst, '=>', newFirst, visibleLast, ranking.children.length);
+    const { context } = this.adapter;
+    // console.log('cleanup up ', visibleFirst, '=>', newFirst, visibleLast, ranking.children.length);
     let shift = (newFirst - this.adapter.visible.first) * context.defaultRowHeight;
     if (context.exceptions.length > 0) {
-      for (let i = this.adapter.visible.first; i < newFirst; ++i) {
-        if (context.exceptionsLookup.has(i)) {
-          shift += context.exceptionsLookup.get(i)! - context.defaultRowHeight;
+      for (let i = this.adapter.visible.first; i < newFirst; i += 1) {
+        const ex = context.exceptionsLookup.get(i);
+        if (ex != null) {
+          shift += ex - context.defaultRowHeight;
         }
       }
     }
@@ -150,7 +152,7 @@ export default class PrefetchMixin implements IMixin {
     if (this.adapter.visible.last <= newLast) {
       return;
     }
-    //console.log('cleanup bottom');
+    // console.log('cleanup bottom');
     this.adapter.removeFromBottom(newLast + 1, this.adapter.visible.last);
     this.adapter.visible.last = newLast;
 
@@ -176,7 +178,7 @@ export default class PrefetchMixin implements IMixin {
     );
   }
 
-  onScrolled(isGoingDown: boolean, scrollResult: EScrollResult) {
+  onScrolled(isGoingDown: boolean, scrollResult: EScrollResult): void {
     if (this.adapter.isScrollEventWaiting()) {
       return;
     }

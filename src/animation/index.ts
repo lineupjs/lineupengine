@@ -71,7 +71,7 @@ export function noAnimationChange(
   { previous, mode, nodeY, current }: IAnimationItem,
   previousHeight: number,
   currentHeight: number
-) {
+): boolean {
   // sounds like the same
   const prev = previous.height == null ? previousHeight : previous.height;
   const curr = current.height == null ? currentHeight : current.height;
@@ -107,40 +107,55 @@ const MAX_ANIMATION_TIME = 1100;
 export const defaultPhases = [
   {
     delay: 0, // before
-    apply({ mode, previous, nodeY, current, node }: Readonly<IAnimationItem>) {
-      node.dataset.animation = EAnimationMode[mode].toLowerCase();
-      node.style.transform = `translate(0, ${previous.y - nodeY}px)`;
+    apply({ mode, previous, nodeY, current, node }: Readonly<IAnimationItem>): void {
+      const actNode = node;
+      actNode.dataset.animation = EAnimationMode[mode].toLowerCase();
+      actNode.style.transform = `translate(0, ${previous.y - nodeY}px)`;
       if (mode === EAnimationMode.SHOW) {
         // already target height
-        node.style.height = current.height !== null ? `${current.height}px` : null;
+        actNode.style.height = current.height !== null ? `${current.height}px` : null;
       } else {
         // always set previous height for default height changes
-        node.style.height = `${previous.height}px`;
+        actNode.style.height = `${previous.height}px`;
       }
-      node.style.opacity = mode === EAnimationMode.SHOW ? '0' : mode === EAnimationMode.HIDE ? '1' : null;
+      if (mode === EAnimationMode.SHOW) {
+        actNode.style.opacity = '0';
+      } else if (mode === EAnimationMode.HIDE) {
+        actNode.style.opacity = '1';
+      } else {
+        actNode.style.opacity = null;
+      }
     },
   },
   {
     delay: 10, // after some delay for the before phase have been applied visually
-    apply({ mode, current, nodeY, node }: Readonly<IAnimationItem>) {
+    apply({ mode, current, nodeY, node }: Readonly<IAnimationItem>): void {
+      const actNode = node;
       // null for added/update since already at the right position
-      node.style.transform =
+      actNode.style.transform =
         mode === EAnimationMode.HIDE || mode === EAnimationMode.UPDATE_REMOVE
           ? `translate(0, ${current.y - nodeY}px)`
           : '';
       if (mode !== EAnimationMode.HIDE) {
         // keep height for removal
-        node.style.height = current.height !== null ? `${current.height}px` : null;
+        actNode.style.height = current.height !== null ? `${current.height}px` : null;
       }
-      node.style.opacity = mode === EAnimationMode.SHOW ? '1' : mode === EAnimationMode.HIDE ? '0' : null;
+      if (mode === EAnimationMode.SHOW) {
+        actNode.style.opacity = '1';
+      } else if (mode === EAnimationMode.HIDE) {
+        actNode.style.opacity = '0';
+      } else {
+        actNode.style.opacity = null;
+      }
     },
   },
   {
     delay: MAX_ANIMATION_TIME, // cleanup
-    apply({ node }: Readonly<IAnimationItem>) {
-      delete node.dataset.animation;
-      node.style.opacity = null;
-      node.style.transform = '';
+    apply({ node }: Readonly<IAnimationItem>): void {
+      const actNode = node;
+      delete actNode.dataset.animation;
+      actNode.style.opacity = null;
+      actNode.style.transform = '';
     },
   },
 ];

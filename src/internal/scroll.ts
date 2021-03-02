@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 export declare type IDelayedMode = number | 'animation' | 'sync';
 
 export const defaultMode: IDelayedMode = 'animation'; // Boolean((<any>window).chrome) ? 'animation' : 0, // animation frame on chrome;
@@ -25,7 +26,9 @@ function dummy(): IScrollHandler {
 
 class ScrollHandler {
   private readonly sync = dummy();
+
   private readonly animation = dummy();
+
   private readonly numbers = new Map<number, IScrollHandler>();
 
   // current: IScrollInfo;
@@ -65,6 +68,7 @@ class ScrollHandler {
     if (handler.prev && Math.abs(info.left - handler.prev.left) + Math.abs(info.top - handler.prev.top) < 4) {
       return;
     }
+    // eslint-disable-next-line no-param-reassign
     handler.prev = info;
     for (const s of handler.handler) {
       s(info);
@@ -97,8 +101,10 @@ class ScrollHandler {
         return;
       }
       // eslint-disable-next-line no-restricted-globals
-      handler.timer = self.setTimeout(() => {
+      // eslint-disable-next-line no-param-reassign
+      handler.timer = setTimeout(() => {
         this.handle(handler);
+        // eslint-disable-next-line no-param-reassign
         handler.timer = -1;
       }, n);
     });
@@ -115,10 +121,9 @@ class ScrollHandler {
 
   push(mode: IDelayedMode, handler: (act: IScrollInfo) => void) {
     if (typeof mode === 'number') {
-      if (!this.numbers.has(mode)) {
-        this.numbers.set(mode, dummy());
-      }
-      this.numbers.get(mode)!.handler.push(handler);
+      const entry = this.numbers.get(mode) ?? dummy();
+      entry.handler.push(handler);
+      this.numbers.set(mode, entry);
     }
 
     switch (mode) {
@@ -150,7 +155,7 @@ class ScrollHandler {
       case 'sync':
         return false;
       default:
-        return this.numbers.has(mode) && this.numbers.get(mode)!.timer >= 0;
+        return this.numbers.get(mode)?.timer >= 0 ?? false;
     }
   }
 }
@@ -158,7 +163,11 @@ class ScrollHandler {
 /**
  * @internal
  */
-export function addScroll(scrollElement: HTMLElement, mode: IDelayedMode, handler: (act: IScrollInfo) => void) {
+export function addScroll(
+  scrollElement: HTMLElement,
+  mode: IDelayedMode,
+  handler: (act: IScrollInfo) => void
+): IScrollInfo {
   // hide in element to have just one real listener
   const c = scrollElement as HTMLElement & { __le_scroller__?: ScrollHandler };
   if (!c.__le_scroller__) {
@@ -172,7 +181,7 @@ export function addScroll(scrollElement: HTMLElement, mode: IDelayedMode, handle
 /**
  * @internal
  */
-export function isScrollEventWaiting(scroller: HTMLElement, mode: IDelayedMode) {
+export function isScrollEventWaiting(scroller: HTMLElement, mode: IDelayedMode): boolean {
   const c = scroller as HTMLElement & { __le_scroller__?: ScrollHandler };
   if (!c.__le_scroller__) {
     return false;
@@ -184,7 +193,7 @@ export function isScrollEventWaiting(scroller: HTMLElement, mode: IDelayedMode) 
 /**
  * @internal
  */
-export function removeScroll(scroller: HTMLElement, handler: (act: IScrollInfo) => void) {
+export function removeScroll(scroller: HTMLElement, handler: (act: IScrollInfo) => void): void {
   const c = scroller as HTMLElement & { __le_scroller__?: ScrollHandler };
   if (c.__le_scroller__) {
     c.__le_scroller__.remove(handler);

@@ -11,15 +11,16 @@ import {
 } from '../styles';
 import StyleManager from './StyleManager';
 
-export function setTemplate(root: HTMLElement, id: string) {
-  id = id.startsWith('#') ? id.slice(1) : id;
+export function setTemplate(root: HTMLElement, id: string): HTMLElement {
+  const cleanId = id.startsWith('#') ? id.slice(1) : id;
+  // eslint-disable-next-line no-param-reassign
   root.innerHTML = `
-  <header id="header-${id}" class="${CSS_CLASS_HEADER} ${cssClass(`header-${id}`)}">
-    <article class="${CSS_CLASS_THEAD} ${cssClass(`thead-${id}`)}"></article>
+  <header id="header-${cleanId}" class="${CSS_CLASS_HEADER} ${cssClass(`header-${cleanId}`)}">
+    <article class="${CSS_CLASS_THEAD} ${cssClass(`thead-${cleanId}`)}"></article>
   </header>
-  <main id="body-${id}" class="${CSS_CLASS_BODY} ${cssClass(`body-${id}`)}">
+  <main id="body-${cleanId}" class="${CSS_CLASS_BODY} ${cssClass(`body-${cleanId}`)}">
     <footer class="${CSS_CLASS_FOOTER}">&nbsp;</footer>
-    <article class="${CSS_CLASS_TBODY} ${cssClass(`tbody-${id}`)}"></article>
+    <article class="${CSS_CLASS_TBODY} ${cssClass(`tbody-${cleanId}`)}"></article>
   </main>`;
   return root;
 }
@@ -51,7 +52,7 @@ interface ISelectors {
  * @param {boolean} asSelector flag whether to prepend with # for CSS selector
  * @return {ISelectors} the table ids used for header and body
  */
-export function tableIds(tableId: string) {
+export function tableIds(tableId: string): { thead: string; tbody: string; tr: string; th: string; td: string } {
   return {
     thead: `thead-${tableId}`,
     tbody: `tbody-${tableId}`,
@@ -61,7 +62,7 @@ export function tableIds(tableId: string) {
   };
 }
 
-export function tableCSSClasses(tableId: string) {
+export function tableCSSClasses(tableId: string): { thead: string; tbody: string; tr: string; th: string; td: string } {
   const ids = tableIds(tableId);
   return {
     thead: cssClass(ids.thead),
@@ -79,6 +80,7 @@ export default class GridStyleManager extends StyleManager {
   readonly id: string;
 
   readonly ids: ISelectors;
+
   readonly cssClasses: ISelectors;
 
   constructor(root: HTMLElement, id: string) {
@@ -106,7 +108,8 @@ export default class GridStyleManager extends StyleManager {
     addScroll(bodyScroller, 'animation', (act) => {
       const newValue = act.left;
       if (old !== newValue) {
-        old = headerScroller.scrollLeft = newValue;
+        headerScroller.scrollLeft = newValue;
+        old = newValue;
       }
       root.classList.toggle(CSS_CLASS_SHIFTED, act.left > 0);
     });
@@ -127,7 +130,7 @@ export default class GridStyleManager extends StyleManager {
     frozenShift: number,
     tableId: string,
     unit = 'px'
-  ) {
+  ): void {
     const ids = tableIds(tableId);
     const selectors = tableCSSClasses(tableId);
 
@@ -149,7 +152,7 @@ export default class GridStyleManager extends StyleManager {
    * removes a given tableId if not needed anymore
    * @param {string} tableId tableId to remove
    */
-  remove(tableId: string) {
+  remove(tableId: string): void {
     const selectors = tableCSSClasses(tableId);
     this.deleteRule(`__heightsRule${selectors.tr}`);
     this.deleteRule(`__heightsRule${selectors.tbody}`);
@@ -157,7 +160,7 @@ export default class GridStyleManager extends StyleManager {
     const prefix = `__col${selectors.td}_`;
     const rules = this.ruleNames.reduce((a, b) => a + (b.startsWith(prefix) ? 1 : 0), 0);
     // reset
-    for (let i = 0; i < rules; ++i) {
+    for (let i = 0; i < rules; i += 1) {
       this.deleteRule(`${prefix}${i}`);
     }
   }
@@ -168,7 +171,7 @@ export default class GridStyleManager extends StyleManager {
     cssSelectors: ISelectors,
     frozenShift: number,
     unit = 'px'
-  ) {
+  ): void {
     const prefix = `__col${cssSelectors.td}_`;
     const rules = new Set(this.ruleNames.filter((d) => d.startsWith(prefix)));
 
@@ -210,14 +213,12 @@ export default class GridStyleManager extends StyleManager {
  * @param root
  */
 function measureScrollbar(root: HTMLElement) {
-  const body = root.ownerDocument!.body;
-  body.insertAdjacentHTML(
-    'beforeend',
-    `
-    <div class="${CSS_CLASS_SCROLLBAR_TESTER}"><div></div></div>
-  `
-  );
-  const elem = body.lastElementChild! as HTMLElement;
+  const body = root.ownerDocument?.body;
+  if (!body) {
+    return { width: 10, height: 10 };
+  }
+  body.insertAdjacentHTML('beforeend', `<div class="${CSS_CLASS_SCROLLBAR_TESTER}"><div></div></div>`);
+  const elem = body.lastElementChild as HTMLElement;
 
   const width = elem.offsetWidth - elem.clientWidth;
   const height = elem.offsetHeight - elem.clientHeight;

@@ -1,5 +1,5 @@
-export function isPromiseLike(p: PromiseLike<any> | any): p is PromiseLike<any> {
-  return p != null && p && typeof p.then === 'function';
+export function isPromiseLike(p: PromiseLike<unknown> | unknown): p is PromiseLike<unknown> {
+  return p != null && p && typeof (p as PromiseLike<unknown>).then === 'function';
 }
 
 /**
@@ -8,7 +8,7 @@ export function isPromiseLike(p: PromiseLike<any> | any): p is PromiseLike<any> 
 export interface IAbortAblePromiseBase<T> extends PromiseLike<T> {
   then<TResult1 = T, TResult2 = never>(
     onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null,
-    onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null
+    onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | undefined | null
   ): IAbortAblePromiseBase<TResult1 | TResult2>;
   /**
    * abort the promise when possible
@@ -42,11 +42,12 @@ export const ABORTED = Symbol('aborted');
 function thenFactory<T>(loader: PromiseLike<T | symbol>, isAborted: () => boolean, abort: () => void) {
   function then<TResult1 = T | symbol, TResult2 = never>(
     onfulfilled?: ((value: T | symbol) => TResult1 | PromiseLike<TResult1>) | undefined | null,
-    _onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null
+    _onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | undefined | null
   ): IAbortAblePromiseBase<TResult1 | TResult2> {
     const fullfiller = loader.then((loaded) => {
       const loadedOrAborted = isAborted() ? ABORTED : loaded;
-      const res = onfulfilled ? onfulfilled(loadedOrAborted) : (loadedOrAborted as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const res = onfulfilled ? onfulfilled(loadedOrAborted) : ((loadedOrAborted as unknown) as any);
 
       if (isPromiseLike(res)) {
         return res.then((r) => {
@@ -72,7 +73,9 @@ function thenFactory<T>(loader: PromiseLike<T | symbol>, isAborted: () => boolea
 export default function abortAble<T>(loader: PromiseLike<T>): IAAP<T> {
   let aborted: ((v: symbol) => void) | null = null;
   const isAborted = () => aborted === null;
-  const aborter = new Promise<symbol>((resolve) => (aborted = resolve));
+  const aborter = new Promise<symbol>((resolve) => {
+    aborted = resolve;
+  });
   const abort = () => {
     if (aborted == null) {
       return;
@@ -94,7 +97,7 @@ export function abortAbleFetch(input: RequestInfo, init?: RequestInit): IAAP<Res
   const controller = new AbortController();
 
   const race = new Promise<Response | symbol>((resolve, reject) => {
-    const r = fetch(input, Object.assign({ signal: controller.signal }, init || {}));
+    const r = fetch(input, { signal: controller.signal, ...(init || {}) });
     r.then(resolve);
     r.catch((error) => {
       if (error instanceof DOMException) {
@@ -173,11 +176,13 @@ export function abortAbleAll<T>(values: (T | IAAP<T>)[]): IAAP<T[]>;
 /**
  * similar to Promise.all but for abortAble
  */
-export function abortAbleAll(values: any[]): IAAP<any[]> {
+export function abortAbleAll(values: unknown[]): IAAP<unknown[]> {
   const loader = Promise.all(values);
   let aborted: ((v: symbol) => void) | null = null;
   const isAborted = () => aborted === null;
-  const aborter = new Promise<symbol>((resolve) => (aborted = resolve));
+  const aborter = new Promise<symbol>((resolve) => {
+    aborted = resolve;
+  });
   const abort = () => {
     if (aborted == null) {
       return;
@@ -190,10 +195,11 @@ export function abortAbleAll(values: any[]): IAAP<any[]> {
     }
     aborted = null;
   };
-  const race = Promise.race<any | symbol>([aborter, loader]);
+  const race = Promise.race<unknown | symbol>([aborter, loader]);
 
   return {
-    then: thenFactory(race, isAborted, abort),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    then: thenFactory(race, isAborted, abort) as any,
     abort,
     isAborted,
   };
@@ -201,12 +207,15 @@ export function abortAbleAll(values: any[]): IAAP<any[]> {
 
 /**
  * checked whether the given argument is an abortable Promise
- * @param {IAbortAblePromise<any> | any} abortAble
+ * @param {IAbortAblePromise<any> | any} candidate
  * @returns {boolean}
  */
-export function isAbortAble(abortAble: IAbortAblePromise<any> | any): abortAble is IAbortAblePromise<any> {
+export function isAbortAble<T = unknown>(candidate: IAbortAblePromise<T> | T): candidate is IAbortAblePromise<T> {
   return (
-    abortAble != null && abortAble && typeof abortAble.then === 'function' && typeof abortAble.abort === 'function'
+    candidate != null &&
+    candidate &&
+    typeof (candidate as IAbortAblePromise<unknown>).then === 'function' &&
+    typeof (candidate as IAbortAblePromise<unknown>).abort === 'function'
   );
 }
 
@@ -217,19 +226,20 @@ export function isAsyncUpdate<T>(update: T | void | undefined | null | IAsyncUpd
 /**
  * similar to Promise.resolve
  */
-export function abortAbleResolveNow<T>(value: T) {
+export function abortAbleResolveNow<T>(value: T): IAAP<T> {
   function then<TResult1 = T | symbol, TResult2 = never>(
     onfulfilled?: ((value: T | symbol) => TResult1 | PromiseLike<TResult1>) | undefined | null,
-    _onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null
+    _onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | undefined | null
   ): IAbortAblePromiseBase<TResult1 | TResult2> {
-    const res = onfulfilled ? onfulfilled(value) : (value as any);
+    const res = onfulfilled ? onfulfilled(value) : (value as unknown);
     if (isAbortAble(res)) {
-      return res;
+      return (res as unknown) as IAbortAblePromiseBase<TResult1 | TResult2>;
     }
     if (isPromiseLike(res)) {
-      return abortAble(res);
+      return (abortAble(res) as unknown) as IAbortAblePromiseBase<TResult1 | TResult2>;
     }
     return {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       then: abortAbleResolveNow(res as TResult1) as any,
       abort: () => undefined,
       isAborted: () => false,

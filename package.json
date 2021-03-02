@@ -70,6 +70,7 @@
     "@yarnpkg/pnpify": "^2.4.0",
     "css-loader": "^5.0.2",
     "eslint": "^7.20.0",
+    "eslint-config-airbnb-typescript": "^12.3.1",
     "eslint-config-prettier": "^8.1.0",
     "eslint-config-react-app": "^6.0.0",
     "eslint-plugin-flowtype": "^5.3.1",

@@ -10,12 +10,13 @@ interface ICSSRule {
   style: Partial<CSSStyleDeclaration>;
 }
 
-function assignStyles(target: any, source: any) {
+function assignStyles(target: CSSStyleDeclaration, source: Record<string, unknown>) {
   for (const key of Object.keys(source)) {
     const v = source[key] as string;
 
     if (!v.endsWith(' !important')) {
       if (target[key] !== v) {
+        // eslint-disable-next-line no-param-reassign
         target[key] = v;
       }
       continue;
@@ -26,6 +27,7 @@ function assignStyles(target: any, source: any) {
     if (target[key] === plain) {
       continue;
     }
+    // eslint-disable-next-line no-param-reassign
     target[key] = plain;
     // see https://gist.github.com/youssman/745578062609e8acac9f
     const hyphen = key.replace(/([a-zA-Z])(?=[A-Z])/g, '$1-').toLowerCase();
@@ -35,6 +37,7 @@ function assignStyles(target: any, source: any) {
 
 export default class StyleManager {
   private readonly rules: ICSSRule[] = [];
+
   private readonly node: HTMLStyleElement;
 
   private testVerifyTimeout = -1;
@@ -44,17 +47,17 @@ export default class StyleManager {
    * @param {HTMLElement} root
    */
   constructor(root: HTMLElement) {
-    this.node = root.ownerDocument!.createElement('style');
-    this.node.appendChild(root.ownerDocument!.createTextNode('')); // for webkit?
+    this.node = root.ownerDocument.createElement('style');
+    this.node.appendChild(root.ownerDocument.createTextNode('')); // for webkit?
     root.appendChild(this.node);
   }
 
-  destroy() {
+  destroy(): void {
     this.node.remove();
   }
 
   private verifySheet() {
-    const sheet = this.sheet;
+    const { sheet } = this;
     if (!sheet) {
       if (this.testVerifyTimeout >= 0) {
         return;
@@ -76,10 +79,10 @@ export default class StyleManager {
       return;
     }
 
-    console.warn('invalid sheet rules detected');
+    // console.warn('invalid sheet rules detected');
 
     const l = rules.length;
-    for (let i = 0; i < l; ++i) {
+    for (let i = 0; i < l; i += 1) {
       sheet.deleteRule(i);
     }
 
@@ -97,7 +100,7 @@ export default class StyleManager {
   }
 
   private getSheetRule(index: number) {
-    const sheet = this.sheet;
+    const { sheet } = this;
     return sheet ? (sheet.cssRules[index] as CSSStyleRule) : null;
   }
 
@@ -108,9 +111,9 @@ export default class StyleManager {
    * @param {Partial<CSSStyleDeclaration>} style the style attributes
    * @returns {string} the id again
    */
-  addRule(id: string, selector: string, style: Partial<CSSStyleDeclaration>) {
+  addRule(id: string, selector: string, style: Partial<CSSStyleDeclaration>): string {
     this.verifySheet();
-    const sheet = this.sheet;
+    const { sheet } = this;
     if (!sheet) {
       // upon next update
       this.rules.push({ id, selector, style });
@@ -130,7 +133,7 @@ export default class StyleManager {
    * @param {Partial<CSSStyleDeclaration>} style the style attributes
    * @returns {string} the id again
    */
-  updateRule(id: string, selector: string, style: Partial<CSSStyleDeclaration>) {
+  updateRule(id: string, selector: string, style: Partial<CSSStyleDeclaration>): string {
     this.verifySheet();
     const index = this.rules.findIndex((d) => d.id === id);
     if (index < 0) {
@@ -143,7 +146,7 @@ export default class StyleManager {
     const rule = this.getSheetRule(index);
     if (rule) {
       if (rule.selectorText.replace(/\s/gm, '') !== selector.replace(/\s/gm, '')) {
-        //ignoring white space
+        // ignoring white space
         rule.selectorText = selector;
         stored.selector = rule.selectorText;
       }
@@ -156,14 +159,14 @@ export default class StyleManager {
    * deletes the given rule by id
    * @param {string} id the rule to delete
    */
-  deleteRule(id: string) {
+  deleteRule(id: string): void {
     this.verifySheet();
     const index = this.rules.findIndex((d) => d.id === id);
     if (index < 0) {
       return;
     }
     this.rules.splice(index, 1);
-    const sheet = this.sheet;
+    const { sheet } = this;
     if (sheet) {
       sheet.deleteRule(index);
     }
@@ -171,9 +174,8 @@ export default class StyleManager {
 
   /**
    * get a list of all registered rule ids
-   * @returns {string[]}
    */
-  protected get ruleNames() {
+  protected get ruleNames(): string[] {
     return this.rules.map((d) => d.id);
   }
 }

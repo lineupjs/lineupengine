@@ -24,7 +24,7 @@ import {
 
 export declare type IRowRenderContext = IExceptionContext;
 
-export function isLoadingCell(node: HTMLElement) {
+export function isLoadingCell(node: HTMLElement): boolean {
   return node.classList.contains(CSS_CLASS_LOADING);
 }
 
@@ -77,7 +77,9 @@ export interface IRowRendererOptions {
  */
 export abstract class ARowRenderer {
   private readonly pool: HTMLElement[] = [];
+
   private readonly loadingPool: HTMLElement[] = [];
+
   private readonly loading = new WeakMap<HTMLElement, IAbortAblePromise<void>>();
 
   private readonly fragment: DocumentFragment;
@@ -91,6 +93,7 @@ export abstract class ARowRenderer {
     last: -1,
     forcedLast: -1,
   };
+
   /**
    * position of the first visible row in pixel
    * @type {number}
@@ -98,8 +101,11 @@ export abstract class ARowRenderer {
   protected visibleFirstRowPos = 0;
 
   private readonly adapter: IMixinAdapter;
+
   private readonly mixins: IMixin[];
+
   private scrollListener: ((act: IScrollInfo) => void) | null = null;
+
   protected lastScrollInfo: IScrollInfo | null = null;
 
   private abortAnimation: () => void = () => undefined;
@@ -117,58 +123,53 @@ export abstract class ARowRenderer {
   constructor(protected readonly body: HTMLElement, options: Partial<IRowRendererOptions> = {}) {
     this.adapter = this.createAdapter();
     Object.assign(this.options, options);
-    this.mixins = this.options.mixins.map((mixinClass) => new mixinClass(this.adapter));
+    this.mixins = this.options.mixins.map((MixinClass) => new MixinClass(this.adapter));
 
-    this.fragment = body.ownerDocument!.createDocumentFragment();
+    this.fragment = body.ownerDocument.createDocumentFragment();
   }
 
   protected abstract get idPrefix(): string;
 
   /**
    * register another mixin to this renderer
-   * @param {IMixinClass} mixinClass the mixin class to instantiate
+   * @param {IMixinClass} MixinClass the mixin class to instantiate
    * @param options optional constructor options
    */
-  protected addMixin(mixinClass: IMixinClass, options?: any) {
-    this.mixins.push(new mixinClass(this.adapter, options));
+  protected addMixin(MixinClass: IMixinClass, options?: unknown): void {
+    this.mixins.push(new MixinClass(this.adapter, options));
   }
 
   private createAdapter(): IMixinAdapter {
-    const r: any = {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const that = this;
+    return {
       visible: this.visible,
-      addAtBeginning: this.addAtBeginning.bind(this),
+      addAtBeginning: (from, to) => this.addAtBeginning(from, to),
       addAtBottom: this.addAtBottom.bind(this),
-      removeFromBeginning: this.removeFromBeginning.bind(this),
+      removeFromBeginning: (from, to) => this.removeFromBeginning(from, to),
       removeFromBottom: this.removeFromBottom.bind(this),
       updateOffset: this.updateOffset.bind(this),
       isScrollEventWaiting: () => isScrollEventWaiting(this.bodyScroller, this.options.async),
+      get visibleFirstRowPos() {
+        return that.visibleFirstRowPos;
+      },
+      get context() {
+        return that.context;
+      },
+      get scrollOffset() {
+        return that.lastScrollInfo ? that.lastScrollInfo.top : 0;
+      },
+      get scrollTotal() {
+        return this.lastScrollInfo ? this.lastScrollInfo.height : this.bodyScroller.clientHeight;
+      },
     };
-    Object.defineProperties(r, {
-      visibleFirstRowPos: {
-        get: () => this.visibleFirstRowPos,
-        enumerable: true,
-      },
-      context: {
-        get: () => this.context,
-        enumerable: true,
-      },
-      scrollOffset: {
-        get: () => (this.lastScrollInfo ? this.lastScrollInfo.top : 0),
-        enumerable: true,
-      },
-      scrollTotal: {
-        get: () => (this.lastScrollInfo ? this.lastScrollInfo.height : this.bodyScroller.clientHeight),
-        enumerable: true,
-      },
-    });
-    return r;
   }
 
   /**
    * get the scrolling container i.e. parent of the body element
    * @returns {HTMLElement}
    */
-  protected get bodyScroller() {
+  protected get bodyScroller(): HTMLElement {
     return this.body.parentElement as HTMLElement;
   }
 
@@ -178,7 +179,7 @@ export abstract class ARowRenderer {
     if (sizer) {
       return sizer;
     }
-    const s = parent.ownerDocument!.createElement('footer');
+    const s = parent.ownerDocument.createElement('footer');
     s.classList.add(CSS_CLASS_FOOTER, cssClass(`footer-${this.idPrefix}`));
     parent.insertBefore(s, parent.firstChild);
     return s;
@@ -210,7 +211,7 @@ export abstract class ARowRenderer {
    * initializes the table and register the onscroll listener
    * @returns {void} nothing
    */
-  protected init() {
+  protected init(): void {
     const scroller = this.bodyScroller;
 
     let old = addScroll(
@@ -241,29 +242,31 @@ export abstract class ARowRenderer {
   /**
    * destroys this renderer and unregisters all event listeners
    */
-  destroy() {
-    removeScroll(this.bodyScroller, this.scrollListener!);
+  destroy(): void {
+    removeScroll(this.bodyScroller, this.scrollListener);
     this.body.remove();
   }
 
   private static cleanUp(item: HTMLElement) {
+    // eslint-disable-next-line no-param-reassign
     item.style.height = null;
   }
 
   private select(index: number): { item: HTMLElement; result: IAbortAblePromise<void> | void } {
-    let item: HTMLElement;
+    let item: HTMLElement = this.pool.pop();
     let result: IAbortAblePromise<void> | void;
-    if (this.pool.length > 0) {
-      item = this.pool.pop()!;
+    if (item != null) {
       result = this.updateRow(item, index);
-    } else if (this.loadingPool.length > 0) {
-      item = this.loadingPool.pop()!;
-      item.classList.remove(CSS_CLASS_LOADING);
-      result = this.createRow(item, index);
     } else {
-      item = this.body.ownerDocument!.createElement('div');
-      item.classList.add(CSS_CLASS_TR, cssClass(`tr-${this.idPrefix}`));
-      result = this.createRow(item, index);
+      item = this.loadingPool.pop();
+      if (item != null) {
+        item.classList.remove(CSS_CLASS_LOADING);
+        result = this.createRow(item, index);
+      } else {
+        item = this.body.ownerDocument.createElement('div');
+        item.classList.add(CSS_CLASS_TR, cssClass(`tr-${this.idPrefix}`));
+        result = this.createRow(item, index);
+      }
     }
     item.dataset.index = String(index);
     if (this.options.striped) {
@@ -273,11 +276,9 @@ export abstract class ARowRenderer {
   }
 
   private selectProxy() {
-    let proxy: HTMLElement;
-    if (this.loadingPool.length > 0) {
-      proxy = this.loadingPool.pop()!;
-    } else {
-      proxy = this.body.ownerDocument!.createElement('div');
+    let proxy = this.loadingPool.pop();
+    if (proxy == null) {
+      proxy = this.body.ownerDocument.createElement('div');
       proxy.classList.add(CSS_CLASS_LOADING, CSS_CLASS_TR, cssClass(`tr-${this.idPrefix}`));
     }
     return proxy;
@@ -286,8 +287,8 @@ export abstract class ARowRenderer {
   private recycle(item: HTMLElement) {
     ARowRenderer.cleanUp(item);
     // check if the original dom element is still being manipulated
-    if (this.loading.has(item)) {
-      const abort = this.loading.get(item)!;
+    const abort = this.loading.get(item);
+    if (abort != null) {
       abort.abort();
     } else {
       this.pool.push(item);
@@ -299,7 +300,7 @@ export abstract class ARowRenderer {
       return item;
     }
     const abort = result;
-    //lazy loading
+    // lazy loading
 
     const real = item;
     const proxy = this.selectProxy();
@@ -309,13 +310,13 @@ export abstract class ARowRenderer {
 
     this.loading.set(proxy, abort);
     abort.then(
-      (result) => {
-        if (result === ABORTED) {
-          //aborted can recycle the real one
+      (abortResult) => {
+        if (abortResult === ABORTED) {
+          // aborted can recycle the real one
           ARowRenderer.cleanUp(real);
           this.pool.push(real);
         } else {
-          //fully loaded
+          // fully loaded
           this.body.replaceChild(real, proxy);
         }
         this.loading.delete(proxy);
@@ -324,7 +325,7 @@ export abstract class ARowRenderer {
       },
       () => {
         // handle as aborted
-        //aborted can recycle the real one
+        // aborted can recycle the real one
         ARowRenderer.cleanUp(real);
         this.pool.push(real);
 
@@ -340,8 +341,9 @@ export abstract class ARowRenderer {
     const { item, result } = this.select(index);
 
     const { exceptionsLookup: ex, padding } = this.context;
-    if (ex.has(index)) {
-      item.style.height = `${ex.get(index)! - padding(index)}px`;
+    const exceptionHeight = ex.get(index);
+    if (exceptionHeight != null) {
+      item.style.height = `${exceptionHeight - padding(index)}px`;
     }
 
     return this.proxy(item, result);
@@ -365,9 +367,9 @@ export abstract class ARowRenderer {
   /**
    * triggers and visual update of all visible rows
    */
-  protected update() {
-    const first = this.visible.first;
-    const fragment = this.fragment;
+  protected update(): void {
+    const { first } = this.visible;
+    const { fragment } = this;
     const items = Array.from(this.body.children) as HTMLElement[];
     clear(this.body);
     items.forEach((item: HTMLElement, i) => {
@@ -386,24 +388,24 @@ export abstract class ARowRenderer {
   /**
    * utility to execute a function for each visible row
    * @param {(row: HTMLElement, rowIndex: number) => void} callback callback to execute
-   * @param {boolean} inplace whether the DOM changes should be performed inplace instead of in a fragment
+   * @param {boolean} inPlace whether the DOM changes should be performed in place instead of in a fragment
    */
-  protected forEachRow(callback: (row: HTMLElement, rowIndex: number) => void, inplace = false) {
+  protected forEachRow(callback: (row: HTMLElement, rowIndex: number) => void, inPlace = false): void {
     const rows = Array.from(this.body.children) as HTMLElement[];
-    const fragment = this.fragment;
-    if (!inplace) {
+    const { fragment } = this;
+    if (!inPlace) {
       clear(this.body);
     }
     rows.forEach((row: HTMLElement, index) => {
       if (!isLoadingCell(row) && row.dataset.animation !== 'update_remove' && row.dataset.animation !== 'hide') {
-        //skip loading ones and temporary ones
+        // skip loading ones and temporary ones
         callback(row, index + this.visible.first);
       }
-      if (!inplace) {
+      if (!inPlace) {
         fragment.appendChild(row);
       }
     });
-    if (!inplace) {
+    if (!inPlace) {
       this.body.appendChild(fragment);
     }
   }
@@ -424,7 +426,7 @@ export abstract class ARowRenderer {
     const toRecycle: HTMLElement[] = [];
     // console.log('remove', fromBeginning, (to - from) + 1, this.body.childElementCount - ((to - from) + 1));
     let act = (fromBeginning ? b.firstChild : b.lastChild) as HTMLElement;
-    for (let i = from; i <= to; ++i) {
+    for (let i = from; i <= to; i += 1) {
       const item = act;
       act = (fromBeginning ? act.nextSibling : act.previousSibling) as HTMLElement;
 
@@ -442,12 +444,12 @@ export abstract class ARowRenderer {
       return null;
     }
     // console.log('add', (to - from) + 1, this.body.childElementCount + ((to - from) + 1));
-    const fragment = this.fragment;
+    const { fragment } = this;
     if (from === to && perform) {
       this.body.insertBefore(this.create(from), this.body.firstChild);
       return null;
     }
-    for (let i = from; i <= to; ++i) {
+    for (let i = from; i <= to; i += 1) {
       fragment.appendChild(this.create(i));
     }
     if (perform) {
@@ -465,8 +467,8 @@ export abstract class ARowRenderer {
       this.body.appendChild(this.create(from));
       return null;
     }
-    const fragment = this.fragment;
-    for (let i = from; i <= to; ++i) {
+    const { fragment } = this;
+    for (let i = from; i <= to; i += 1) {
       fragment.appendChild(this.create(i));
     }
     if (perform) {
@@ -475,13 +477,13 @@ export abstract class ARowRenderer {
     return fragment;
   }
 
-  protected updateOffset(firstRowPos: number) {
+  protected updateOffset(firstRowPos: number): void {
     this.visibleFirstRowPos = firstRowPos;
 
     this.updateSizer(firstRowPos);
   }
 
-  protected updateSizer(firstRowPos: number) {
+  protected updateSizer(firstRowPos: number): void {
     const { totalHeight } = this.context;
     setTransform(this.body, 0, firstRowPos.toFixed(0));
     setTransform(this.bodySizer, 0, Math.max(0, totalHeight - 1).toFixed(0));
@@ -492,7 +494,7 @@ export abstract class ARowRenderer {
    * @param {IAnimationContext} ctx optional animation context to create a transition between the previous and the current tables
    * @returns {void} nothing
    */
-  protected recreate(ctx?: IAnimationContext) {
+  protected recreate(ctx?: IAnimationContext): void {
     this.abortAnimation();
     if (ctx) {
       return this.recreateAnimated(ctx);
@@ -501,11 +503,11 @@ export abstract class ARowRenderer {
   }
 
   private recreatePure() {
-    const context = this.context;
+    const { context } = this;
 
     const scroller = this.bodyScroller;
 
-    //update first to avoid resetting scrollTop
+    // update first to avoid resetting scrollTop
     this.updateOffset(0);
 
     this.removeAll();
@@ -519,8 +521,10 @@ export abstract class ARowRenderer {
       context.numberOfRows
     );
 
-    this.visible.first = this.visible.forcedFirst = first;
-    this.visible.last = this.visible.forcedLast = last;
+    this.visible.first = first;
+    this.visible.forcedFirst = first;
+    this.visible.last = last;
+    this.visible.forcedLast = last;
 
     if (first < 0) {
       // empty
@@ -545,8 +549,8 @@ export abstract class ARowRenderer {
 
     {
       const rows = Array.from(this.body.children) as HTMLElement[];
-      const old = Object.assign({}, this.visible);
-      //store the current rows in a lookup and clear
+      const old = { ...this.visible };
+      // store the current rows in a lookup and clear
 
       clear(this.body);
 
@@ -558,14 +562,16 @@ export abstract class ARowRenderer {
         }
         // else {
         //  console.error(i, key, pos, rows);
-        //}
+        // }
       });
     }
 
-    this.visible.first = this.visible.forcedFirst = next.first;
-    this.visible.last = this.visible.forcedLast = next.last;
+    this.visible.first = next.first;
+    this.visible.forcedFirst = next.first;
+    this.visible.last = next.last;
+    this.visible.forcedLast = next.last;
 
-    const fragment = this.fragment;
+    const { fragment } = this;
     const animation: IAnimationItem[] = [];
 
     let nodeY = next.firstRowPos;
@@ -577,9 +583,9 @@ export abstract class ARowRenderer {
         y: number;
         height: number | null;
       };
-      if (lookup.has(key)) {
+      const item = lookup.get(key);
+      if (item != null) {
         // still visible
-        const item = lookup.get(key)!;
         lookup.delete(key);
 
         // update height
@@ -618,7 +624,7 @@ export abstract class ARowRenderer {
         },
       });
       node.style.transform = `translate(0, ${nodeY - pos}px)`;
-      nodeY += previous.height! + (previous.index < 0 ? cur.padding(i) : prev.padding(previous.index));
+      nodeY += previous.height + (previous.index < 0 ? cur.padding(i) : prev.padding(previous.index));
 
       fragment.appendChild(node);
     });
@@ -658,8 +664,8 @@ export abstract class ARowRenderer {
         },
       });
       nodeYCurrentHeight +=
-        r.index < 0 ? cur.context.defaultRowHeight : cur.exceptionHeightOf(r.index, true)! + cur.padding(r.index);
-      nodeY += prevHeight! + prev.padding(item.i);
+        r.index < 0 ? cur.context.defaultRowHeight : cur.exceptionHeightOf(r.index, true) + cur.padding(r.index);
+      nodeY += prevHeight + prev.padding(item.i);
     });
 
     this.updateOffset(next.firstRowPos);
@@ -674,27 +680,29 @@ export abstract class ARowRenderer {
     currentFinder: KeyFinder,
     fragment: DocumentFragment
   ) {
-    if (animation.length <= 0) {
+    let activeAnimation = animation;
+    if (activeAnimation.length <= 0) {
       this.body.appendChild(fragment);
       return;
     }
 
-    let currentTimer: any = -1;
+    let currentTimer = -1;
     let actPhase = 0;
 
-    const executePhase = (phase: IPhase, items = animation) => {
+    const executePhase = (phase: IPhase, items = activeAnimation) => {
       items.forEach((anim) => phase.apply(anim, previousFinder, currentFinder));
     };
 
     const run = () => {
-      //dummy log for forcing dom update
-      console.assert(animation[0]!.node.offsetTop >= 0, 'dummy log for forcing dom update');
-      executePhase(phases[actPhase++]);
-
+      // dummy log for forcing dom update
+      // eslint-disable-next-line no-console
+      console.assert(activeAnimation[0].node.offsetTop >= 0, 'dummy log for forcing dom update');
+      executePhase(phases[actPhase]);
+      actPhase += 1;
       // shifted by one since already added through ++
       if (actPhase < phases.length) {
         // schedule the next one
-        const next = phases[actPhase]!;
+        const next = phases[actPhase];
         // eslint-disable-next-line no-restricted-globals
         currentTimer = self.setTimeout(run, next.delay);
         return;
@@ -708,11 +716,12 @@ export abstract class ARowRenderer {
         }
       });
       // clean up
-      animation.forEach(({ node, mode }) => {
+      activeAnimation.forEach(({ node, mode }) => {
         if (mode !== EAnimationMode.UPDATE_REMOVE && mode !== EAnimationMode.HIDE) {
           return;
         }
         node.remove();
+        // eslint-disable-next-line no-param-reassign
         node.style.transform = '';
         this.recycle(node);
       });
@@ -722,14 +731,15 @@ export abstract class ARowRenderer {
 
     // execute all phases having a delay of zero
     while (phases[actPhase].delay === 0) {
-      executePhase(phases[actPhase++]);
+      executePhase(phases[actPhase]);
+      actPhase += 1;
     }
     // after the initial one
-    const body = this.body;
+    const { body } = this;
     this.body.appendChild(fragment);
 
     const dummyAnimation: IAnimationItem[] = [];
-    animation = animation.filter((d) => {
+    activeAnimation = activeAnimation.filter((d) => {
       if (noAnimationChange(d, previousFinder.context.defaultRowHeight, currentFinder.context.defaultRowHeight)) {
         dummyAnimation.push(d);
         return false;
@@ -742,12 +752,12 @@ export abstract class ARowRenderer {
       phases.slice(actPhase).forEach((phase) => executePhase(phase, dummyAnimation));
     }
 
-    if (animation.length === 0) {
+    if (activeAnimation.length === 0) {
       return;
     }
 
     body.classList.add(CSS_CLASS_ROW_ANIMATION);
-    new Set(animation.map((d) => d.mode)).forEach((mode) => {
+    new Set(activeAnimation.map((d) => d.mode)).forEach((mode) => {
       // add class but map to UPDATE only
       body.classList.add(cssClass(`${EAnimationMode[mode].toLowerCase().split('_')[0]}-animation`));
     });
@@ -772,7 +782,7 @@ export abstract class ARowRenderer {
   /**
    * clears the row pool used for faster creation
    */
-  protected clearPool() {
+  protected clearPool(): void {
     // clear pool
     this.pool.splice(0, this.pool.length);
   }
@@ -780,7 +790,7 @@ export abstract class ARowRenderer {
   /**
    * triggers a revalidation of the current scrolling offset
    */
-  protected revalidate() {
+  protected revalidate(): void {
     const scroller = this.bodyScroller;
     this.onScrolledVertically(scroller.scrollTop, scroller.clientHeight, true);
     this.updateOffset(this.visibleFirstRowPos);
@@ -823,18 +833,14 @@ export abstract class ARowRenderer {
 
     const { exceptionsLookup, defaultRowHeight } = this.context;
     let firstRowPos = currentFirstRow;
-    for (let i = first; i < current; ++i) {
-      if (exceptionsLookup.has(i)) {
-        firstRowPos -= exceptionsLookup.get(i)!;
-      } else {
-        firstRowPos -= defaultRowHeight;
-      }
+    for (let i = first; i < current; i += 1) {
+      firstRowPos -= exceptionsLookup.get(i) ?? defaultRowHeight;
     }
     return { first, firstRowPos };
   }
 
   private onScrolledImpl(scrollTop: number, clientHeight: number): EScrollResult {
-    const context = this.context;
+    const { context } = this;
     let { first, last, firstRowPos } = range(
       scrollTop,
       clientHeight,
@@ -843,36 +849,36 @@ export abstract class ARowRenderer {
       context.numberOfRows
     );
 
-    const visible = this.visible;
+    const { visible } = this;
     visible.forcedFirst = first;
     visible.forcedLast = last;
 
     if (first - visible.first >= 0 && last - visible.last <= 0) {
-      //nothing to do
+      // nothing to do
       return EScrollResult.NONE;
     }
 
     let r: EScrollResult = EScrollResult.SOME;
 
-    let torecycle: HTMLElement[] | undefined;
+    let toRecycle: HTMLElement[] | undefined;
     let toAdd: DocumentFragment | undefined;
     let toAddBottom = false;
 
     if (first > visible.last || last < visible.first) {
-      //no overlap, clean and draw everything
-      //console.log(`ff added: ${last - first + 1} removed: ${visibleLast - visibleFirst + 1} ${first}:${last} ${offset}`);
-      //removeRows(visibleFirst, visibleLast);
+      // no overlap, clean and draw everything
+      // console.log(`ff added: ${last - first + 1} removed: ${visibleLast - visibleFirst + 1} ${first}:${last} ${offset}`);
+      // removeRows(visibleFirst, visibleLast);
 
-      torecycle = this.removeAll(false);
+      toRecycle = this.removeAll(false);
       toAdd = this.addAtBottom(first, last, false);
       toAddBottom = true;
       r = EScrollResult.ALL;
     } else if (first < visible.first) {
-      //some first rows missing and some last rows to much
-      //console.log(`up added: ${visibleFirst - first + 1} removed: ${visibleLast - last + 1} ${first}:${last} ${offset}`);
+      // some first rows missing and some last rows to much
+      // console.log(`up added: ${visibleFirst - first + 1} removed: ${visibleLast - last + 1} ${first}:${last} ${offset}`);
       const toRemove = visible.last - (last + 1);
       if (toRemove >= this.options.batchSize) {
-        torecycle = this.removeFromBottom(last + 1, visible.last, false);
+        toRecycle = this.removeFromBottom(last + 1, visible.last, false);
       } else {
         last = visible.last;
       }
@@ -884,11 +890,11 @@ export abstract class ARowRenderer {
       toAddBottom = false;
       r = EScrollResult.SOME_TOP;
     } else {
-      //console.log(`do added: ${last - visibleLast + 1} removed: ${first - visibleFirst + 1} ${first}:${last} ${offset}`);
-      //some last rows missing and some first rows to much
+      // console.log(`do added: ${last - visibleLast + 1} removed: ${first - visibleFirst + 1} ${first}:${last} ${offset}`);
+      // some last rows missing and some first rows to much
       const toRemove = first - 1 - visible.first;
       if (toRemove >= this.options.batchSize) {
-        torecycle = this.removeFromBeginning(visible.first, first - 1, false);
+        toRecycle = this.removeFromBeginning(visible.first, first - 1, false);
       } else {
         first = visible.first;
         firstRowPos = this.visibleFirstRowPos;
@@ -905,7 +911,7 @@ export abstract class ARowRenderer {
     visible.last = last;
 
     this.updateOffset(firstRowPos);
-    this.manipulate(torecycle, toAdd, toAddBottom);
+    this.manipulate(toRecycle, toAdd, toAddBottom);
     return r;
   }
 
@@ -929,11 +935,15 @@ export abstract class ARowRenderer {
 
 export default ARowRenderer;
 
-export function setTransform(elem: HTMLElement, x: number | string, y: number | string) {
+export function setTransform(elem: HTMLElement, x: number | string, y: number | string): void {
   const text = `translate(${x}px, ${y}px)`;
-  const anyelem = elem as any;
-  if (anyelem.__transform__ === text) {
+  const anyElem = elem as { __transform__?: string };
+  // eslint-disable-next-line no-underscore-dangle
+  if (anyElem.__transform__ === text) {
     return;
   }
-  anyelem.__transform__ = elem.style.transform = text;
+  // eslint-disable-next-line no-underscore-dangle
+  anyElem.__transform__ = text;
+  // eslint-disable-next-line no-param-reassign
+  elem.style.transform = text;
 }

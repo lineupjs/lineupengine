@@ -31,7 +31,7 @@ export enum EScrollResult {
  */
 export interface IMixinAdapter {
   readonly visible: {
-    //writable
+    // writable
     first: number;
     last: number;
     forcedFirst: number;
@@ -68,5 +68,5 @@ export interface IMixin {
 }
 
 export interface IMixinClass {
-  new (adapter: IMixinAdapter, options?: any): IMixin;
+  new (adapter: IMixinAdapter, options?: unknown): IMixin;
 }

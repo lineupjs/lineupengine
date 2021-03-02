@@ -1,3 +1,5 @@
+/* eslint-disable class-methods-use-this */
+/* eslint-disable max-classes-per-file */
 import { IAbortAblePromise, IAsyncUpdate } from './abortAble';
 import { IAnimationContext } from './animation';
 import { ARowRenderer, IRowRendererOptions } from './ARowRenderer';
@@ -5,9 +7,8 @@ import { addScroll } from './internal';
 import { EScrollResult, IMixinClass } from './mixin';
 import { GridStyleManager, IColumn, setTemplate } from './style';
 import { cssClass } from './styles';
-import ACellAdapter, { ICellAdapterRenderContext } from './table/internal/ACellAdapter';
+import { ACellAdapter, ICellAdapterRenderContext, IVisibleColumns } from './table/internal/ACellAdapter';
 
-export { isLoadingCell } from './ARowRenderer';
 export declare type ICellRenderContext<T extends IColumn> = ICellAdapterRenderContext<T>;
 
 /**
@@ -69,31 +70,29 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
     this.cell = new LocalCell(this.header, this.style, this.style.id, options.mixins || []);
   }
 
-  protected get idPrefix() {
+  protected get idPrefix(): string {
     return this.style.id;
   }
 
   /**
    * get the header root element
-   * @returns {HTMLElement}
    */
-  protected get header() {
+  protected get header(): HTMLElement {
     return this.root.querySelector<HTMLElement>('header > article');
   }
 
   /**
    * get the header scrolling element, i.e its parent
-   * @returns {HTMLElement}
    */
-  protected get headerScroller() {
+  protected get headerScroller(): HTMLElement {
     return this.root.getElementsByTagName('header')[0] as HTMLElement;
   }
 
-  protected get visibleColumns() {
+  protected get visibleColumns(): IVisibleColumns {
     return this.cell.visibleColumns;
   }
 
-  protected get visibleFirstColumnPos() {
+  protected get visibleFirstColumnPos(): number {
     return this.cell.visibleFirstColumnPos;
   }
 
@@ -102,14 +101,14 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
    * @param {IMixinClass} mixinClass mixing class to instantiate
    * @param options optional options
    */
-  protected addColumnMixin(mixinClass: IMixinClass, options?: any) {
+  protected addColumnMixin(mixinClass: IMixinClass, options?: unknown): void {
     this.cell.addColumnMixin(mixinClass, options);
   }
 
   /**
    * initialized this renderer
    */
-  protected init() {
+  protected init(): void {
     this.cell.init();
 
     const scroller = this.body.parentElement as HTMLElement;
@@ -129,7 +128,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
     super.init();
   }
 
-  destroy() {
+  destroy(): void {
     super.destroy();
     this.root.remove();
   }
@@ -192,23 +191,23 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
   /**
    * trigger to update all headers
    */
-  protected updateHeaders() {
+  protected updateHeaders(): void {
     this.cell.updateHeaders();
   }
 
-  protected handleCellReady(item: HTMLElement, ready: IAbortAblePromise<void>, column = -1) {
+  protected handleCellReady(item: HTMLElement, ready: IAbortAblePromise<void>, column = -1): HTMLElement {
     return this.cell.handleCellReady(item, ready, column);
   }
 
-  protected recycleCell(item: HTMLElement, column = -1) {
+  protected recycleCell(item: HTMLElement, column = -1): void {
     this.cell.recycleCell(item, column);
   }
 
   /**
    * triggers to update all column widths
    */
-  protected updateColumnWidths() {
-    const context = this.context;
+  protected updateColumnWidths(): void {
+    const { context } = this;
     this.style.update(
       context.defaultRowHeight - context.padding(-1),
       context.columns,
@@ -218,9 +217,9 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
     );
   }
 
-  protected updateSizer(firstRowPos: number) {
+  protected updateSizer(firstRowPos: number): void {
     const ctx = this.context;
-    const totalHeight = ctx.totalHeight;
+    const { totalHeight } = ctx;
     const totalWidth = ctx.column.totalHeight;
 
     this.updateShifts(firstRowPos, this.cell.leftShift());
@@ -230,7 +229,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
     ).toFixed(0)}px)`;
   }
 
-  protected updateShifts(top: number, left: number) {
+  protected updateShifts(top: number, left: number): void {
     this.body.style.transform = `translate(${left.toFixed(0)}px, ${top.toFixed(0)}px)`;
   }
 
@@ -238,7 +237,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
    * triggers to recreate the whole table
    * @param {IAnimationContext} ctx optional animation context
    */
-  protected recreate(ctx?: IAnimationContext) {
+  protected recreate(ctx?: IAnimationContext): void {
     const scroller = this.bodyScroller;
     const oldLeft = scroller.scrollLeft;
     this.cell.recreate(oldLeft, scroller.clientWidth);
@@ -248,7 +247,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
     scroller.scrollLeft = oldLeft;
   }
 
-  protected clearPool() {
+  protected clearPool(): void {
     super.clearPool();
     this.cell.clearPool();
   }
