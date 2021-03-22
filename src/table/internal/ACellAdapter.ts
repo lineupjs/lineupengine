@@ -426,7 +426,7 @@ export abstract class ACellAdapter<T extends IColumn> {
       context.defaultRowHeight - context.padding(-1),
       context.columns,
       context.column.padding,
-      -this.leftShift(),
+      0,
       this.tableId
     );
 
@@ -502,7 +502,7 @@ export abstract class ACellAdapter<T extends IColumn> {
         context.defaultRowHeight - context.padding(-1),
         context.columns,
         context.column.padding,
-        -this.leftShift(),
+        0,
         this.tableId
       );
     }
@@ -698,20 +698,27 @@ export abstract class ACellAdapter<T extends IColumn> {
 
     if (first > visible.last || last < visible.first) {
       // no overlap, clean and draw everything
-      // console.log(`ff added: ${last - first + 1} removed: ${visibleLast - visibleFirst + 1} ${first}:${last} ${offset}`);
+      // console.log(
+      //   `ff added: ${last - first + 1} removed: ${visible.last - visible.first + 1} ${first}:${last} ${frozenShift}`
+      // );
       // removeRows(visibleFirst, visibleLast);
       this.removeAllColumns(false);
+      // this.updateShiftedStates();
       this.addColumnAtEnd(first, last);
       r = EScrollResult.ALL;
     } else if (first < visible.first) {
       // some first rows missing and some last rows to much
-      // console.log(`up added: ${visibleFirst - first + 1} removed: ${visibleLast - last + 1} ${first}:${last} ${offset}`);
+      // console.log(
+      //   `up added: ${visible.first - first + 1} removed: ${visible.last - last + 1} ${first}:${last} ${frozenShift}`
+      // );
       this.removeColumnFromEnd(last + 1, visible.last);
       this.updateShiftedStates();
       this.addColumnAtStart(first, visible.first - 1, frozenShift);
       r = EScrollResult.SOME_TOP;
     } else {
-      // console.log(`do added: ${last - visibleLast + 1} removed: ${first - visibleFirst + 1} ${first}:${last} ${offset}`);
+      // console.log(
+      //   `do added: ${last - visible.last + 1} removed: ${first - visible.first + 1} ${first}:${last} ${frozenShift}`
+      // );
       // some last rows missing and some first rows to much
       this.removeColumnFromStart(visible.first, first - 1, frozenShift);
       this.updateShiftedStates();

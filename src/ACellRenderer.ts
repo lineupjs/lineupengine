@@ -2,7 +2,7 @@
 /* eslint-disable max-classes-per-file */
 import { IAbortAblePromise, IAsyncUpdate } from './abortAble';
 import { IAnimationContext } from './animation';
-import { ARowRenderer, IRowRendererOptions } from './ARowRenderer';
+import { ARowRenderer, IRowRendererOptions, setTransform } from './ARowRenderer';
 import { addScroll } from './internal';
 import { EScrollResult, IMixinClass } from './mixin';
 import { GridStyleManager, IColumn, setTemplate } from './style';
@@ -212,7 +212,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
       context.defaultRowHeight - context.padding(-1),
       context.columns,
       context.column.padding,
-      -this.cell.leftShift(),
+      0,
       this.idPrefix
     );
   }
@@ -229,8 +229,8 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
     ).toFixed(0)}px)`;
   }
 
-  protected updateShifts(top: number, left: number): void {
-    this.body.style.transform = `translate(${left.toFixed(0)}px, ${top.toFixed(0)}px)`;
+  protected updateShifts(top: number, _left: number): void {
+    setTransform(this.body, 0 /* left.toFixed(0) */, top.toFixed(0));
   }
 
   /**
