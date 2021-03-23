@@ -33,6 +33,7 @@ module.exports = (_env, options) => {
       : {
           lineupengine: './src/index.ts',
           demo: './demo/index.ts',
+          frozen: './demo/frozen.ts',
           table: './demo/table.ts',
           cell: './demo/cell.ts',
         },

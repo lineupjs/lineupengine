@@ -239,7 +239,7 @@ export abstract class ACellTableSection<T extends IColumn> extends ARowRenderer 
       context.defaultRowHeight - context.padding(-1),
       context.columns,
       context.column.padding,
-      -this.cell.leftShift(),
+      0,
       this.tableId
     );
   }
