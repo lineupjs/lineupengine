@@ -22,7 +22,6 @@
   "unpkg": "build/lineupengine.js",
   "jsdelivr": "build/lineupengine.js",
   "types": "build/src/index.d.ts",
-  "exports": "./build/src/index.js",
   "sideEffects": [
     "*.scss",
     "*.css"
