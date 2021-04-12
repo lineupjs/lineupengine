@@ -20,6 +20,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
   private readonly cell: ACellAdapter<T>;
 
   constructor(protected readonly root: HTMLElement, htmlId: string, options: Partial<IRowRendererOptions> = {}) {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     super(setTemplate(root, htmlId).querySelector<HTMLElement>('main > article')!, options);
     root.classList.add(cssClass(), 'lineup-engine');
 
@@ -78,6 +79,7 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
    * get the header root element
    */
   protected get header(): HTMLElement {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return this.root.querySelector<HTMLElement>('header > article')!;
   }
 

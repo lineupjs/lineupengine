@@ -214,9 +214,8 @@ export abstract class ACellRenderer {
     }
     for (let row = leaf.rowFirst; row <= leaf.rowLast; row += 1) {
       for (let col = leaf.colFirst; col <= leaf.colLast; col += 1) {
-        let item: HTMLElement;
-        if (children.length > 0) {
-          item = children.shift()!;
+        let item = children.shift();
+        if (item != null) {
           const change = this.updateCell(item, row, col);
           if (change && change !== item) {
             children.unshift(item);

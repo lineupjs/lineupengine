@@ -134,7 +134,7 @@ export default class StyleManager {
    * @param {Partial<CSSStyleDeclaration>} style the style attributes
    * @returns {string} the id again
    */
-  updateRule(id: string, selector: string, style: Partial<CSSStyleDeclaration>): string  |  null {
+  updateRule(id: string, selector: string, style: Partial<CSSStyleDeclaration>): string | null {
     this.verifySheet();
     const index = this.rules.findIndex((d) => d.id === id);
     if (index < 0) {
