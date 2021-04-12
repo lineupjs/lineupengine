@@ -58,9 +58,7 @@
     "watch": "webpack --mode development --watch --devtool source-map",
     "start": "webpack serve --mode development --devtool source-map",
     "prepare": "echo 'dummy prepare since prepack has no dev dependencies'",
-    "prepack": "yarn run clean && yarn run compile && yarn run build",
-    "release": "release-it --disable-metrics --npm.skipChecks",
-    "release:pre": "release-it --disable-metrics --npm.skipChecks --preRelease=alpha --npm.tag=next"
+    "prepack": "yarn run clean && yarn run compile && yarn run build"
   },
   "devDependencies": {
     "@types/jest": "^26.0.22",
@@ -83,7 +81,6 @@
     "mini-css-extract-plugin": "^1.4.1",
     "mkdirp": "^1.0.4",
     "prettier": "^2.2.1",
-    "release-it": "^14.6.1",
     "rimraf": "^3.0.2",
     "sass": "^1.32.8",
     "sass-loader": "^11.0.1",
