@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
     "module": "ESNext",
-    "target": "ES5",
+    "target": "ES2019",
     "importHelpers": false,
     "sourceMap": true,
-    "lib": ["DOM", "ES2015", "es2016.array.include", "es2017.object"],
+    "lib": ["DOM", "ES2019"],
     "composite": true,
     "declaration": true,
     "declarationMap": true,
@@ -13,6 +13,10 @@
     "forceConsistentCasingInFileNames": true,
     "strictBindCallApply": true,
     "stripInternal": true,
+    "strict": true,
+    "strictPropertyInitialization": true,
+    "strictFunctionTypes": true,
+    "strictNullChecks": true,
     "resolveJsonModule": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,

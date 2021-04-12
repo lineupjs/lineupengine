@@ -239,12 +239,12 @@ export abstract class ACellAdapter<T extends IColumn> {
 
     if (includingFrozen || frozen.length === 0) {
       for (const i of frozen) {
-        this.recycleCell(arr.shift(), i);
+        this.recycleCell(arr.shift()!, i);
       }
     } else {
       // have frozen and keep them, so readd them
       for (let i = 0; i < frozen.length; i += 1) {
-        row.appendChild(arr.shift());
+        row.appendChild(arr.shift()!);
       }
     }
     arr.forEach((item, i) => {
@@ -566,7 +566,7 @@ export abstract class ACellAdapter<T extends IColumn> {
     while (node.lastChild) {
       const c = node.lastChild as HTMLElement;
       node.removeChild(c);
-      ids.set(c.dataset.id, c);
+      ids.set(c.dataset.id!, c);
     }
 
     const updateImpl = (i: number) => {

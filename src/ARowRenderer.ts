@@ -160,7 +160,7 @@ export abstract class ARowRenderer {
         return that.lastScrollInfo ? that.lastScrollInfo.top : 0;
       },
       get scrollTotal() {
-        return this.lastScrollInfo ? this.lastScrollInfo.height : this.bodyScroller.clientHeight;
+        return that.lastScrollInfo ? that.lastScrollInfo.height : that.bodyScroller.clientHeight;
       },
     };
   }
@@ -243,17 +243,19 @@ export abstract class ARowRenderer {
    * destroys this renderer and unregisters all event listeners
    */
   destroy(): void {
-    removeScroll(this.bodyScroller, this.scrollListener);
+    if (this.scrollListener) {
+      removeScroll(this.bodyScroller, this.scrollListener);
+    }
     this.body.remove();
   }
 
   private static cleanUp(item: HTMLElement) {
     // eslint-disable-next-line no-param-reassign
-    item.style.height = null;
+    item.style.height = '';
   }
 
   private select(index: number): { item: HTMLElement; result: IAbortAblePromise<void> | void } {
-    let item: HTMLElement = this.pool.pop();
+    let item: HTMLElement | undefined = this.pool.pop();
     let result: IAbortAblePromise<void> | void;
     if (item != null) {
       result = this.updateRow(item, index);
@@ -581,7 +583,7 @@ export abstract class ARowRenderer {
       let previous: {
         index: number | -1;
         y: number;
-        height: number | null;
+        height: number;
       };
       const item = lookup.get(key);
       if (item != null) {
@@ -861,7 +863,7 @@ export abstract class ARowRenderer {
     let r: EScrollResult = EScrollResult.SOME;
 
     let toRecycle: HTMLElement[] | undefined;
-    let toAdd: DocumentFragment | undefined;
+    let toAdd: DocumentFragment | undefined | null;
     let toAddBottom = false;
 
     if (first > visible.last || last < visible.first) {
@@ -915,7 +917,11 @@ export abstract class ARowRenderer {
     return r;
   }
 
-  private manipulate(toRecycle: HTMLElement[] | undefined, toAdd: DocumentFragment | undefined, bottom: boolean) {
+  private manipulate(
+    toRecycle: HTMLElement[] | undefined,
+    toAdd: DocumentFragment | undefined | null,
+    bottom: boolean
+  ) {
     if (toRecycle) {
       for (const item of toRecycle) {
         item.remove();

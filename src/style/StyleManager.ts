@@ -11,24 +11,25 @@ interface ICSSRule {
 }
 
 function assignStyles(target: CSSStyleDeclaration, source: Record<string, unknown>) {
+  const targetObj = (target as unknown) as Record<string, unknown>;
   for (const key of Object.keys(source)) {
     const v = source[key] as string;
 
     if (!v.endsWith(' !important')) {
-      if (target[key] !== v) {
+      if (targetObj[key] !== v) {
         // eslint-disable-next-line no-param-reassign
-        target[key] = v;
+        targetObj[key] = v;
       }
       continue;
     }
 
     // handle special important case
     const plain = v.slice(0, -' !important'.length);
-    if (target[key] === plain) {
+    if (targetObj[key] === plain) {
       continue;
     }
     // eslint-disable-next-line no-param-reassign
-    target[key] = plain;
+    targetObj[key] = plain;
     // see https://gist.github.com/youssman/745578062609e8acac9f
     const hyphen = key.replace(/([a-zA-Z])(?=[A-Z])/g, '$1-').toLowerCase();
     target.setProperty(hyphen, plain, 'important');
@@ -111,7 +112,7 @@ export default class StyleManager {
    * @param {Partial<CSSStyleDeclaration>} style the style attributes
    * @returns {string} the id again
    */
-  addRule(id: string, selector: string, style: Partial<CSSStyleDeclaration>): string {
+  addRule(id: string, selector: string, style: Partial<CSSStyleDeclaration>): string | null {
     this.verifySheet();
     const { sheet } = this;
     if (!sheet) {
@@ -133,7 +134,7 @@ export default class StyleManager {
    * @param {Partial<CSSStyleDeclaration>} style the style attributes
    * @returns {string} the id again
    */
-  updateRule(id: string, selector: string, style: Partial<CSSStyleDeclaration>): string {
+  updateRule(id: string, selector: string, style: Partial<CSSStyleDeclaration>): string  |  null {
     this.verifySheet();
     const index = this.rules.findIndex((d) => d.id === id);
     if (index < 0) {

@@ -155,7 +155,7 @@ class ScrollHandler {
       case 'sync':
         return false;
       default:
-        return this.numbers.get(mode)?.timer >= 0 ?? false;
+        return (this.numbers.get(mode)?.timer ?? -1) >= 0;
     }
   }
 }
