@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "module": "ESNext",
+    "module": "ES2020",
     "target": "ES2019",
     "importHelpers": false,
     "sourceMap": true,
