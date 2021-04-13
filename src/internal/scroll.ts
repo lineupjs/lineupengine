@@ -100,9 +100,8 @@ class ScrollHandler {
       if (handler.handler.length === 0) {
         return;
       }
-      // eslint-disable-next-line no-restricted-globals
-      // eslint-disable-next-line no-param-reassign
-      handler.timer = setTimeout(() => {
+      // eslint-disable-next-line no-param-reassign, no-restricted-globals
+      handler.timer = self.setTimeout(() => {
         this.handle(handler);
         // eslint-disable-next-line no-param-reassign
         handler.timer = -1;
