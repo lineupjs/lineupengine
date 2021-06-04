@@ -1,5 +1,5 @@
 export function isPromiseLike(p: PromiseLike<unknown> | unknown): p is PromiseLike<unknown> {
-  return p != null && p && typeof (p as PromiseLike<unknown>).then === 'function';
+  return p != null && typeof (p as PromiseLike<unknown>).then === 'function';
 }
 
 /**

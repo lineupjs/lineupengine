@@ -1,5 +1,5 @@
 /* eslint-disable class-methods-use-this */
-import { ACellRenderer, ICellRenderContext, PrefetchMixin, uniformContext, nonUniformContext } from '../src';
+import { ACellRenderer, ICellRenderContext, uniformContext, nonUniformContext } from '../src';
 import Column from './column';
 
 /** @internal */

@@ -110,6 +110,8 @@ export default class KeyFinder {
    * @param {boolean} returnDefault return null if default height
    * @returns {number}
    */
+  exceptionHeightOf(index: number, returnDefault?: boolean): number | null;
+  exceptionHeightOf(index: number, returnDefault: true): number;
   exceptionHeightOf(index: number, returnDefault = false): number | null {
     const padding = this.context.padding(index);
     const lookup = this.context.exceptionsLookup;

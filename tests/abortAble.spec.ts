@@ -1,6 +1,6 @@
 import abortAble, { ABORTED, isAbortAble } from '../src/abortAble';
 
-function resolveIn<T>(this: any, ms: number, result?: T) {
+function resolveIn<T>(this: any, ms: number, result: T) {
   return new Promise<T>((resolve) => {
     setTimeout(resolve.bind(this, result), ms);
   });
@@ -31,12 +31,12 @@ describe('utils', () => {
     });
     it('resolve abort lazy', () => {
       const a = abortAble(resolveIn(10, 1));
-      resolveIn(1).then(() => a.abort());
+      resolveIn(1, null).then(() => a.abort());
       return a.then((r) => expect(r).toBe(ABORTED));
     });
     it('resolve abort lazy to late', () => {
       const a = abortAble(resolveIn(10, 1));
-      resolveIn(100).then(() => a.abort());
+      resolveIn(100, null).then(() => a.abort());
       return a.then((r) => expect(r).toBe(1));
     });
     it('resolve chain', () => {

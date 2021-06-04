@@ -1,4 +1,4 @@
-import { IExceptionContext } from '../logic';
+import type { IExceptionContext } from '../logic';
 
 /**
  * scrolling result

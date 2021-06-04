@@ -199,7 +199,9 @@ export abstract class ACellRenderer {
     const row = range(top, height, context.row.defaultRowHeight, context.row.exceptions, context.row.numberOfRows);
 
     const root = this.body.firstElementChild as HTMLElement;
-    this.render(this.tree, root, row.first, row.last, col.first, col.last);
+    if (this.tree) {
+      this.render(this.tree, root, row.first, row.last, col.first, col.last);
+    }
   }
 
   private renderLeaf(leaf: QuadTreeLeafNode, parent: HTMLElement) {
@@ -212,9 +214,8 @@ export abstract class ACellRenderer {
     }
     for (let row = leaf.rowFirst; row <= leaf.rowLast; row += 1) {
       for (let col = leaf.colFirst; col <= leaf.colLast; col += 1) {
-        let item: HTMLElement;
-        if (children.length > 0) {
-          item = children.shift();
+        let item = children.shift();
+        if (item != null) {
           const change = this.updateCell(item, row, col);
           if (change && change !== item) {
             children.unshift(item);
@@ -354,11 +355,11 @@ export abstract class ACellRenderer {
   private static cleanUp(node: HTMLElement) {
     if (node.style.width) {
       // eslint-disable-next-line no-param-reassign
-      node.style.width = null;
+      node.style.width = '';
     }
     if (node.style.height) {
       // eslint-disable-next-line no-param-reassign
-      node.style.height = null;
+      node.style.height = '';
     }
     return node;
   }
