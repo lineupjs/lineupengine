@@ -44,10 +44,8 @@ git clone https://github.com/lineupjs/lineupengine.git
 cd lineupengine
 
 npm i -g yarn
-yarn set version latest
-cat .yarnrc_patch.yml >> .yarnrc.yml
 yarn install
-yarn dlx @yarnpkg/sdks
+yarn sdks vscode
 ```
 
 ### Common commands
