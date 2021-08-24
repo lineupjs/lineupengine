@@ -113,7 +113,7 @@ export const defaultPhases = [
       actNode.style.transform = `translate(0, ${previous.y - nodeY}px)`;
       if (mode === EAnimationMode.SHOW) {
         // already target height
-        actNode.style.height = current.height !== null ? `${current.height}px` : null;
+        actNode.style.height = current.height !== null ? `${current.height}px` : '';
       } else {
         // always set previous height for default height changes
         actNode.style.height = `${previous.height}px`;
@@ -123,7 +123,7 @@ export const defaultPhases = [
       } else if (mode === EAnimationMode.HIDE) {
         actNode.style.opacity = '1';
       } else {
-        actNode.style.opacity = null;
+        actNode.style.opacity = '';
       }
     },
   },
@@ -138,14 +138,14 @@ export const defaultPhases = [
           : '';
       if (mode !== EAnimationMode.HIDE) {
         // keep height for removal
-        actNode.style.height = current.height !== null ? `${current.height}px` : null;
+        actNode.style.height = current.height !== null ? `${current.height}px` : '';
       }
       if (mode === EAnimationMode.SHOW) {
         actNode.style.opacity = '1';
       } else if (mode === EAnimationMode.HIDE) {
         actNode.style.opacity = '0';
       } else {
-        actNode.style.opacity = null;
+        actNode.style.opacity = '';
       }
     },
   },
@@ -154,7 +154,7 @@ export const defaultPhases = [
     apply({ node }: Readonly<IAnimationItem>): void {
       const actNode = node;
       delete actNode.dataset.animation;
-      actNode.style.opacity = null;
+      actNode.style.opacity = '';
       actNode.style.transform = '';
     },
   },
