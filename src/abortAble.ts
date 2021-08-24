@@ -1,5 +1,5 @@
 export function isPromiseLike(p: PromiseLike<unknown> | unknown): p is PromiseLike<unknown> {
-  return p != null && p && typeof (p as PromiseLike<unknown>).then === 'function';
+  return p != null && typeof (p as PromiseLike<unknown>).then === 'function';
 }
 
 /**
@@ -47,7 +47,7 @@ function thenFactory<T>(loader: PromiseLike<T | symbol>, isAborted: () => boolea
     const fullfiller = loader.then((loaded) => {
       const loadedOrAborted = isAborted() ? ABORTED : loaded;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const res = onfulfilled ? onfulfilled(loadedOrAborted) : ((loadedOrAborted as unknown) as any);
+      const res = onfulfilled ? onfulfilled(loadedOrAborted) : (loadedOrAborted as unknown as any);
 
       if (isPromiseLike(res)) {
         return res.then((r) => {
@@ -233,10 +233,10 @@ export function abortAbleResolveNow<T>(value: T): IAAP<T> {
   ): IAbortAblePromiseBase<TResult1 | TResult2> {
     const res = onfulfilled ? onfulfilled(value) : (value as unknown);
     if (isAbortAble(res)) {
-      return (res as unknown) as IAbortAblePromiseBase<TResult1 | TResult2>;
+      return res as unknown as IAbortAblePromiseBase<TResult1 | TResult2>;
     }
     if (isPromiseLike(res)) {
-      return (abortAble(res) as unknown) as IAbortAblePromiseBase<TResult1 | TResult2>;
+      return abortAble(res) as unknown as IAbortAblePromiseBase<TResult1 | TResult2>;
     }
     return {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
