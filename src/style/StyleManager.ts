@@ -11,7 +11,7 @@ interface ICSSRule {
 }
 
 function assignStyles(target: CSSStyleDeclaration, source: Record<string, unknown>) {
-  const targetObj = (target as unknown) as Record<string, unknown>;
+  const targetObj = target as unknown as Record<string, unknown>;
   for (const key of Object.keys(source)) {
     const v = source[key] as string;
 
