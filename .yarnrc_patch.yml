@@ -2,3 +2,6 @@ packageExtensions:
   eslint-module-utils@*:
     dependencies:
       eslint-import-resolver-node: '*'
+  eslint-config-airbnb-typescript@*:
+    dependencies:
+      eslint-config-airbnb-base: '*'
