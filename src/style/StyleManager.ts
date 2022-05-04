@@ -83,7 +83,7 @@ export default class StyleManager {
     // console.warn('invalid sheet rules detected');
 
     const l = rules.length;
-    for (let i = 0; i < l; i += 1) {
+    for (let i = l - 1; i >= 0; i -= 1) {
       sheet.deleteRule(i);
     }
 
