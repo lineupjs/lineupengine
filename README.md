@@ -39,6 +39,8 @@ see [Main API documentation](https://lineupengine.js.org/main/docs) and [Develop
 
 ## Development Environment
 
+The setup requires [Node.js v16 or higher](https://nodejs.org/en/download/).
+
 ```sh
 git clone https://github.com/lineupjs/lineupengine.git
 cd lineupengine
