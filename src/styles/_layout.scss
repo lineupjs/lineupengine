@@ -101,7 +101,7 @@
     .#{$engine_css_prefix}-tr {
       &:hover,
       &.#{$engine_css_prefix}-highlighted {
-        >.#{$engine_css_prefix}-td.#{$engine_css_prefix}-shifted.#{$engine_css_prefix}-frozen {
+        > .#{$engine_css_prefix}-td.#{$engine_css_prefix}-shifted.#{$engine_css_prefix}-frozen {
           background-color: $engine_row_background_color;
         }
       }
