@@ -3,7 +3,7 @@ $engine_even_color: #f7f7f7 !default;
 $engine_assets: './assets' !default;
 $engine_loading_image: url('#{$engine_assets}/loading.svg') !default;
 $engine_loading_static_image: url('#{$engine_assets}/loading_s.svg') !default;
-// 'outline' or 'background;
+// 'outline' or 'background';
 // $engine_highlight_mode: 'background' !default;
 $engine_highlight_mode: 'outline' !default;
 
