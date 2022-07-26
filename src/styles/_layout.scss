@@ -55,14 +55,21 @@
     box-sizing: border-box;
     transform: translateZ(0);
 
-    &:hover,
-    &.#{$engine_css_prefix}-highlighted {
-      @include collapsing-row-border($engine_row_outline_width, $engine_row_outline_color);
-    }
-
     &.#{$engine_css_prefix}-even {
       background-clip: content-box;
       background-color: $engine_even_color;
+    }
+
+    @if $engine_highlight_mode == 'background' {
+      &:hover,
+      &.#{$engine_css_prefix}-highlighted {
+        background-color: $engine_row_background_color;
+      }
+    } @else {
+      &:hover,
+      &.#{$engine_css_prefix}-highlighted {
+        @include collapsing-row-border($engine_row_outline_width, $engine_row_outline_color);
+      }
     }
   }
 
@@ -87,6 +94,17 @@
 
   .#{$engine_css_prefix}-even > .#{$engine_css_prefix}-td.#{$engine_css_prefix}-shifted.#{$engine_css_prefix}-frozen {
     background-color: $engine_even_color;
+  }
+
+  @if $engine_highlight_mode =='background' {
+    .#{$engine_css_prefix}-tr {
+      &:hover,
+      &.#{$engine_css_prefix}-highlighted {
+        >.#{$engine_css_prefix}-td.#{$engine_css_prefix}-shifted.#{$engine_css_prefix}-frozen {
+          background-color: $engine_row_background_color;
+        }
+      }
+    }
   }
 
   .#{$engine_css_prefix}-td {
