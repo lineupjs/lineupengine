@@ -3,8 +3,13 @@ $engine_even_color: #f7f7f7 !default;
 $engine_assets: './assets' !default;
 $engine_loading_image: url('#{$engine_assets}/loading.svg') !default;
 $engine_loading_static_image: url('#{$engine_assets}/loading_s.svg') !default;
+// 'outline' or 'background';
+// $engine_highlight_mode: 'background' !default;
+$engine_highlight_mode: 'outline' !default;
+
 $engine_row_outline_color: #ffa500 !default;
 $engine_row_outline_width: 2px !default;
+$engine_row_background_color: #ffa500 !default;
 
 // see also animation/index.ts MAX_ANIMATION_TIME
 $engine_animation_update_duration: 0.5s;
