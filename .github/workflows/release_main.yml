@@ -98,12 +98,12 @@ jobs:
           yarn config set npmAuthToken "${{ secrets.NPM_TOKEN }}"
           yarn pack
           yarn npm publish --tag "${{ needs.create_release.outputs.npm_tag }}"
-      - name: Upload Release Asset
-        uses: AButler/upload-release-assets@v2.0
-        with:
-          files: '*.tgz'
-          repo-token: ${{ secrets.PRIVATE_GITHUB_TOKEN }}
-          release-tag: ${{ needs.create_release.outputs.tag_name }}
+      # - name: Upload Release Asset
+      #   uses: AButler/upload-release-assets@v2.0
+      #   with:
+      #     files: '*.tgz'
+      #     repo-token: ${{ secrets.PRIVATE_GITHUB_TOKEN }}
+      #     release-tag: ${{ needs.create_release.outputs.tag_name }}
 
   sync_dev:
     needs: correct_repository
