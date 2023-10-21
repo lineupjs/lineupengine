@@ -32,7 +32,9 @@
     > main.#{$engine_css_prefix}-scrolling {
       background-image: $engine_loading_static_image, $engine_loading_static_image;
       background-repeat: repeat-x;
-      background-position: top 10px left, bottom 30px left;
+      background-position:
+        top 10px left,
+        bottom 30px left;
       position: relative;
     }
   }

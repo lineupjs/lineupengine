@@ -21,7 +21,11 @@ export interface IRowHeightException {
 }
 
 class RowHeightException implements IRowHeightException {
-  constructor(public readonly index: number, public readonly y: number, public readonly height: number) {}
+  constructor(
+    public readonly index: number,
+    public readonly y: number,
+    public readonly height: number
+  ) {}
 
   get y2() {
     return this.y + this.height;

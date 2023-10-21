@@ -25,15 +25,18 @@ describe('logic', () => {
   function expectExceptionLookups(ex: IRowHeightExceptionLookup, ...indexAndHeight: number[]) {
     expect(indexAndHeight.length % 2).toBe(0); //even
 
-    const checks = indexAndHeight.reduce((acc, indexOrHeight, i) => {
-      const isIndex = i % 2 === 0;
-      if (isIndex) {
-        acc.push({ index: indexOrHeight, height: 0 });
-      } else {
-        acc[acc.length - 1].height = indexOrHeight;
-      }
-      return acc;
-    }, [] as { index: number; height: number }[]);
+    const checks = indexAndHeight.reduce(
+      (acc, indexOrHeight, i) => {
+        const isIndex = i % 2 === 0;
+        if (isIndex) {
+          acc.push({ index: indexOrHeight, height: 0 });
+        } else {
+          acc[acc.length - 1].height = indexOrHeight;
+        }
+        return acc;
+      },
+      [] as { index: number; height: number }[]
+    );
 
     expect(ex.size).toBe(checks.length);
 

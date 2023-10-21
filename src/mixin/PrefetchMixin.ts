@@ -33,7 +33,10 @@ export default class PrefetchMixin implements IMixin {
     delay: 200,
   };
 
-  constructor(private readonly adapter: IMixinAdapter, options?: Partial<IPrefetchRendererOptions>) {
+  constructor(
+    private readonly adapter: IMixinAdapter,
+    options?: Partial<IPrefetchRendererOptions>
+  ) {
     Object.assign(this.options, options);
     return this;
   }
