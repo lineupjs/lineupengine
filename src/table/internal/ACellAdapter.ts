@@ -262,12 +262,12 @@ export abstract class ACellAdapter<T extends IColumn> {
     row: number,
     column: number,
     columns: T[]
-  ): { item: HTMLElement; ready: IAbortAblePromise<void> | void } {
+  ): { item: HTMLElement; ready: IAbortAblePromise<void> | undefined } {
     const pool = this.cellPool[column];
     const columnObj = columns[column];
 
     let item: HTMLElement;
-    let ready: IAbortAblePromise<void> | void;
+    let ready: IAbortAblePromise<void> | undefined = undefined;
     const pooled = pool.pop();
 
     const r = pooled

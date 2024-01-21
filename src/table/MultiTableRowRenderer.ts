@@ -82,7 +82,11 @@ export default class MultiTableRowRenderer {
     minScrollDelta: 30,
   };
 
-  constructor(public readonly node: HTMLElement, htmlId: string, options: Partial<IMultiTableRowRendererOptions> = {}) {
+  constructor(
+    public readonly node: HTMLElement,
+    htmlId: string,
+    options: Partial<IMultiTableRowRendererOptions> = {}
+  ) {
     Object.assign(this.options, options);
     const cleanHTMLId = htmlId.startsWith('#') ? htmlId.slice(1) : htmlId;
     // eslint-disable-next-line no-param-reassign

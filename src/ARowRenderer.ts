@@ -120,7 +120,10 @@ export abstract class ARowRenderer {
     viewportOversize: 200,
   };
 
-  constructor(protected readonly body: HTMLElement, options: Partial<IRowRendererOptions> = {}) {
+  constructor(
+    protected readonly body: HTMLElement,
+    options: Partial<IRowRendererOptions> = {}
+  ) {
     this.adapter = this.createAdapter();
     Object.assign(this.options, options);
     this.mixins = this.options.mixins.map((MixinClass) => new MixinClass(this.adapter));

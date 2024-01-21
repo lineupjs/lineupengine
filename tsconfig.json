@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
-    "module": "ES2015",
-    "target": "ES5",
+    "module": "ES2020",
+    "target": "ES2020",
     "importHelpers": false,
     "sourceMap": true,
-    "lib": ["DOM", "ES2015", "es2016.array.include", "es2017.object"],
+    "lib": ["DOM", "ES2020"],
     "composite": true,
     "declaration": true,
     "declarationMap": true,
@@ -30,9 +30,9 @@
     "outDir": "build/src",
     "paths": {
       "@": ["./src"],
-      "*": ["*", "node_modules/*"]
-    }
+      "*": ["*", "node_modules/*"],
+    },
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "tsd.d.ts"],
-  "exclude": ["src/**/*.d.ts"]
+  "exclude": ["src/**/*.d.ts"],
 }
