@@ -2,7 +2,7 @@
   "name": "lineupengine",
   "description": "a fast engine for rendering large tables consisting of rows, rows+columns, multiple rows+columns instances.",
   "homepage": "https://lineupengine.js.org",
-  "version": "2.5.1",
+  "version": "2.5.2",
   "author": {
     "name": "Samuel Gratzl",
     "email": "sam@sgratzl.com",
