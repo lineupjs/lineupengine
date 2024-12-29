@@ -89,9 +89,9 @@ export default class MultiTableRowRenderer {
   ) {
     Object.assign(this.options, options);
     const cleanHTMLId = htmlId.startsWith('#') ? htmlId.slice(1) : htmlId;
-    // eslint-disable-next-line no-param-reassign
+
     node.id = cleanHTMLId;
-    // eslint-disable-next-line no-param-reassign
+
     node.innerHTML = `<header id="header-${cleanHTMLId}" class="${CSS_CLASS_HEADER} ${cssClass(
       `header-${cleanHTMLId}`
     )}">
@@ -122,9 +122,8 @@ export default class MultiTableRowRenderer {
 
     let offset = 0;
     this.sections.forEach((s) => {
-      // eslint-disable-next-line no-param-reassign
       s.body.style.left = `${offset}px`;
-      // eslint-disable-next-line no-param-reassign
+
       s.header.style.left = `${offset}px`;
       offset += s.width + this.options.columnPadding;
     });

@@ -1,4 +1,3 @@
-/* eslint-disable class-methods-use-this */
 import { ICellRenderContext, uniformContext, ACellTableSection } from '../src';
 import Column from './column';
 import MultiTableRowRenderer from '../src/table/MultiTableRowRenderer';

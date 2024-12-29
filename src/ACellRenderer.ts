@@ -1,5 +1,3 @@
-/* eslint-disable class-methods-use-this */
-/* eslint-disable max-classes-per-file */
 import { IAbortAblePromise, IAsyncUpdate } from './abortAble';
 import { IAnimationContext } from './animation';
 import { ARowRenderer, IRowRendererOptions, setTransform } from './ARowRenderer';
@@ -24,7 +22,6 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
     htmlId: string,
     options: Partial<IRowRendererOptions> = {}
   ) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     super(setTemplate(root, htmlId).querySelector<HTMLElement>('main > article')!, options);
     root.classList.add(cssClass(), 'lineup-engine');
 
@@ -83,7 +80,6 @@ export abstract class ACellRenderer<T extends IColumn> extends ARowRenderer {
    * get the header root element
    */
   protected get header(): HTMLElement {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return this.root.querySelector<HTMLElement>('header > article')!;
   }
 

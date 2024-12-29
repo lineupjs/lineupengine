@@ -1,4 +1,3 @@
-/* eslint-disable class-methods-use-this */
 import { uniformContext } from '../src';
 import { ACellRenderer, ICellContext } from '../src/cell/ACellRenderer';
 import '../src/style.scss';
@@ -9,7 +8,7 @@ export default class CellRenderer extends ACellRenderer {
 
   constructor(root: HTMLElement, id: string, numberOfRows = 128, numberOfColumns = 128) {
     super(root);
-    // eslint-disable-next-line no-param-reassign
+
     root.id = id;
 
     this.privateContext = {
@@ -34,7 +33,6 @@ export default class CellRenderer extends ACellRenderer {
   }
 
   protected updateCell(node: HTMLElement, row: number, col: number): HTMLElement | void {
-    // eslint-disable-next-line no-param-reassign
     node.textContent = `${row}/${col}`;
   }
 
@@ -45,7 +43,6 @@ export default class CellRenderer extends ACellRenderer {
   }
 
   protected updateRowHeader(node: HTMLElement, row: number): HTMLElement | void {
-    // eslint-disable-next-line no-param-reassign
     node.textContent = `#${row}`;
   }
 
@@ -56,7 +53,6 @@ export default class CellRenderer extends ACellRenderer {
   }
 
   protected updateColumnHeader(node: HTMLElement, col: number): HTMLElement | void {
-    // eslint-disable-next-line no-param-reassign
     node.textContent = `#${col}`;
   }
 }

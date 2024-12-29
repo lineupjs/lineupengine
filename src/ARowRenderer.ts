@@ -253,7 +253,6 @@ export abstract class ARowRenderer {
   }
 
   private static cleanUp(item: HTMLElement) {
-    // eslint-disable-next-line no-param-reassign
     item.style.height = '';
   }
 
@@ -700,7 +699,7 @@ export abstract class ARowRenderer {
 
     const run = () => {
       // dummy log for forcing dom update
-      // eslint-disable-next-line no-console
+
       console.assert(activeAnimation[0].node.offsetTop >= 0, 'dummy log for forcing dom update');
       executePhase(phases[actPhase]);
       actPhase += 1;
@@ -708,7 +707,7 @@ export abstract class ARowRenderer {
       if (actPhase < phases.length) {
         // schedule the next one
         const next = phases[actPhase];
-        // eslint-disable-next-line no-restricted-globals
+
         currentTimer = self.setTimeout(run, next.delay);
         return;
       }
@@ -726,7 +725,7 @@ export abstract class ARowRenderer {
           return;
         }
         node.remove();
-        // eslint-disable-next-line no-param-reassign
+
         node.style.transform = '';
         this.recycle(node);
       });
@@ -780,7 +779,7 @@ export abstract class ARowRenderer {
     };
 
     // next tick such that DOM will be updated
-    // eslint-disable-next-line no-restricted-globals
+
     currentTimer = self.setTimeout(run, phases[actPhase].delay);
   }
 
@@ -947,12 +946,12 @@ export default ARowRenderer;
 export function setTransform(elem: HTMLElement, x: number | string, y: number | string): void {
   const text = `translate(${x}px, ${y}px)`;
   const anyElem = elem as { __transform__?: string };
-  // eslint-disable-next-line no-underscore-dangle
+
   if (anyElem.__transform__ === text) {
     return;
   }
-  // eslint-disable-next-line no-underscore-dangle
+
   anyElem.__transform__ = text;
-  // eslint-disable-next-line no-param-reassign
+
   elem.style.transform = text;
 }
