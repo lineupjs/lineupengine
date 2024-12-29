@@ -1,10 +1,10 @@
-@import './vars';
-@import './mixins';
-@import './import_once';
-@import './animation';
+@use 'vars';
+@use 'mixins';
+@use 'import_once';
+@use 'animation';
 
-@include exports('lineupengine') {
-  .#{$engine_css_prefix} {
+@include import_once.exports('lineupengine') {
+  .#{vars.$engine_css_prefix} {
     position: relative;
     display: flex;
     flex-direction: column;
@@ -13,11 +13,11 @@
     box-sizing: border-box;
   }
 
-  .#{$engine_css_prefix}-hidden {
+  .#{vars.$engine_css_prefix}-hidden {
     display: none;
   }
 
-  .#{$engine_css_prefix}-header {
+  .#{vars.$engine_css_prefix}-header {
     flex: 0 0 auto;
     overflow-x: hidden;
     margin-bottom: 3px;
@@ -30,14 +30,14 @@
     }
   }
 
-  .#{$engine_css_prefix}-body {
+  .#{vars.$engine_css_prefix}-body {
     flex: 1 1 auto;
     overflow: auto;
     position: relative;
   }
 
-  .#{$engine_css_prefix}-header,
-  .#{$engine_css_prefix}-body {
+  .#{vars.$engine_css_prefix}-header,
+  .#{vars.$engine_css_prefix}-body {
     display: flex;
     flex-direction: row;
     align-items: stretch;
@@ -45,77 +45,78 @@
     scroll-behavior: auto;
   }
 
-  .#{$engine_css_prefix}-thead {
+  .#{vars.$engine_css_prefix}-thead {
     display: flex;
   }
 
-  .#{$engine_css_prefix}-tr {
+  .#{vars.$engine_css_prefix}-tr {
     display: flex;
     position: relative;
     box-sizing: border-box;
     transform: translateZ(0);
 
-    &.#{$engine_css_prefix}-even {
+    &.#{vars.$engine_css_prefix}-even {
       background-clip: content-box;
-      background-color: $engine_even_color;
+      background-color: vars.$engine_even_color;
     }
 
-    @if $engine_highlight_mode == 'background' {
+    @if vars.$engine_highlight_mode == 'background' {
       &:hover,
-      &.#{$engine_css_prefix}-highlighted {
-        background-color: $engine_row_background_color;
-        @include collapsing-row-border($engine_row_outline_width, $engine_row_outline_color);
+      &.#{vars.$engine_css_prefix}-highlighted {
+        background-color: vars.$engine_row_background_color;
+        @include mixins.collapsing-row-border(vars.$engine_row_outline_width, vars.$engine_row_outline_color);
       }
     } @else {
       &:hover,
-      &.#{$engine_css_prefix}-highlighted {
-        @include collapsing-row-border($engine_row_outline_width, $engine_row_outline_color);
+      &.#{vars.$engine_css_prefix}-highlighted {
+        @include mixins.collapsing-row-border(vars.$engine_row_outline_width, vars.$engine_row_outline_color);
       }
     }
   }
 
-  .#{$engine_css_prefix}-tbody {
+  .#{vars.$engine_css_prefix}-tbody {
     position: absolute;
     left: 0;
     top: 0;
 
-    &.#{$engine_css_prefix}scrolling > .#{$engine_css_prefix}-tr {
+    &.#{vars.$engine_css_prefix}scrolling > .#{vars.$engine_css_prefix}-tr {
       box-shadow: unset !important;
     }
   }
 
-  .#{$engine_css_prefix}-td,
-  .#{$engine_css_prefix}-th {
-    &.#{$engine_css_prefix}-shifted.#{$engine_css_prefix}-frozen {
+  .#{vars.$engine_css_prefix}-td,
+  .#{vars.$engine_css_prefix}-th {
+    &.#{vars.$engine_css_prefix}-shifted.#{vars.$engine_css_prefix}-frozen {
       position: sticky;
       background-color: white;
       z-index: 1;
     }
   }
 
-  .#{$engine_css_prefix}-even > .#{$engine_css_prefix}-td.#{$engine_css_prefix}-shifted.#{$engine_css_prefix}-frozen {
-    background-color: $engine_even_color;
+  .#{vars.$engine_css_prefix}-even
+    > .#{vars.$engine_css_prefix}-td.#{vars.$engine_css_prefix}-shifted.#{vars.$engine_css_prefix}-frozen {
+    background-color: vars.$engine_even_color;
   }
 
-  @if $engine_highlight_mode != 'outline' {
-    .#{$engine_css_prefix}-tr {
+  @if vars.$engine_highlight_mode != 'outline' {
+    .#{vars.$engine_css_prefix}-tr {
       &:hover,
-      &.#{$engine_css_prefix}-highlighted {
-        > .#{$engine_css_prefix}-td.#{$engine_css_prefix}-shifted.#{$engine_css_prefix}-frozen {
-          background-color: $engine_row_background_color;
+      &.#{vars.$engine_css_prefix}-highlighted {
+        > .#{vars.$engine_css_prefix}-td.#{vars.$engine_css_prefix}-shifted.#{vars.$engine_css_prefix}-frozen {
+          background-color: vars.$engine_row_background_color;
         }
       }
     }
   }
 
-  .#{$engine_css_prefix}-td {
+  .#{vars.$engine_css_prefix}-td {
     position: absolute;
     left: 0;
     top: 0;
     bottom: 0;
   }
 
-  .#{$engine_css_prefix}-footer {
+  .#{vars.$engine_css_prefix}-footer {
     transition: none !important;
     height: 1px !important;
     width: 1px;
@@ -123,7 +124,7 @@
     visibility: hidden;
   }
 
-  .#{$engine_css_prefix}-scrollbar-tester {
+  .#{vars.$engine_css_prefix}-scrollbar-tester {
     position: absolute;
     top: -10000px;
     left: -10000px;

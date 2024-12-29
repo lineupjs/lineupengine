@@ -1,5 +1,5 @@
 /** @internal */
-// eslint-disable-next-line max-classes-per-file
+
 abstract class AQuadTreeNode {
   parent: QuadTreeInnerNode | null = null;
 
