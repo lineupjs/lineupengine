@@ -30,7 +30,7 @@ export abstract class ACellRenderer {
   private tree: QuadTreeNode | null = null;
 
   constructor(private readonly root: HTMLElement) {
-    // eslint-disable-next-line no-param-reassign
+     
     root.innerHTML = template;
     root.classList.add('lineup-cell-engine');
     // this.fragment = root.ownerDocument!.createDocumentFragment();
@@ -39,7 +39,7 @@ export abstract class ACellRenderer {
   protected abstract get privateContext(): ICellContext;
 
   private get doc(): Document {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+     
     return this.root.ownerDocument!;
   }
 
@@ -144,7 +144,7 @@ export abstract class ACellRenderer {
       );
 
       inner.children.forEach((c) => {
-        // eslint-disable-next-line no-param-reassign
+         
         c.parent = inner;
       });
       return inner;
@@ -207,7 +207,7 @@ export abstract class ACellRenderer {
   private renderLeaf(leaf: QuadTreeLeafNode, parent: HTMLElement) {
     const { doc } = this;
     const children = Array.from(parent.children) as HTMLElement[];
-    // eslint-disable-next-line no-param-reassign
+     
     parent.dataset.leafCols = String(leaf.colCount);
     if (children.length > 0) {
       clear(parent);
@@ -354,11 +354,11 @@ export abstract class ACellRenderer {
 
   private static cleanUp(node: HTMLElement) {
     if (node.style.width) {
-      // eslint-disable-next-line no-param-reassign
+       
       node.style.width = '';
     }
     if (node.style.height) {
-      // eslint-disable-next-line no-param-reassign
+       
       node.style.height = '';
     }
     return node;

@@ -1,5 +1,5 @@
-/* eslint-disable class-methods-use-this */
-/* eslint-disable max-classes-per-file */
+ 
+ 
 import { IAbortAblePromise, IAsyncUpdate } from '../abortAble';
 import { IAnimationContext } from '../animation';
 import { ARowRenderer, IRowRendererOptions, setTransform } from '../ARowRenderer';

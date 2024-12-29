@@ -1,4 +1,4 @@
-/* eslint-disable class-methods-use-this */
+ 
 import { ACellRenderer, ICellRenderContext, PrefetchMixin, uniformContext } from '../src';
 import Column from './column';
 
@@ -8,7 +8,7 @@ export default class TestRenderer extends ACellRenderer<Column<number>> {
 
   constructor(root: HTMLElement, id: string, numberOfRows = 1000, numberOfColumns = 20) {
     super(root, `#${id}`, { mixins: [PrefetchMixin], striped: true });
-    // eslint-disable-next-line no-param-reassign
+     
     root.id = id;
 
     const defaultRowHeight = 20;

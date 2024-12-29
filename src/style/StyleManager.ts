@@ -17,7 +17,7 @@ function assignStyles(target: CSSStyleDeclaration, source: Record<string, unknow
 
     if (!v.endsWith(' !important')) {
       if (targetObj[key] !== v) {
-        // eslint-disable-next-line no-param-reassign
+         
         targetObj[key] = v;
       }
       continue;
@@ -28,7 +28,7 @@ function assignStyles(target: CSSStyleDeclaration, source: Record<string, unknow
     if (targetObj[key] === plain) {
       continue;
     }
-    // eslint-disable-next-line no-param-reassign
+     
     targetObj[key] = plain;
     // see https://gist.github.com/youssman/745578062609e8acac9f
     const hyphen = key.replace(/([a-zA-Z])(?=[A-Z])/g, '$1-').toLowerCase();
@@ -64,7 +64,7 @@ export default class StyleManager {
         return;
       }
       // test till attached
-      // eslint-disable-next-line no-restricted-globals
+       
       this.testVerifyTimeout = self.setTimeout(() => {
         this.testVerifyTimeout = -1;
         this.verifySheet();

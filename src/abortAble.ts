@@ -46,7 +46,7 @@ function thenFactory<T>(loader: PromiseLike<T | symbol>, isAborted: () => boolea
   ): IAbortAblePromiseBase<TResult1 | TResult2> {
     const fullfiller = loader.then((loaded) => {
       const loadedOrAborted = isAborted() ? ABORTED : loaded;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       const res = onfulfilled ? onfulfilled(loadedOrAborted) : (loadedOrAborted as unknown as any);
 
       if (isPromiseLike(res)) {
@@ -198,7 +198,7 @@ export function abortAbleAll(values: unknown[]): IAAP<unknown[]> {
   const race = Promise.race<unknown | symbol>([aborter, loader]);
 
   return {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     then: thenFactory(race, isAborted, abort) as any,
     abort,
     isAborted,
@@ -239,7 +239,7 @@ export function abortAbleResolveNow<T>(value: T): IAAP<T> {
       return abortAble(res) as unknown as IAbortAblePromiseBase<TResult1 | TResult2>;
     }
     return {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       then: abortAbleResolveNow(res as TResult1) as any,
       abort: () => undefined,
       isAborted: () => false,

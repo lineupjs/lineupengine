@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+ 
 import { IColumn } from '../src';
 import '../src/style.scss';
 import { CSS_CLASS_FROZEN } from '../src/styles';
@@ -36,7 +36,7 @@ export default class Column<T> implements IColumn {
   }
 
   update(node: HTMLElement, row: T) {
-    // eslint-disable-next-line no-param-reassign
+     
     node.textContent = `${this.name}@${row.toString()}`;
     return node;
   }
