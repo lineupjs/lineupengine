@@ -2,9 +2,8 @@ import './style.scss';
 
 export * from '.';
 
- 
 declare const __VERSION__: string;
- 
+
 declare const __BUILD_ID__: string;
 
 export const version = __VERSION__;

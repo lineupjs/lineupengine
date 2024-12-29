@@ -1,5 +1,3 @@
- 
- 
 import { IAbortAblePromise, IAsyncUpdate } from '../abortAble';
 import { IAnimationContext } from '../animation';
 import { ARowRenderer, IRowRendererOptions, setTransform } from '../ARowRenderer';

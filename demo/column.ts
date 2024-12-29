@@ -1,4 +1,3 @@
- 
 import { IColumn } from '../src';
 import '../src/style.scss';
 import { CSS_CLASS_FROZEN } from '../src/styles';
@@ -36,7 +35,6 @@ export default class Column<T> implements IColumn {
   }
 
   update(node: HTMLElement, row: T) {
-     
     node.textContent = `${this.name}@${row.toString()}`;
     return node;
   }

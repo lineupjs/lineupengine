@@ -113,7 +113,6 @@ export default class PrefetchMixin implements IMixin {
     // go down if we are already at the top, too
     const op = isGoingDown || isFirst ? this.prefetchDown.bind(this) : this.prefetchUp.bind(this);
 
-     
     this.prefetchTimeout = self.setTimeout(op, this.options.delay);
   }
 
@@ -173,7 +172,6 @@ export default class PrefetchMixin implements IMixin {
       return;
     }
 
-     
     this.cleanupTimeout = self.setTimeout(
       isGoingDown ? this.cleanUpTop.bind(this) : this.cleanUpBottom.bind(this),
       this.options.delay,

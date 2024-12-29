@@ -1,5 +1,5 @@
 /** @internal */
- 
+
 abstract class AQuadTreeNode {
   parent: QuadTreeInnerNode | null = null;
 

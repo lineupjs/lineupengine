@@ -414,7 +414,6 @@ export function updateFrozen(
   for (let i = old.length - 1; i >= 0; i -= 1) {
     const index = old[i];
     if (index >= first) {
-       
       removed.push(old.pop()!);
     } else {
       // can stop since sorted and it will never happen again

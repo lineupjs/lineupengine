@@ -93,7 +93,8 @@
     }
   }
 
-  .#{vars.$engine_css_prefix}-even > .#{vars.$engine_css_prefix}-td.#{vars.$engine_css_prefix}-shifted.#{vars.$engine_css_prefix}-frozen {
+  .#{vars.$engine_css_prefix}-even
+    > .#{vars.$engine_css_prefix}-td.#{vars.$engine_css_prefix}-shifted.#{vars.$engine_css_prefix}-frozen {
     background-color: vars.$engine_even_color;
   }
 

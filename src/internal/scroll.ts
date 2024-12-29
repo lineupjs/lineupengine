@@ -1,4 +1,3 @@
- 
 export declare type IDelayedMode = number | 'animation' | 'sync';
 
 export const defaultMode: IDelayedMode = 'animation'; // Boolean((<any>window).chrome) ? 'animation' : 0, // animation frame on chrome;
@@ -68,7 +67,7 @@ class ScrollHandler {
     if (handler.prev && Math.abs(info.left - handler.prev.left) + Math.abs(info.top - handler.prev.top) < 4) {
       return;
     }
-     
+
     handler.prev = info;
     for (const s of handler.handler) {
       s(info);
@@ -100,10 +99,10 @@ class ScrollHandler {
       if (handler.handler.length === 0) {
         return;
       }
-       
+
       handler.timer = self.setTimeout(() => {
         this.handle(handler);
-         
+
         handler.timer = -1;
       }, n);
     });

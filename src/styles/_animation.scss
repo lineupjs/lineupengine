@@ -60,8 +60,8 @@
 
     &.#{vars.$engine_css_prefix}-hide-animation > .#{vars.$engine_css_prefix}-tr {
       // in case of hiding shift update and show
-      transition: all vars.$engine_animation_update_duration vars.$engine_animation_ease vars.$engine_animation_hide_duration +
-        vars.$engine_animation_pause;
+      transition: all vars.$engine_animation_update_duration vars.$engine_animation_ease
+        vars.$engine_animation_hide_duration + vars.$engine_animation_pause;
 
       &[data-animation='hide'] {
         // since order
@@ -69,24 +69,26 @@
       }
 
       &[data-animation='show'] {
-        transition: all vars.$engine_animation_show_duration vars.$engine_animation_ease vars.$engine_animation_hide_duration +
-          vars.$engine_animation_pause;
+        transition: all vars.$engine_animation_show_duration vars.$engine_animation_ease
+          vars.$engine_animation_hide_duration + vars.$engine_animation_pause;
       }
     }
 
     &.#{vars.$engine_css_prefix}-update-animation > .#{vars.$engine_css_prefix}-tr {
       &[data-animation='show'] {
         // in case of update shift show
-        transition: all vars.$engine_animation_show_duration vars.$engine_animation_ease vars.$engine_animation_update_duration +
-          vars.$engine_animation_pause;
+        transition: all vars.$engine_animation_show_duration vars.$engine_animation_ease
+          vars.$engine_animation_update_duration + vars.$engine_animation_pause;
       }
     }
 
-    &.#{vars.$engine_css_prefix}-update-animation.#{vars.$engine_css_prefix}-hide-animation > .#{vars.$engine_css_prefix}-tr {
+    &.#{vars.$engine_css_prefix}-update-animation.#{vars.$engine_css_prefix}-hide-animation
+      > .#{vars.$engine_css_prefix}-tr {
       &[data-animation='show'] {
         // in case of both update and hide shift show twice
-        transition: all vars.$engine_animation_show_duration vars.$engine_animation_ease vars.$engine_animation_hide_duration +
-          vars.$engine_animation_pause + vars.$engine_animation_update_duration + vars.$engine_animation_pause;
+        transition: all vars.$engine_animation_show_duration vars.$engine_animation_ease
+          vars.$engine_animation_hide_duration + vars.$engine_animation_pause + vars.$engine_animation_update_duration +
+          vars.$engine_animation_pause;
       }
     }
   }

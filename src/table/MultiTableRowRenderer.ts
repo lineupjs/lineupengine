@@ -89,9 +89,9 @@ export default class MultiTableRowRenderer {
   ) {
     Object.assign(this.options, options);
     const cleanHTMLId = htmlId.startsWith('#') ? htmlId.slice(1) : htmlId;
-     
+
     node.id = cleanHTMLId;
-     
+
     node.innerHTML = `<header id="header-${cleanHTMLId}" class="${CSS_CLASS_HEADER} ${cssClass(
       `header-${cleanHTMLId}`
     )}">
@@ -122,9 +122,8 @@ export default class MultiTableRowRenderer {
 
     let offset = 0;
     this.sections.forEach((s) => {
-       
       s.body.style.left = `${offset}px`;
-       
+
       s.header.style.left = `${offset}px`;
       offset += s.width + this.options.columnPadding;
     });

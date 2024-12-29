@@ -13,7 +13,7 @@ import StyleManager from './StyleManager';
 
 export function setTemplate(root: HTMLElement, id: string): HTMLElement {
   const cleanId = id.startsWith('#') ? id.slice(1) : id;
-   
+
   root.innerHTML = `
   <header id="header-${cleanId}" class="${CSS_CLASS_HEADER} ${cssClass(`header-${cleanId}`)}">
     <article class="${CSS_CLASS_THEAD} ${cssClass(`thead-${cleanId}`)}"></article>
@@ -94,7 +94,7 @@ export default class GridStyleManager extends StyleManager {
     const bodyScroller = root.getElementsByTagName('main')[0] as HTMLElement;
 
     // async since style needs to be added to dom first
-     
+
     self.setTimeout(() => {
       const { width } = measureScrollbar(root);
       this.updateRule('__scrollBarFix2', `#header-${this.id} > article:last-of-type`, {

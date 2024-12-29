@@ -30,7 +30,6 @@ export abstract class ACellRenderer {
   private tree: QuadTreeNode | null = null;
 
   constructor(private readonly root: HTMLElement) {
-     
     root.innerHTML = template;
     root.classList.add('lineup-cell-engine');
     // this.fragment = root.ownerDocument!.createDocumentFragment();
@@ -39,7 +38,6 @@ export abstract class ACellRenderer {
   protected abstract get privateContext(): ICellContext;
 
   private get doc(): Document {
-     
     return this.root.ownerDocument!;
   }
 
@@ -144,7 +142,6 @@ export abstract class ACellRenderer {
       );
 
       inner.children.forEach((c) => {
-         
         c.parent = inner;
       });
       return inner;
@@ -207,7 +204,7 @@ export abstract class ACellRenderer {
   private renderLeaf(leaf: QuadTreeLeafNode, parent: HTMLElement) {
     const { doc } = this;
     const children = Array.from(parent.children) as HTMLElement[];
-     
+
     parent.dataset.leafCols = String(leaf.colCount);
     if (children.length > 0) {
       clear(parent);
@@ -354,11 +351,9 @@ export abstract class ACellRenderer {
 
   private static cleanUp(node: HTMLElement) {
     if (node.style.width) {
-       
       node.style.width = '';
     }
     if (node.style.height) {
-       
       node.style.height = '';
     }
     return node;

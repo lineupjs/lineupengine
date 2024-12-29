@@ -253,7 +253,6 @@ export abstract class ARowRenderer {
   }
 
   private static cleanUp(item: HTMLElement) {
-     
     item.style.height = '';
   }
 
@@ -700,7 +699,7 @@ export abstract class ARowRenderer {
 
     const run = () => {
       // dummy log for forcing dom update
-       
+
       console.assert(activeAnimation[0].node.offsetTop >= 0, 'dummy log for forcing dom update');
       executePhase(phases[actPhase]);
       actPhase += 1;
@@ -708,7 +707,7 @@ export abstract class ARowRenderer {
       if (actPhase < phases.length) {
         // schedule the next one
         const next = phases[actPhase];
-         
+
         currentTimer = self.setTimeout(run, next.delay);
         return;
       }
@@ -726,7 +725,7 @@ export abstract class ARowRenderer {
           return;
         }
         node.remove();
-         
+
         node.style.transform = '';
         this.recycle(node);
       });
@@ -780,7 +779,7 @@ export abstract class ARowRenderer {
     };
 
     // next tick such that DOM will be updated
-     
+
     currentTimer = self.setTimeout(run, phases[actPhase].delay);
   }
 
@@ -947,12 +946,12 @@ export default ARowRenderer;
 export function setTransform(elem: HTMLElement, x: number | string, y: number | string): void {
   const text = `translate(${x}px, ${y}px)`;
   const anyElem = elem as { __transform__?: string };
-   
+
   if (anyElem.__transform__ === text) {
     return;
   }
-   
+
   anyElem.__transform__ = text;
-   
+
   elem.style.transform = text;
 }
